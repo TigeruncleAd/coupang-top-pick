@@ -1,6 +1,5 @@
 import PageTitle from '../../(_components)/PageTitle'
 import { getExtensionId } from '@/serverActions/extension/extension.action'
-// @ts-expect-error: bundler resolves sibling client component at build time
 import Client from './view'
 
 export default async function ItemWinnerSourcingPage() {
