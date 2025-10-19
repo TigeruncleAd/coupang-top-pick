@@ -1,0 +1,45 @@
+'use client'
+
+import { Button } from '@repo/ui/components/button'
+import { ArrowRight } from 'lucide-react'
+import Image from 'next/image'
+import { AspectRatio } from '@repo/ui/components/aspect-ratio'
+
+export function FeatureSection2() {
+  return (
+    <section className="bg-background py-16 md:py-24">
+      <div className="container mx-auto flex flex-col items-center gap-12 px-6 md:gap-16 lg:flex-row">
+        <div className="order-2 w-full flex-1 lg:order-1">
+          <AspectRatio ratio={4 / 3}>
+            <Image
+              src="https://ui.shadcn.com/placeholder.svg"
+              alt="Hero image"
+              fill
+              className="h-full w-full rounded-xl object-cover"
+            />
+          </AspectRatio>
+        </div>
+        <div className="order-1 flex flex-1 flex-col gap-8 lg:order-2">
+          <div className="flex flex-col gap-4 md:gap-5">
+            <p className="text-muted-foreground text-sm font-semibold md:text-base">Feature section</p>
+            <h2 className="text-foreground text-3xl font-bold md:text-4xl">
+              Headline that shows solution's impact on user success
+            </h2>
+            <p className="text-muted-foreground text-base">
+              Explain in one or two concise sentences how your solution transforms users' challenges into positive
+              outcomes. Focus on the end benefits that matter most to your target audience. Keep it clear and
+              compelling.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button>Get access</Button>
+            <Button variant="ghost">
+              Learn more
+              <ArrowRight />
+            </Button>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}

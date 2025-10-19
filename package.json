@@ -1,0 +1,35 @@
+{
+  "name": "king-sourcing-ui",
+  "private": true,
+  "version": "1.0.1",
+  "prisma": {
+    "schema": "packages/database/prisma/schema.prisma",
+    "seed": "tsx packages/database/src/seed.ts"
+  },
+  "scripts": {
+    "build": "turbo build",
+    "build:market-api": "turbo run build --scope market-api",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "generate": "turbo run generate",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "db:push": "turbo db:push"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^20.19.13",
+    "prettier": "^3.6.2",
+    "prettier-plugin-tailwindcss": "^0.6.14",
+    "turbo": "2.5.3",
+    "typescript": "5.7.3"
+  },
+  "packageManager": "pnpm@10.4.1",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@prisma/client": "latest",
+    "recharts": "^2.15.4"
+  }
+}

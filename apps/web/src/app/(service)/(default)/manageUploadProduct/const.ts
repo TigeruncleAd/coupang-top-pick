@@ -1,0 +1,20 @@
+// 0.5:4400,1:5100,2:6500,3:8300,4:9300,5:10700,6:12100,7:13500,8:14900,9:16300,10:17700,15:24700,20:31700,25:38700,30:45700,35:52700,40:59700
+export const defaultWeightPrices = [
+  { weight: 0.5, price: 4400 },
+  { weight: 1, price: 5100 },
+  { weight: 2, price: 6500 },
+  { weight: 3, price: 8300 },
+  { weight: 4, price: 9300 },
+  { weight: 5, price: 10700 },
+  { weight: 6, price: 12100 },
+  { weight: 7, price: 13500 },
+  { weight: 8, price: 14900 },
+  { weight: 9, price: 16300 },
+  { weight: 10, price: 17700 },
+  { weight: 15, price: 24700 },
+  { weight: 20, price: 31700 },
+  { weight: 25, price: 38700 },
+  { weight: 30, price: 45700 },
+  { weight: 35, price: 52700 },
+  { weight: 40, price: 59700 },
+]

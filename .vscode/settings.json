@@ -1,0 +1,13 @@
+{
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "terminal.integrated.profiles.osx": {
+    "bash": {
+      "path": "arch",
+      "args": ["-arm64", "bash", "-l"],
+      "overrideName": true
+    }
+  },
+  "terminal.integrated.defaultProfile.osx": "bash",
+  "tailwindCSS.classAttributes": ["class", "className", "extraClass"]
+}

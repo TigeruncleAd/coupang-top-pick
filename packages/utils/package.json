@@ -1,0 +1,19 @@
+{
+  "name": "@repo/utils",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.18",
+    "react": "^19.1.1",
+    "react-image-file-resizer": "^0.4.8",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^20.19.13",
+    "@types/react": "^19.1.12"
+  }
+}

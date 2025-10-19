@@ -1,0 +1,777 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../generated/client"
+  binaryTargets = ["native", "rhel-openssl-3.0.x", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                          BigInt       @id @default(autoincrement())
+  createdAt                   DateTime     @default(now())
+  accountId                   String       @unique
+  password                    String
+  name                        String       @default("")
+  role                        ROLE         @default(USER)
+  status                      USER_STATUS  @default(ACTIVE)
+  bizName                     String       @default("")
+  bizNumber                   String       @default("")
+  expiredAt                   DateTime     @default(now())
+  lastLoginAt                 DateTime     @default(now())
+  lastPaidAt                  DateTime     @default(now())
+  license                     LICENSE_TYPE @default(A)
+  maxProductCount             Int          @default(200)
+  maxUploadProductCount       Int          @default(0)
+  memo                        String       @default("")
+  points                      Int          @default(0)
+  remainingProductCount       Int          @default(200)
+  remainingUploadProductCount Int          @default(0)
+
+  referral Referral?
+
+  banWords Banwords?
+
+  crawlingLogs    CrawlingLog[]
+  marketApiKeys   MarketApiKey[]
+  marketApiTokens MarketApiToken[]
+  marketSetting   MarketSetting?
+  products        Product[]
+  searchedMalls   SearchedMall[]
+  userKeywords    UserKeyword[]
+  
+  // 랭킹 추적 관련
+  productGroups   ProductGroup[]
+  
+  // 새로운 정규화된 관계들
+  userTrackedProducts UserTrackedProduct[]
+  
+}
+
+model Banwords {
+  userId   BigInt   @id
+  banWords String[] @default([])
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MarketApiToken {
+  id     BigInt   @id @default(autoincrement())
+  date   DateTime @default(now())
+  token  String
+  market MARKET
+  userId BigInt
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([market, userId])
+  @@index([userId])
+}
+
+model MarketSetting {
+  id                        BigInt   @id @default(autoincrement())
+  date                      DateTime @default(now())
+  userId                    BigInt   @unique
+  coupangKey                String   @default("")
+  coupangSecret             String   @default("")
+  coupangVendorId           String   @default("")
+  coupangOutboundTimeDay    Int      @default(7)
+  coupangMarketId           String   @default("")
+  coupangMarketName         String   @default("")
+  coupangMargin             Int      @default(0)
+  smartStoreKey             String   @default("")
+  smartStoreSecret          String   @default("")
+  smartStoreMarketId        String   @default("")
+  smartStoreMarketName      String   @default("")
+  smartStoreAsPhoneNumber   String   @default("")
+  smartStoreOutboundPlaceId String   @default("")
+  smartStoreMargin          Int      @default(0)
+  topImages                 String[] @default([])
+  bottomImages              String[] @default([])
+  esmKey                    String   @default("")
+  esmSecret                 String   @default("")
+  esmMargin                 Int      @default(0)
+  esmId                     String   @default("")
+  esmPassword               String   @default("")
+  street11Key               String   @default("")
+  street11Secret            String   @default("")
+  street11IsGlobal          Boolean  @default(false)
+  street11Margin            Int      @default(0)
+  gOctionKey                String   @default("")
+  gOctionSecret             String   @default("")
+
+  optionImagePosition OPTION_IMAGE_POSITION @default(TOP) // 옵션 이미지 노출 위치
+  exchangeShippingFee Int                   @default(0) // 교환배송비
+  returnShippingFee   Int                   @default(0) // 반품배송비
+
+  smartStoreAddFirstOptionToProductName Boolean @default(false) // 스마트스토어 상품명에 첫번째 옵션명 추가
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MarketApiKey {
+  id              BigInt   @id @default(autoincrement())
+  date            DateTime @default(now())
+  key             String
+  secret          String
+  marketId        String   @default("")
+  vendorId        String   @default("")
+  outboundTimeDay Int      @default(7)
+  misc            Json     @default("{}")
+  market          MARKET
+  userId          BigInt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([market, userId])
+  @@index([userId])
+}
+
+model Product {
+  id                      BigInt          @id @default(autoincrement())
+  createdAt               DateTime        @default(now())
+  name                    String          @default("")
+  originalPrice           Int             @default(0)
+  tags                    String[]        @default([])
+  coupangProductId        String          @default("")
+  date                    String          @default("")
+  deliveryAgencyFee       Int             @default(0)
+  deliveryFee             Int             @default(0)
+  detail                  String          @default("")
+  discountedPrice         Int             @default(0)
+  esmProductId            String          @default("")
+  gmarketProductId        String          @default("")
+  image                   String          @default("")
+  isComplete              Boolean         @default(false)
+  isCoupangUploaded       Boolean         @default(false)
+  isEsmUploaded           Boolean         @default(false)
+  isGmarketUploaded       Boolean         @default(false)
+  isOctionUploaded        Boolean         @default(false)
+  isSmartStoreUploaded    Boolean         @default(false)
+  isStreet11Uploaded      Boolean         @default(false)
+  madeIn                  String          @default("CHINA")
+  mallId                  BigInt?
+  marketUploadStatus      PRODUCT_STATUS  @default(PENDING)
+  memo                    String          @default("")
+  myDeliveryFee           Int             @default(0)
+  myMargin                Int             @default(0)
+  myName                  String          @default("")
+  myPrice                 Int             @default(0)
+  myDiscountedPrice       Int             @default(0)
+  octionProductId         String          @default("")
+  optionGroup1            String          @default("")
+  optionGroup2            String          @default("")
+  optionGroup3            String          @default("")
+  options                 Json            @default("[]")
+  productId               String          @default("")
+  selectedTaobaoProductId BigInt?         @unique
+  smartStoreCategoryId    String?
+  smartStoreProductId     String          @default("")
+  status                  PRODUCT_STATUS  @default(PENDING)
+  street11ProductId       String          @default("")
+  taobaoId                String          @default("")
+  taobaoUrl               String          @default("")
+  thumbnails              String[]        @default([])
+  type                    String          @default("")
+  url                     String          @default("")
+  userId                  BigInt
+  category                Json            @default("[]")
+  mall                    SearchedMall?   @relation(fields: [mallId], references: [id])
+  selectedTaobaoProduct   TaobaoProduct?  @relation("selectedTaobaoProduct", fields: [selectedTaobaoProductId], references: [id])
+  smartStoreCategory      Category?       @relation(fields: [smartStoreCategoryId], references: [smartStoreId])
+  user                    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taobaoProducts          TaobaoProduct[] @relation("targetProduct")
+
+  misc Json @default("{}")
+
+  @@unique([userId, productId])
+  @@index([userId, marketUploadStatus])
+  @@index([mallId])
+  @@index([madeIn, userId, date])
+  @@index([madeIn, userId, date, selectedTaobaoProductId])
+}
+
+model TaobaoProduct {
+  id              BigInt   @id @default(autoincrement())
+  createdAt       DateTime @default(now())
+  taobaoId        String   @default("")
+  name            String   @default("")
+  url             String   @default("")
+  image           String   @default("")
+  price           Float    @default(0)
+  priceUnit       String   @default("CNY")
+  isSelected      Boolean  @default(false)
+  targetProductId BigInt
+  cnName          String   @default("")
+  detail          String   @default("")
+  options         Json     @default("[]")
+  thumbnails      String[] @default([])
+  status          String   @default("PENDING")
+  matchedCount    Int      @default(1)
+  selectedProduct Product? @relation("selectedTaobaoProduct")
+  targetProduct   Product  @relation("targetProduct", fields: [targetProductId], references: [id], onDelete: Cascade)
+  originalData    Json     @default("{}")
+  myData          Json     @default("{}")
+
+  @@index([targetProductId])
+}
+
+model CrawlingLog {
+  id             BigInt   @id @default(autoincrement())
+  createdAt      DateTime @default(now())
+  date           DateTime @default(now())
+  content        Json     @default("{}")
+  requestedCount Int      @default(0)
+  successCount   Int      @default(0)
+  failedCount    Int      @default(0)
+  userId         BigInt
+  user           User     @relation(fields: [userId], references: [id])
+}
+
+model SearchedMall {
+  id         BigInt         @id @default(autoincrement())
+  createdAt  DateTime       @default(now())
+  date       String         @default("")
+  from       String         @default("NAVER")
+  isComplete Boolean        @default(false)
+  status     PRODUCT_STATUS @default(PENDING)
+  userId     BigInt
+  mallId     String         @default("")
+  mallName   String         @default("")
+  mallPcUrl  String         @default("")
+  mallLogo   String         @default("")
+  keyword    String         @default("")
+  products   Product[]
+  user       User           @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date, mallId])
+  @@index([userId])
+  @@index([userId, date, keyword])
+}
+
+model Category {
+  id              BigInt            @id @default(autoincrement())
+  smartStoreId    String            @unique @default("")
+  name            String            @default("")
+  fullName        String            @default("")
+  order           Int               @default(0)
+  parentId        BigInt?
+  level           Int               @default(1)
+  coupangId       String            @default("")
+  coupangName     String            @default("")
+  esmId           String            @default("")
+  esmName         String            @default("")
+  gmarketId       String            @default("")
+  gmarketName     String            @default("")
+  octionId        String            @default("")
+  octionName      String            @default("")
+  smartStoreName  String            @default("")
+  street11Id      String            @default("")
+  street11Name    String            @default("")
+  parent          Category?         @relation("Children", fields: [parentId], references: [id])
+  childrens       Category[]        @relation("Children")
+  itemExploration ItemExploration[]
+  keywords        Keyword[]
+  products        Product[]
+  trends          Trend[]
+
+  @@index([smartStoreId])
+  @@index([smartStoreName])
+}
+
+model MallBlackList {
+  id       BigInt  @id @default(autoincrement())
+  mallId   String  @default("")
+  mallUrl  String  @default("")
+  mallName String  @default("")
+  memo     String  @default("")
+  userId   BigInt?
+
+  @@index([userId])
+}
+
+model HostedImage {
+  id     BigInt   @id @default(autoincrement())
+  keys   String[] @default([])
+  userId BigInt
+
+  @@index([userId])
+}
+
+model Misc {
+  key   String @id
+  value Json   @default("{}")
+}
+
+model Log {
+  id        BigInt   @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  content   Json     @default("{}")
+}
+
+model Setting {
+  key   String @id
+  value String
+  data  Json   @default("{}")
+}
+
+model Keyword {
+  id                             BigInt         @id @default(autoincrement())
+  createdAt                      DateTime       @default(now())
+  updatedAt                      DateTime       @updatedAt
+  keyword                        String         @unique
+  productCount                   Int            @default(0)
+  realTradeRatio                 Float          @default(0)
+  overseasRatio                  Float          @default(0)
+  adClickCompetitionRatio        Float          @default(0)
+  adClickCount                   Int            @default(0)
+  adClickRatio                   Float          @default(0)
+  adClickRatioMobile             Float          @default(0)
+  adClickRatioPC                 Float          @default(0)
+  adInfoUpdatedAt                DateTime       @default(now())
+  adPrice                        Float          @default(0)
+  adPricePerClick                Float          @default(0)
+  adPricePerPrice                Float          @default(0)
+  bundleRatio                    Float          @default(0)
+  categoryId                     BigInt
+  coupangBundleRatio             Float          @default(0)
+  coupangOverseasRatio           Float          @default(0)
+  coupangProductAveragePrice     Int            @default(0)
+  coupangProductCompetitionScore Float          @default(0)
+  coupangProductCount            Int            @default(0)
+  coupangRecentYearRatio         Float          @default(0)
+  coupangRocketProductCount      Int            @default(0)
+  coupangRocketProductRatio      Float          @default(0)
+  coupangeAverageReviewCount     Int            @default(0)
+  datalabInfoUpdatedAt           DateTime       @default(now())
+  hashedKeyword                  String         @unique
+  misc                           Json           @default("{}")
+  adMisc                         Json           @default("{}")
+  miscBackup                     Json           @default("{}")
+  mobileSearchCount              Int            @default(0)
+  monthlySearchCount             Int            @default(0)
+  pcSearchCount                  Int            @default(0)
+  productCompetitionScore        Float          @default(0)
+  recentYearRatio                Float          @default(0)
+  relatedKeywords                Json           @default("[]")
+  top40AveragePrice              Int            @default(0)
+  top40Sales                     Int            @default(0)
+  top40SalesCount                Int            @default(0)
+  top80AveragePrice              Int            @default(0)
+  top80Sales                     Int            @default(0)
+  top80SalesCount                Int            @default(0)
+  itemKeywords                   ItemKeyword[]
+  category                       Category       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  trendKeywords                  TrendKeyword[]
+  userKeywords                   UserKeyword[]
+
+  @@index([keyword])
+  @@index([hashedKeyword])
+  @@index([categoryId])
+}
+
+model Trend {
+  categoryId   BigInt
+  date         String
+  type         TREND_TYPE
+  bestProducts Json           @default("[]")
+  misc         Json           @default("{}")
+  id           BigInt         @id @default(autoincrement())
+  category     Category       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  TrendKeyword TrendKeyword[]
+
+  @@unique([categoryId, type])
+  @@index([categoryId])
+  @@index([categoryId, type])
+}
+
+model TrendKeyword {
+  id         BigInt  @id @default(autoincrement())
+  trendId    BigInt
+  keywordId  BigInt
+  rank       Int
+  changeRate String
+  misc       Json    @default("{}")
+  keyword    Keyword @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+  Trend      Trend   @relation(fields: [trendId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([trendId])
+  @@index([keywordId])
+}
+
+model ItemExploration {
+  id           BigInt        @id @default(autoincrement())
+  createdAt    DateTime      @default(now())
+  categoryId   BigInt
+  device       String        @default("PC")
+  gender       String        @default("ALL")
+  startDate    String        @default("")
+  endDate      String        @default("")
+  age          String        @default("ALL")
+  category     Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  itemKeywords ItemKeyword[]
+
+  @@index([categoryId])
+  @@index([categoryId, device, gender, startDate, endDate, age])
+  @@index([createdAt])
+}
+
+model ItemKeyword {
+  id                BigInt          @id @default(autoincrement())
+  itemExplorationId BigInt
+  keywordId         BigInt
+  rank              Int             @default(0)
+  itemExploration   ItemExploration @relation(fields: [itemExplorationId], references: [id], onDelete: Cascade)
+  keyword           Keyword         @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+}
+
+model UserKeyword {
+  id                             BigInt   @id @default(autoincrement())
+  createdAt                      DateTime @default(now())
+  updatedAt                      DateTime @updatedAt
+  searchedAt                     DateTime @default(now())
+  keywordId                      BigInt
+  userId                         BigInt
+  isBookMarked                   Boolean  @default(false)
+  source                         String   @default("search") // "search" | "trend"
+  productCount                   Int      @default(0)
+  monthlySearchCount             Int      @default(0)
+  mobileSearchCount              Int      @default(0)
+  pcSearchCount                  Int      @default(0)
+  top40SalesCount                Int      @default(0)
+  top40Sales                     Int      @default(0)
+  top40AveragePrice              Int      @default(0)
+  top80SalesCount                Int      @default(0)
+  top80Sales                     Int      @default(0)
+  top80AveragePrice              Int      @default(0)
+  relatedKeywords                Json     @default("[]")
+  productCompetitionScore        Float    @default(0)
+  realTradeRatio                 Float    @default(0)
+  bundleRatio                    Float    @default(0)
+  overseasRatio                  Float    @default(0)
+  recentYearRatio                Float    @default(0)
+  adClickCount                   Int      @default(0)
+  adClickRatio                   Float    @default(0)
+  adClickRatioPC                 Float    @default(0)
+  adClickRatioMobile             Float    @default(0)
+  adClickCompetitionRatio        Float    @default(0)
+  adPrice                        Float    @default(0)
+  adPricePerPrice                Float    @default(0)
+  adPricePerClick                Float    @default(0)
+  coupangProductCount            Int      @default(0)
+  coupangRocketProductCount      Int      @default(0)
+  coupangProductAveragePrice     Int      @default(0)
+  coupangeAverageReviewCount     Int      @default(0)
+  coupangRocketProductRatio      Float    @default(0)
+  coupangProductCompetitionScore Float    @default(0)
+  coupangBundleRatio             Float    @default(0)
+  coupangOverseasRatio           Float    @default(0)
+  coupangRecentYearRatio         Float    @default(0)
+  misc                           Json     @default("{}")
+  productInfos                   Json     @default("[]")
+  keyword                        Keyword  @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+  user                           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([keywordId])
+  @@index([userId])
+  @@index([searchedAt(sort: Desc), keywordId])
+  @@unique([userId, keywordId])
+}
+
+model Notice {
+  id        BigInt   @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  serviceType SERVICE_TYPE @default(SHIPPING_AGENCY)
+
+  title   String      @default("")
+  content String      @default("")
+  type    NOTICE_TYPE @default(NORMAL)
+
+  @@index([type])
+  @@index([createdAt(sort: Desc)])
+}
+
+model TaoTokens {
+  id            Int       @id @default(autoincrement())
+  app_key       String
+  app_secret    String
+  access_token  String
+  refresh_token String
+  created_at    DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime? @default(now()) @db.Timestamptz(6)
+}
+
+model Referral {
+  id        BigInt   @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  code String? @unique // 1차 레퍼럴만 코드를 가짐
+
+  level REFERRAL_LEVEL @default(PRIMARY) // 1차 레퍼럴인지 2차 레퍼럴인지
+
+  type REFERRAL_TYPE @default(NORMAL)
+
+  userId BigInt? @unique
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 하부 레퍼럴 관계
+  parentReferralId BigInt?
+  parentReferral   Referral?  @relation("ReferralHierarchy", fields: [parentReferralId], references: [id], onDelete: Cascade)
+  childReferrals   Referral[] @relation("ReferralHierarchy")
+
+  @@index([type])
+  @@index([userId])
+  @@index([parentReferralId])
+}
+
+enum ROLE {
+  ADMIN
+  USER
+  SUPER_ADMIN
+  AGENCY
+}
+
+enum LICENSE_TYPE {
+  NONE
+  A
+  S
+}
+
+enum USER_STATUS {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+enum PRODUCT_STATUS {
+  PENDING
+  CRAWLING
+  CRAWLED
+  PARTIALY_FAILED
+  FAILED
+}
+
+enum MARKET {
+  SMART_STORE
+  COUPANG
+  ESM
+  STREET11
+  G_OCTION
+}
+
+enum NOTICE_TYPE {
+  NORMAL
+  URGENT
+}
+
+enum TREND_TYPE {
+  DAILY
+  WEEKLY
+}
+
+enum OPTION_IMAGE_POSITION {
+  TOP
+  BOTTOM
+}
+
+enum SERVICE_TYPE {
+  SHIPPING_AGENCY
+  KEYWORD_ANALYZE
+  BLOG_TOOL
+}
+
+enum REFERRAL_TYPE {
+  NORMAL
+}
+
+enum REFERRAL_LEVEL {
+  PRIMARY // 1차 레퍼럴
+  SECONDARY // 2차 레퍼럴
+}
+
+// 랭킹 추적 관련 모델들
+
+// 새로운 정규화된 모델들
+
+// 1. 상품 기본 정보 (공통)
+model TrackedProduct {
+  id          BigInt   @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // 기본 상품 정보
+  name        String
+  url         String   @unique
+  market      String   // 'naver' | 'coupang'
+  storeName   String
+  productImage String?
+  
+  // 상품 상세 정보
+  price       Int?
+  originalPrice Int?
+  discountRate Float?
+  rating      Float?
+  reviewCount Int?
+  
+  // 상태 정보
+  isActive    Boolean  @default(true)
+  
+  // 히스토리 데이터 (JSON)
+  historyData Json?
+  
+  // 상품 메타데이터 (JSON)
+  metadata    Json?
+  
+  // 관계
+  groupId     BigInt?
+  group       ProductGroup? @relation(fields: [groupId], references: [id])
+  
+  // 추적 데이터
+  rankings    ProductRanking[]
+  changes     ProductChange[]
+  
+  // 사용자별 추적 상품 관계
+  userTrackedProducts UserTrackedProduct[]
+  
+  // 경쟁 상품 관계
+  asCompetitorProduct UserCompetitor[] @relation("CompetitorProduct")
+  
+  @@index([market])
+  @@index([isActive])
+  @@index([groupId])
+}
+
+// 2. 사용자별 추적 상품 (사용자-상품 관계)
+model UserTrackedProduct {
+  id          BigInt   @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // 관계
+  userId      BigInt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId   BigInt
+  product     TrackedProduct  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  // 사용자별 설정
+  isActive    Boolean  @default(true)
+  customName  String?  // 사용자가 설정한 별칭
+  
+  // 경쟁 상품 관계
+  competitors UserCompetitor[]
+  
+  // 추적 키워드 관계
+  keywords    TrackedKeyword[]
+  
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
+}
+
+// 3. 사용자별 경쟁 상품 관계
+model UserCompetitor {
+  id          BigInt   @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // 관계 (UserTrackedProduct를 통해서만 접근)
+  mainProductId     BigInt
+  mainProduct       UserTrackedProduct @relation(fields: [mainProductId], references: [id], onDelete: Cascade)
+  
+  competitorProductId BigInt
+  competitorProduct   TrackedProduct @relation("CompetitorProduct", fields: [competitorProductId], references: [id], onDelete: Cascade)
+  
+  // 경쟁 상품 추적 데이터
+  trackingData Json?  // 순위, 검색량 등 추적 데이터
+  
+  @@unique([mainProductId, competitorProductId])
+  @@index([mainProductId])
+  @@index([competitorProductId])
+}
+
+
+model TrackedKeyword {
+  id          BigInt   @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  keyword     String
+  market      String   // 'naver' | 'coupang'
+  isActive    Boolean  @default(true)
+  
+  // 관계 (UserTrackedProduct와 연결)
+  userTrackedProductId BigInt?
+  userTrackedProduct   UserTrackedProduct? @relation(fields: [userTrackedProductId], references: [id], onDelete: Cascade)
+  
+  // 추적 데이터
+  rankings    ProductRanking[]
+  
+  @@unique([userTrackedProductId, keyword]) // userTrackedProduct + keyword에 대해 unique
+  @@index([userTrackedProductId])
+  @@index([market])
+}
+
+model ProductRanking {
+  id          BigInt   @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  
+  // 랭킹 정보
+  rank        Int
+  previousRank Int?
+  change      Int?     // 이전 순위 대비 변화량
+  changeType  String?  // 'up' | 'down' | 'same'
+  
+  // 검색 조건
+  keywordText String   // 키워드 텍스트 (검색용)
+  market      String
+  searchType  String?  // 'all' | 'ad' | 'organic'
+  
+  // 관계
+  productId BigInt?
+  product   TrackedProduct? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  keywordId   BigInt?
+  keyword     TrackedKeyword? @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+  
+  @@index([productId])
+  @@index([keywordId])
+  @@index([createdAt])
+  @@index([market, keywordText])
+}
+
+model ProductChange {
+  id          BigInt   @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  
+  // 변화 정보
+  changeType  String   // 'name' | 'price' | 'image' | 'tags' | 'description'
+  beforeValue String
+  afterValue  String
+  description String?
+  
+  // 관계
+  productId BigInt?
+  product   TrackedProduct? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@index([productId])
+  @@index([changeType])
+  @@index([createdAt])
+}
+
+model ProductGroup {
+  id          BigInt   @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  name        String
+  description String?
+  color       String?  // 그룹 색상
+  
+  // 관계
+  userId      BigInt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products    TrackedProduct[]
+  
+  @@index([userId])
+}

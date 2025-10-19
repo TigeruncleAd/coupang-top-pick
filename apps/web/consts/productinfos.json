@@ -1,0 +1,3011 @@
+[
+  {
+    "rank": "1",
+    "brand": null,
+    "pcUrl": "https://smartstore.naver.com/main/products/11952167108",
+    "price": 4900,
+    "score": "4.76",
+    "mblUrl": "https://m.smartstore.naver.com/main/products/11952167108",
+    "mallUrl": "https://smartstore.naver.com/sds5588",
+    "mallName": "푸드워치",
+    "keepCount": 128,
+    "mallGrade": "M44006",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 247,
+    "isBrandStore": "0",
+    "purchaseCount": 520
+  },
+  {
+    "rank": "4",
+    "brand": null,
+    "pcUrl": "https://smartstore.naver.com/main/products/10969263652",
+    "price": 6400,
+    "score": "4.66",
+    "mblUrl": "https://m.smartstore.naver.com/main/products/10969263652",
+    "mallUrl": "https://smartstore.naver.com/fromnature1",
+    "mallName": "올바담",
+    "keepCount": 1011,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 9158,
+    "isBrandStore": "0",
+    "purchaseCount": 13316
+  },
+  {
+    "rank": "13",
+    "brand": null,
+    "pcUrl": "https://smartstore.naver.com/main/products/9623482425",
+    "price": 8900,
+    "score": "4.75",
+    "mblUrl": "https://m.smartstore.naver.com/main/products/9623482425",
+    "mallUrl": "https://smartstore.naver.com/sffood",
+    "mallName": "맛통령 프리미엄",
+    "keepCount": 67,
+    "mallGrade": "M44005",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 177,
+    "isBrandStore": "0",
+    "purchaseCount": 0
+  },
+  {
+    "rank": 1,
+    "brand": "과일꾼",
+    "pcUrl": "https://smartstore.naver.com/main/products/11749244013",
+    "price": 7900,
+    "score": 4.78,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/11749244013",
+    "mallUrl": "https://smartstore.naver.com/fruitggun",
+    "mallName": "과일꾼",
+    "keepCount": 670,
+    "mallGrade": "M44002",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 3000,
+    "reviewCount": 3575,
+    "isBrandStore": 4,
+    "purchaseCount": 9991
+  },
+  {
+    "rank": 2,
+    "brand": "봉이네",
+    "pcUrl": "https://smartstore.naver.com/main/products/4554745415",
+    "price": 7900,
+    "score": 4.61,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/4554745415",
+    "mallUrl": "https://smartstore.naver.com/tallerfarm",
+    "mallName": "봉이네농장",
+    "keepCount": 1302,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 33564,
+    "isBrandStore": 0,
+    "purchaseCount": 13832
+  },
+  {
+    "rank": 3,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/8452697461",
+    "price": 7900,
+    "score": 4.72,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/8452697461",
+    "mallUrl": "https://smartstore.naver.com/gilsuki_farm",
+    "mallName": "길숙이 농산",
+    "keepCount": 2496,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 24496,
+    "isBrandStore": 0,
+    "purchaseCount": 10258
+  },
+  {
+    "rank": 4,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/5134400582",
+    "price": 10900,
+    "score": 4.68,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/5134400582",
+    "mallUrl": "https://smartstore.naver.com/jeongstory",
+    "mallName": "정성가득 정이가",
+    "keepCount": 2489,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 31409,
+    "isBrandStore": 0,
+    "purchaseCount": 5443
+  },
+  {
+    "rank": 5,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/7812055650",
+    "price": 22900,
+    "score": 4.78,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/7812055650",
+    "mallUrl": "https://smartstore.naver.com/jejufreshtable",
+    "mallName": "제주애월언니",
+    "keepCount": 1941,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 4902,
+    "isBrandStore": 0,
+    "purchaseCount": 0
+  },
+  {
+    "rank": 6,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/11085470254",
+    "price": 11900,
+    "score": 4.73,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/11085470254",
+    "mallUrl": "https://smartstore.naver.com/gilsuki_farm",
+    "mallName": "길숙이 농산",
+    "keepCount": 831,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 3250,
+    "isBrandStore": 0,
+    "purchaseCount": 5340
+  },
+  {
+    "rank": 7,
+    "brand": "세모농",
+    "pcUrl": "https://smartstore.naver.com/main/products/6956813524",
+    "price": 6900,
+    "score": 4.74,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/6956813524",
+    "mallUrl": "https://smartstore.naver.com/semonong12",
+    "mallName": "세모농.",
+    "keepCount": 773,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 7887,
+    "isBrandStore": 0,
+    "purchaseCount": 4048
+  },
+  {
+    "rank": 8,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/4675389030",
+    "price": 3200,
+    "score": 4.75,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/4675389030",
+    "mallUrl": "https://smartstore.naver.com/hslocalfood",
+    "mallName": "홍성로컬푸드협동조합",
+    "keepCount": 286,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 3500,
+    "reviewCount": 7574,
+    "isBrandStore": 0,
+    "purchaseCount": 1705
+  },
+  {
+    "rank": 9,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/5255110066",
+    "price": 19900,
+    "score": 4.71,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/5255110066",
+    "mallUrl": "https://smartstore.naver.com/gujwacarrot",
+    "mallName": "구좌당근",
+    "keepCount": 431,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 7527,
+    "isBrandStore": 0,
+    "purchaseCount": 3376
+  },
+  {
+    "rank": 10,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/10969263652",
+    "price": 6400,
+    "score": 4.66,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/10969263652",
+    "mallUrl": "https://smartstore.naver.com/fromnature1",
+    "mallName": "올바담",
+    "keepCount": 1011,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 9160,
+    "isBrandStore": 0,
+    "purchaseCount": 13316
+  },
+  {
+    "rank": 11,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/131133129",
+    "price": 8900,
+    "score": 4.59,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/131133129",
+    "mallUrl": "https://smartstore.naver.com/aboutfood",
+    "mallName": "햇살조은",
+    "keepCount": 359,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 35244,
+    "isBrandStore": 0,
+    "purchaseCount": 2840
+  },
+  {
+    "rank": 12,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/6001441260",
+    "price": 14400,
+    "score": 4.69,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/6001441260",
+    "mallUrl": "https://smartstore.naver.com/seokdaeyn",
+    "mallName": "친환경 마음밭",
+    "keepCount": 225,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 4403,
+    "isBrandStore": 0,
+    "purchaseCount": 1771
+  },
+  {
+    "rank": 13,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/5552937915",
+    "price": 7800,
+    "score": 4.78,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/5552937915",
+    "mallUrl": "https://smartstore.naver.com/wssj",
+    "mallName": "베지토피아몰",
+    "keepCount": 272,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 3855,
+    "isBrandStore": 0,
+    "purchaseCount": 3831
+  },
+  {
+    "rank": 14,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/9783014361",
+    "price": 9900,
+    "score": 4.51,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/9783014361",
+    "mallUrl": "https://smartstore.naver.com/wowjangter",
+    "mallName": "와우 장터",
+    "keepCount": 209,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 1851,
+    "isBrandStore": 0,
+    "purchaseCount": 1300
+  },
+  {
+    "rank": 15,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/5603243132",
+    "price": 12900,
+    "score": 4.79,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/5603243132",
+    "mallUrl": "https://smartstore.naver.com/farmerkim",
+    "mallName": "김농부",
+    "keepCount": 87,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 1179,
+    "isBrandStore": 0,
+    "purchaseCount": 331
+  },
+  {
+    "rank": 16,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/10133058430",
+    "price": 7400,
+    "score": 4.56,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/10133058430",
+    "mallUrl": "https://smartstore.naver.com/comebuy",
+    "mallName": "생활의참견",
+    "keepCount": 309,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 1282,
+    "isBrandStore": 0,
+    "purchaseCount": 433
+  },
+  {
+    "rank": 17,
+    "brand": "대한민국농수산",
+    "pcUrl": "https://smartstore.naver.com/main/products/9108471141",
+    "price": 7900,
+    "score": 4.66,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/9108471141",
+    "mallUrl": "https://smartstore.naver.com/koreasusan1",
+    "mallName": "대한민국농수산",
+    "keepCount": 2719,
+    "mallGrade": "M44002",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 30427,
+    "isBrandStore": 4,
+    "purchaseCount": 7372
+  },
+  {
+    "rank": 18,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/3219869397",
+    "price": 8900,
+    "score": 4.81,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/3219869397",
+    "mallUrl": "https://smartstore.naver.com/yachae-farm",
+    "mallName": "야채팜",
+    "keepCount": 146,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 9397,
+    "isBrandStore": 0,
+    "purchaseCount": 1002
+  },
+  {
+    "rank": 19,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/9465310732",
+    "price": 3500,
+    "score": 4.75,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/9465310732",
+    "mallUrl": "https://smartstore.naver.com/kirinfresh",
+    "mallName": "기린농산",
+    "keepCount": 262,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 1496,
+    "isBrandStore": 0,
+    "purchaseCount": 0
+  },
+  {
+    "rank": 20,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/11270675024",
+    "price": 7500,
+    "score": 4.74,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/11270675024",
+    "mallUrl": "https://smartstore.naver.com/green_field_farm",
+    "mallName": "푸른들팜",
+    "keepCount": 62,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 3000,
+    "reviewCount": 538,
+    "isBrandStore": 0,
+    "purchaseCount": 726
+  },
+  {
+    "rank": 21,
+    "brand": "미리내농수산",
+    "pcUrl": "https://smartstore.naver.com/main/products/11187996353",
+    "price": 5700,
+    "score": 4.65,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/11187996353",
+    "mallUrl": "https://smartstore.naver.com/dal-dal_farm",
+    "mallName": "미리내 농수산",
+    "keepCount": 410,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 3000,
+    "reviewCount": 1803,
+    "isBrandStore": 4,
+    "purchaseCount": 1319
+  },
+  {
+    "rank": 22,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/11525390908",
+    "price": 6900,
+    "score": 4.78,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/11525390908",
+    "mallUrl": "https://smartstore.naver.com/onfarmers",
+    "mallName": "오늘의 파머스",
+    "keepCount": 43,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 147,
+    "isBrandStore": 0,
+    "purchaseCount": 0
+  },
+  {
+    "rank": 23,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/6173649748",
+    "price": 8900,
+    "score": 4.66,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/6173649748",
+    "mallUrl": "https://smartstore.naver.com/superior1",
+    "mallName": "우월한농수산",
+    "keepCount": 361,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 11595,
+    "isBrandStore": 0,
+    "purchaseCount": 307
+  },
+  {
+    "rank": 24,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/5988865903",
+    "price": 4900,
+    "score": 4.9,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/5988865903",
+    "mallUrl": "https://smartstore.naver.com/nsmaru1",
+    "mallName": "농산물마루",
+    "keepCount": 69,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 970,
+    "isBrandStore": 0,
+    "purchaseCount": 353
+  },
+  {
+    "rank": 25,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/4741399461",
+    "price": 9900,
+    "score": 4.52,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/4741399461",
+    "mallUrl": "https://smartstore.naver.com/marketfruit",
+    "mallName": "프레시잉",
+    "keepCount": 570,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 25648,
+    "isBrandStore": 0,
+    "purchaseCount": 663
+  },
+  {
+    "rank": 26,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/7790615331",
+    "price": 19900,
+    "score": 4.77,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/7790615331",
+    "mallUrl": "https://smartstore.naver.com/vs1946",
+    "mallName": "도하네농장",
+    "keepCount": 1863,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 4675,
+    "isBrandStore": 0,
+    "purchaseCount": 1420
+  },
+  {
+    "rank": 27,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/11952167108",
+    "price": 4900,
+    "score": 4.76,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/11952167108",
+    "mallUrl": "https://smartstore.naver.com/sds5588",
+    "mallName": "푸드워치",
+    "keepCount": 128,
+    "mallGrade": "M44006",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 247,
+    "isBrandStore": 0,
+    "purchaseCount": 520
+  },
+  {
+    "rank": 28,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/5191055118",
+    "price": 15900,
+    "score": 4.65,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/5191055118",
+    "mallUrl": "https://smartstore.naver.com/hslocalfood",
+    "mallName": "홍성로컬푸드협동조합",
+    "keepCount": 70,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 513,
+    "isBrandStore": 0,
+    "purchaseCount": 342
+  },
+  {
+    "rank": 29,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/6086191234",
+    "price": 10900,
+    "score": 4.55,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/6086191234",
+    "mallUrl": "https://smartstore.naver.com/farmerkyunni",
+    "mallName": "농부곳간",
+    "keepCount": 129,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 1538,
+    "isBrandStore": 0,
+    "purchaseCount": 104
+  },
+  {
+    "rank": 30,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/8893182477",
+    "price": 5500,
+    "score": 4.49,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/8893182477",
+    "mallUrl": "https://smartstore.naver.com/kings-mall",
+    "mallName": "킹스몰코리아",
+    "keepCount": 34,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 741,
+    "isBrandStore": 0,
+    "purchaseCount": 20
+  },
+  {
+    "rank": 31,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/6093603797",
+    "price": 20900,
+    "score": 4.7,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/6093603797",
+    "mallUrl": "https://smartstore.naver.com/djgreen",
+    "mallName": "야채삼촌",
+    "keepCount": 615,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 28318,
+    "isBrandStore": 0,
+    "purchaseCount": 1766
+  },
+  {
+    "rank": 32,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/259176927",
+    "price": 7900,
+    "score": 4.57,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/259176927",
+    "mallUrl": "https://smartstore.naver.com/alale",
+    "mallName": "알알이거둠터",
+    "keepCount": 186,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 3000,
+    "reviewCount": 2435,
+    "isBrandStore": 0,
+    "purchaseCount": 490
+  },
+  {
+    "rank": 33,
+    "brand": "",
+    "pcUrl": "",
+    "price": 8790,
+    "score": 4.32,
+    "mblUrl": "",
+    "mallUrl": "",
+    "mallName": "",
+    "keepCount": 2,
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 1290,
+    "isBrandStore": 0,
+    "purchaseCount": 0
+  },
+  {
+    "rank": 34,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/11905543921",
+    "price": 10900,
+    "score": 4.74,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/11905543921",
+    "mallUrl": "https://smartstore.naver.com/bong_farems",
+    "mallName": "최준석 농산물",
+    "keepCount": 48,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 87,
+    "isBrandStore": 0,
+    "purchaseCount": 0
+  },
+  {
+    "rank": 35,
+    "brand": "",
+    "pcUrl": "https://shopping.naver.com/outlink/itemdetail/5899201172",
+    "price": 3980,
+    "score": 4.82,
+    "mblUrl": "https://m.shopping.naver.com/outlink/itemdetail/5899201172",
+    "mallUrl": "https://shopping.naver.com/outlink/storehome/101309003",
+    "mallName": "이마트몰",
+    "keepCount": 244,
+    "mallGrade": "M44001",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 3000,
+    "reviewCount": 24136,
+    "isBrandStore": 0,
+    "purchaseCount": 0
+  },
+  {
+    "rank": 36,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/10009559196",
+    "price": 9900,
+    "score": 4.28,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/10009559196",
+    "mallUrl": "https://smartstore.naver.com/brother108",
+    "mallName": "해남형제",
+    "keepCount": 20,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 4000,
+    "reviewCount": 102,
+    "isBrandStore": 0,
+    "purchaseCount": 124
+  },
+  {
+    "rank": 37,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/8536454199",
+    "price": 9240,
+    "score": 4.74,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/8536454199",
+    "mallUrl": "https://smartstore.naver.com/fresh-j",
+    "mallName": "제이네식탁",
+    "keepCount": 48,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 581,
+    "isBrandStore": 0,
+    "purchaseCount": 116
+  },
+  {
+    "rank": 38,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/11145000560",
+    "price": 8900,
+    "score": 4.79,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/11145000560",
+    "mallUrl": "https://smartstore.naver.com/gilsuki_farm",
+    "mallName": "길숙이 농산",
+    "keepCount": 310,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 865,
+    "isBrandStore": 0,
+    "purchaseCount": 531
+  },
+  {
+    "rank": 39,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/11057674820",
+    "price": 6900,
+    "score": 4.74,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/11057674820",
+    "mallUrl": "https://smartstore.naver.com/taczomarket",
+    "mallName": "탁조마켓",
+    "keepCount": 158,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 756,
+    "isBrandStore": 0,
+    "purchaseCount": 449
+  },
+  {
+    "rank": 40,
+    "brand": "봉이네",
+    "pcUrl": "https://smartstore.naver.com/main/products/4969214707",
+    "price": 17900,
+    "score": 4.61,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/4969214707",
+    "mallUrl": "https://smartstore.naver.com/tallerfarm",
+    "mallName": "봉이네농장",
+    "keepCount": 29,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 2500,
+    "reviewCount": 292,
+    "isBrandStore": 0,
+    "purchaseCount": 75
+  },
+  {
+    "rank": "10",
+    "brand": "늘해랑",
+    "pcUrl": "https://smartstore.naver.com/main/products/9595701136",
+    "price": 13900,
+    "score": "4.51",
+    "mblUrl": "https://m.smartstore.naver.com/main/products/9595701136",
+    "mallUrl": "https://smartstore.naver.com/nong",
+    "mallName": "조은해남",
+    "keepCount": 64,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 1570,
+    "isBrandStore": "0",
+    "purchaseCount": 279
+  },
+  {
+    "rank": "8",
+    "brand": null,
+    "pcUrl": "https://redirect.kurly.com/entry?utm_source=NaverShopping&utm_medium=2001&utm_term=1001234984&no=1001234984&kfpartnerID=1000000",
+    "price": 8790,
+    "score": null,
+    "mblUrl": null,
+    "mallUrl": "https://redirect.kurly.com/entry?kfpartnerID=1000001&utm_source=2001&utm_medium=unlimited&utm_campaign=Navershoppinglogo",
+    "mallName": "컬리",
+    "keepCount": 1,
+    "mallGrade": "M44002",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 3000,
+    "reviewCount": 54,
+    "isBrandStore": "0",
+    "purchaseCount": 0
+  },
+  {
+    "rank": "9",
+    "brand": null,
+    "pcUrl": "https://redirect.kurly.com/entry?utm_source=NaverShopping&utm_medium=2001&utm_term=5063380&no=5063380&kfpartnerID=1000000",
+    "price": 4990,
+    "score": null,
+    "mblUrl": null,
+    "mallUrl": "https://redirect.kurly.com/entry?kfpartnerID=1000001&utm_source=2001&utm_medium=unlimited&utm_campaign=Navershoppinglogo",
+    "mallName": "컬리",
+    "keepCount": 0,
+    "mallGrade": "M44002",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 3000,
+    "reviewCount": 10926,
+    "isBrandStore": "0",
+    "purchaseCount": 0
+  },
+  {
+    "rank": 41,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/10603982909",
+    "price": 3300,
+    "score": 4.74,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/10603982909",
+    "mallUrl": "https://smartstore.naver.com/ulfarm",
+    "mallName": "울팜",
+    "keepCount": 159,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 3000,
+    "reviewCount": 198,
+    "isBrandStore": 0,
+    "purchaseCount": 0
+  },
+  {
+    "rank": 42,
+    "brand": "",
+    "pcUrl": "https://link.auction.co.kr/gate/pcs?item-no=A563897545&sub-id=1&service-code=10000003",
+    "price": 8280,
+    "score": 4.64,
+    "mblUrl": "",
+    "mallUrl": "http://banner.auction.co.kr/bn_redirect.asp?ID=BN00066697",
+    "mallName": "옥션",
+    "keepCount": 3,
+    "mallGrade": "M44001",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 10459,
+    "isBrandStore": 0,
+    "purchaseCount": 0
+  },
+  {
+    "rank": 43,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/9403199682",
+    "price": 6000,
+    "score": 4.98,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/9403199682",
+    "mallUrl": "https://smartstore.naver.com/woosungfood",
+    "mallName": "우성종합식품",
+    "keepCount": 30,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 3500,
+    "reviewCount": 447,
+    "isBrandStore": 0,
+    "purchaseCount": 0
+  },
+  {
+    "rank": 44,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/4810910058",
+    "price": 4900,
+    "score": 4.83,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/4810910058",
+    "mallUrl": "https://smartstore.naver.com/allsimchan",
+    "mallName": "올심찬",
+    "keepCount": 277,
+    "mallGrade": "M44002",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 3800,
+    "reviewCount": 1742,
+    "isBrandStore": 0,
+    "purchaseCount": 501
+  },
+  {
+    "rank": 45,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/9657097364",
+    "price": 5900,
+    "score": 4.79,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/9657097364",
+    "mallUrl": "https://smartstore.naver.com/gramwon",
+    "mallName": "그램원",
+    "keepCount": 97,
+    "mallGrade": "M44002",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 3500,
+    "reviewCount": 1701,
+    "isBrandStore": 0,
+    "purchaseCount": 860
+  },
+  {
+    "rank": 46,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/6627288522",
+    "price": 3600,
+    "score": 4.81,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/6627288522",
+    "mallUrl": "https://smartstore.naver.com/eatbuy",
+    "mallName": "시식마켓 식후경",
+    "keepCount": 289,
+    "mallGrade": "M44005",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 3300,
+    "reviewCount": 833,
+    "isBrandStore": 0,
+    "purchaseCount": 468
+  },
+  {
+    "rank": 47,
+    "brand": "",
+    "pcUrl": "https://redirect.kurly.com/entry?utm_source=NaverShopping&utm_medium=2001&utm_term=5049246&no=5049246&kfpartnerID=1000000",
+    "price": 1790,
+    "score": null,
+    "mblUrl": "",
+    "mallUrl": "https://redirect.kurly.com/entry?kfpartnerID=1000001&utm_source=2001&utm_medium=unlimited&utm_campaign=Navershoppinglogo",
+    "mallName": "컬리",
+    "keepCount": 1,
+    "mallGrade": "M44002",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 3000,
+    "reviewCount": 144116,
+    "isBrandStore": 0,
+    "purchaseCount": 0
+  },
+  {
+    "rank": 48,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/9057948554",
+    "price": 18900,
+    "score": 4.57,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/9057948554",
+    "mallUrl": "https://smartstore.naver.com/seokdaeyn",
+    "mallName": "친환경 마음밭",
+    "keepCount": 476,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 6651,
+    "isBrandStore": 0,
+    "purchaseCount": 3094
+  },
+  {
+    "rank": 49,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/12166814115",
+    "price": 9900,
+    "score": 4.78,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/12166814115",
+    "mallUrl": "https://smartstore.naver.com/organic62",
+    "mallName": "홍성유기농",
+    "keepCount": 40,
+    "mallGrade": "M44005",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 176,
+    "isBrandStore": 0,
+    "purchaseCount": 572
+  },
+  {
+    "rank": 50,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/9623482425",
+    "price": 8900,
+    "score": 4.75,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/9623482425",
+    "mallUrl": "https://smartstore.naver.com/sffood",
+    "mallName": "맛통령 프리미엄",
+    "keepCount": 67,
+    "mallGrade": "M44005",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 178,
+    "isBrandStore": 0,
+    "purchaseCount": 0
+  },
+  {
+    "rank": 51,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/10708923036",
+    "price": 10700,
+    "score": 4.74,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/10708923036",
+    "mallUrl": "https://smartstore.naver.com/market-onkle",
+    "mallName": "마켓온클",
+    "keepCount": 38,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 200,
+    "isBrandStore": 0,
+    "purchaseCount": 0
+  },
+  {
+    "rank": 52,
+    "brand": "좋은사람들",
+    "pcUrl": "https://smartstore.naver.com/main/products/6060621724",
+    "price": 17900,
+    "score": 4.68,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/6060621724",
+    "mallUrl": "https://smartstore.naver.com/bestgoodman",
+    "mallName": "좋.은.사.람.들",
+    "keepCount": 22,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 569,
+    "isBrandStore": 0,
+    "purchaseCount": 49
+  },
+  {
+    "rank": 53,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/3840181333",
+    "price": 20000,
+    "score": 4.81,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/3840181333",
+    "mallUrl": "https://smartstore.naver.com/100herb",
+    "mallName": "제주 에코밸리 농장",
+    "keepCount": 55,
+    "mallGrade": "M44005",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 691,
+    "isBrandStore": 0,
+    "purchaseCount": 0
+  },
+  {
+    "rank": 54,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/11013476656",
+    "price": 19700,
+    "score": 4.8,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/11013476656",
+    "mallUrl": "https://smartstore.naver.com/vs1945",
+    "mallName": "현이네당근",
+    "keepCount": 653,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 1087,
+    "isBrandStore": 0,
+    "purchaseCount": 1191
+  },
+  {
+    "rank": 55,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/9979107707",
+    "price": 19900,
+    "score": 4.78,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/9979107707",
+    "mallUrl": "https://smartstore.naver.com/monnanifam",
+    "mallName": "몬나니팜",
+    "keepCount": 429,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 651,
+    "isBrandStore": 0,
+    "purchaseCount": 0
+  },
+  {
+    "rank": 56,
+    "brand": "유기농샵",
+    "pcUrl": "https://smartstore.naver.com/main/products/8014640010",
+    "price": 12900,
+    "score": 4.75,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/8014640010",
+    "mallUrl": "https://smartstore.naver.com/f_b",
+    "mallName": "유기농샵FB",
+    "keepCount": 75,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 3000,
+    "reviewCount": 411,
+    "isBrandStore": 0,
+    "purchaseCount": 385
+  },
+  {
+    "rank": 57,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/11004467598",
+    "price": 19900,
+    "score": 4.83,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/11004467598",
+    "mallUrl": "https://smartstore.naver.com/rladuddk012",
+    "mallName": "하도농수산",
+    "keepCount": 696,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 1563,
+    "isBrandStore": 0,
+    "purchaseCount": 1392
+  },
+  {
+    "rank": 58,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/9664256202",
+    "price": 14900,
+    "score": 4.72,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/9664256202",
+    "mallUrl": "https://smartstore.naver.com/iamfresh",
+    "mallName": "아이엠신선",
+    "keepCount": 102,
+    "mallGrade": "M44005",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 4408,
+    "isBrandStore": 0,
+    "purchaseCount": 565
+  },
+  {
+    "rank": 59,
+    "brand": "아르도",
+    "pcUrl": "https://smartstore.naver.com/main/products/5843836496",
+    "price": 5300,
+    "score": 4.86,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/5843836496",
+    "mallUrl": "https://smartstore.naver.com/allsimchan",
+    "mallName": "올심찬",
+    "keepCount": 138,
+    "mallGrade": "M44002",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 3800,
+    "reviewCount": 820,
+    "isBrandStore": 0,
+    "purchaseCount": 417
+  },
+  {
+    "rank": 60,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/9544706190",
+    "price": 7900,
+    "score": 4.78,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/9544706190",
+    "mallUrl": "https://smartstore.naver.com/yhagriculturalproductsmarket",
+    "mallName": "영호네 농산물 장터",
+    "keepCount": 260,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 3466,
+    "isBrandStore": 0,
+    "purchaseCount": 2418
+  },
+  {
+    "rank": 61,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/5676732873",
+    "price": 12900,
+    "score": 4.81,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/5676732873",
+    "mallUrl": "https://smartstore.naver.com/greensingsing",
+    "mallName": "싱싱야채",
+    "keepCount": 62,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 1024,
+    "isBrandStore": 0,
+    "purchaseCount": 466
+  },
+  {
+    "rank": 62,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/6497610910",
+    "price": 13900,
+    "score": 4.72,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/6497610910",
+    "mallUrl": "https://smartstore.naver.com/poong_nyoun",
+    "mallName": "슬기로운 풍년상회",
+    "keepCount": 219,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 3743,
+    "isBrandStore": 0,
+    "purchaseCount": 643
+  },
+  {
+    "rank": 63,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/4340774886",
+    "price": 4900,
+    "score": 4.77,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/4340774886",
+    "mallUrl": "https://smartstore.naver.com/nicefarm2019",
+    "mallName": "착한농장 .",
+    "keepCount": 23,
+    "mallGrade": "M44006",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 3405,
+    "isBrandStore": 0,
+    "purchaseCount": 145
+  },
+  {
+    "rank": 64,
+    "brand": "",
+    "pcUrl": "https://link.auction.co.kr/gate/pcs?item-no=C236045151&sub-id=1&service-code=10000003",
+    "price": 5730,
+    "score": 4.66,
+    "mblUrl": "",
+    "mallUrl": "http://banner.auction.co.kr/bn_redirect.asp?ID=BN00066697",
+    "mallName": "옥션",
+    "keepCount": 4,
+    "mallGrade": "M44001",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 498,
+    "isBrandStore": 0,
+    "purchaseCount": 0
+  },
+  {
+    "rank": 65,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/10057658312",
+    "price": 9900,
+    "score": 4.41,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/10057658312",
+    "mallUrl": "https://smartstore.naver.com/nanum_farm",
+    "mallName": "나눔농산물",
+    "keepCount": 55,
+    "mallGrade": "M44006",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 1060,
+    "isBrandStore": 0,
+    "purchaseCount": 0
+  },
+  {
+    "rank": 66,
+    "brand": "상주이장님농장",
+    "pcUrl": "https://smartstore.naver.com/main/products/2188146632",
+    "price": 17900,
+    "score": 4.74,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/2188146632",
+    "mallUrl": "https://smartstore.naver.com/sangjuejangnim",
+    "mallName": "상주이장님농장",
+    "keepCount": 9,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 1522,
+    "isBrandStore": 0,
+    "purchaseCount": 41
+  },
+  {
+    "rank": 67,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/9682594952",
+    "price": 16900,
+    "score": 4.42,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/9682594952",
+    "mallUrl": "https://smartstore.naver.com/farmnextdoor",
+    "mallName": "이웃집로컬푸드",
+    "keepCount": 203,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 663,
+    "isBrandStore": 0,
+    "purchaseCount": 413
+  },
+  {
+    "rank": 68,
+    "brand": "늘해랑",
+    "pcUrl": "https://smartstore.naver.com/main/products/9595701136",
+    "price": 13900,
+    "score": 4.51,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/9595701136",
+    "mallUrl": "https://smartstore.naver.com/nong",
+    "mallName": "조은해남",
+    "keepCount": 64,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 1570,
+    "isBrandStore": 0,
+    "purchaseCount": 279
+  },
+  {
+    "rank": 69,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/11055061707",
+    "price": 19800,
+    "score": 4.81,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/11055061707",
+    "mallUrl": "https://smartstore.naver.com/carrothado",
+    "mallName": "구좌봉임이네당근",
+    "keepCount": 641,
+    "mallGrade": "M44006",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 616,
+    "isBrandStore": 0,
+    "purchaseCount": 261
+  },
+  {
+    "rank": 70,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/10097808948",
+    "price": 2500,
+    "score": 4.88,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/10097808948",
+    "mallUrl": "https://smartstore.naver.com/hari_mall",
+    "mallName": "채소팜",
+    "keepCount": 437,
+    "mallGrade": "M44002",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 3500,
+    "reviewCount": 980,
+    "isBrandStore": 0,
+    "purchaseCount": 2056
+  },
+  {
+    "rank": 71,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/11635700927",
+    "price": 11300,
+    "score": 4.82,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/11635700927",
+    "mallUrl": "https://smartstore.naver.com/earthfarmstore",
+    "mallName": "어스팜스토어",
+    "keepCount": 158,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 491,
+    "isBrandStore": 0,
+    "purchaseCount": 1606
+  },
+  {
+    "rank": 72,
+    "brand": "유기농샵",
+    "pcUrl": "https://smartstore.naver.com/main/products/8860548388",
+    "price": 19900,
+    "score": 4.72,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/8860548388",
+    "mallUrl": "https://smartstore.naver.com/f_b",
+    "mallName": "유기농샵FB",
+    "keepCount": 49,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 556,
+    "isBrandStore": 0,
+    "purchaseCount": 442
+  },
+  {
+    "rank": 73,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/11076711010",
+    "price": 19500,
+    "score": 4.77,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/11076711010",
+    "mallUrl": "https://smartstore.naver.com/jeju-carrot",
+    "mallName": "제주구좌당근",
+    "keepCount": 699,
+    "mallGrade": "M44005",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 444,
+    "isBrandStore": 0,
+    "purchaseCount": 446
+  },
+  {
+    "rank": 74,
+    "brand": "아빠의마음",
+    "pcUrl": "https://smartstore.naver.com/main/products/5179385279",
+    "price": 11900,
+    "score": 4.76,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/5179385279",
+    "mallUrl": "https://smartstore.naver.com/foodstory7",
+    "mallName": "아빠의 마음",
+    "keepCount": 79,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 958,
+    "isBrandStore": 0,
+    "purchaseCount": 269
+  },
+  {
+    "rank": 75,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/7873198546",
+    "price": 29800,
+    "score": 4.71,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/7873198546",
+    "mallUrl": "https://smartstore.naver.com/seokdaeyn",
+    "mallName": "친환경 마음밭",
+    "keepCount": 60,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 483,
+    "isBrandStore": 0,
+    "purchaseCount": 390
+  },
+  {
+    "rank": 76,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/8849613465",
+    "price": 7900,
+    "score": 4.35,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/8849613465",
+    "mallUrl": "https://smartstore.naver.com/yoogane2",
+    "mallName": "찐 농업회사법인",
+    "keepCount": 52,
+    "mallGrade": "M44004",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 492,
+    "isBrandStore": 0,
+    "purchaseCount": 0
+  },
+  {
+    "rank": 77,
+    "brand": "",
+    "pcUrl": "https://affiliate.homeplus.co.kr/external/bridge?channelId=1000006&targetUrl=https%3A%2F%2Ffront.homeplus.co.kr%2Fitem%3FitemNo%3D114668885%26storeType%3DHYPER",
+    "price": 3990,
+    "score": null,
+    "mblUrl": "https://affiliate.homeplus.co.kr/external/bridge?channelId=1000006&targetUrl=https%3A%2F%2Fmfront.homeplus.co.kr%2Fitem%3FitemNo%3D114668885%26storeType%3DHYPER",
+    "mallUrl": "https://affiliate.homeplus.co.kr/external/bridge?channelId=1000008&targetUrl=https%3a%2f%2ffront.homeplus.co.kr",
+    "mallName": "홈플러스",
+    "keepCount": 0,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 3000,
+    "reviewCount": 57665,
+    "isBrandStore": 0,
+    "purchaseCount": 0
+  },
+  {
+    "rank": 78,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/11194873995",
+    "price": 29000,
+    "score": 4.63,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/11194873995",
+    "mallUrl": "https://smartstore.naver.com/jejuhallafarm",
+    "mallName": "제주한라농장",
+    "keepCount": 57,
+    "mallGrade": "M44005",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 164,
+    "isBrandStore": 0,
+    "purchaseCount": 0
+  },
+  {
+    "rank": 79,
+    "brand": "",
+    "pcUrl": "https://link.gmarket.co.kr/gate/pcs?item-no=1970327342&sub-id=1003&service-code=10000003&lcd=100000020",
+    "price": 14900,
+    "score": 4.66,
+    "mblUrl": "",
+    "mallUrl": "http://www.gmarket.co.kr/index.asp?jaehuid=200003874",
+    "mallName": "G마켓",
+    "keepCount": 0,
+    "mallGrade": "M44001",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 1416,
+    "isBrandStore": 0,
+    "purchaseCount": 0
+  },
+  {
+    "rank": 80,
+    "brand": "",
+    "pcUrl": "https://smartstore.naver.com/main/products/5219568678",
+    "price": 13900,
+    "score": 4.62,
+    "mblUrl": "https://m.smartstore.naver.com/main/products/5219568678",
+    "mallUrl": "https://smartstore.naver.com/yhagriculturalproductsmarket",
+    "mallName": "영호네 농산물 장터",
+    "keepCount": 33,
+    "mallGrade": "M44003",
+    "overseaTp": "0",
+    "categories": [
+      {
+        "id": "50000006",
+        "name": "식품"
+      },
+      {
+        "id": "50000160",
+        "name": "농산물"
+      },
+      {
+        "id": "50001077",
+        "name": "채소"
+      },
+      {
+        "id": "50002216",
+        "name": "당근"
+      }
+    ],
+    "deliveryFee": 0,
+    "reviewCount": 1172,
+    "isBrandStore": 0,
+    "purchaseCount": 100
+  }
+]

@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/updateRemain",
+      "schedule": "0 15 * * *"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "agent": {
+    "run_as_user": "root"
+  },
+  "logs": {
+    "logs_collected": {
+      "files": {
+        "collect_list": [
+          {
+            "file_path": "/home/ec2-user/.pm2/pm2.log",
+            "log_group_class": "STANDARD",
+            "log_group_name": "king-sourcing-ui",
+            "log_stream_name": "king-sourcing-ui",
+            "retention_in_days": 7
+          }
+        ]
+      }
+    }
+  }
+}

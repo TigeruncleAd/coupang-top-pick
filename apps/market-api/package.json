@@ -1,0 +1,38 @@
+{
+  "name": "market-api",
+  "version": "1.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "env-cmd -f .env.development.local next dev -p 3001",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@prisma/nextjs-monorepo-workaround-plugin": "^5.22.0",
+    "@repo/utils": "workspace:*",
+    "axios": "^1.11.0",
+    "bcryptjs": "^2.4.3",
+    "env-cmd": "^10.1.0",
+    "iconv-lite": "^0.6.3",
+    "jsonwebtoken": "^9.0.2",
+    "lodash": "^4.17.21",
+    "next": "15.3.2",
+    "node-html-parser": "^6.1.13",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@next/eslint-plugin-next": "^14.2.32",
+    "@repo/database": "workspace:*",
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^22.18.1",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "typescript": "^5.9.2"
+  }
+}

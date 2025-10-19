@@ -1,0 +1,184 @@
+{
+  "total": 34366,
+  "nluTerms": [{ "type": "브랜드", "keyword": "또봇" }],
+  "categories": [
+    { "id": "50000005", "name": "출산/육아", "relevance": 1 },
+    { "id": "50000142", "name": "완구/인형", "relevance": 1 },
+    { "id": "50001154", "name": "작동완구", "relevance": 1 },
+    { "id": "50004210", "name": "로봇", "relevance": 0.980702 },
+    { "id": "50004642", "name": "기타작동완구", "relevance": 0.019298 }
+  ],
+  "categoryId": "50004210",
+  "queryValidate": { "status": "NORMAL", "isAdultQuery": false },
+  "average10Price": 39751.17056856187,
+  "average40Price": 44298.43081312411,
+  "average80Price": 55703.0056864338,
+  "recommendTrend": {
+    "gdid": "00000009_00004a872fab",
+    "tags": [
+      {
+        "gdid": "00000009_00000a6a97a3",
+        "tagId": "Q_또봇팝_50004210",
+        "imgUrl": "https://shopping-phinf.pstatic.net/main_8991405/89914051274.jpg",
+        "recInfo": "또봇-TRDR-0-Q_또봇팝_50004210-또봇",
+        "tagName": "또봇팝",
+        "tagReason": "query"
+      },
+      {
+        "gdid": "00000009_00002d257cdf",
+        "tagId": "Q_또봇c_50004210",
+        "imgUrl": "https://shopping-phinf.pstatic.net/main_8981329/89813298170.jpg",
+        "recInfo": "또봇-POP-1-Q_또봇c_50004210-또봇",
+        "tagName": "또봇c",
+        "tagReason": "query"
+      },
+      {
+        "gdid": "00000009_000066fd8aeb",
+        "tagId": "Q_그랜드카봇gx_50004210",
+        "imgUrl": "https://shopping-phinf.pstatic.net/main_8981153/89811535008.1.jpg",
+        "recInfo": "또봇-POP-2-Q_그랜드카봇gx_50004210-또봇",
+        "tagName": "그랜드카봇gx",
+        "tagReason": "query"
+      },
+      {
+        "gdid": "00000009_000036a7d46a",
+        "tagId": "B_533_50004210",
+        "imgUrl": "https://shopping-phinf.pstatic.net/main_8924339/89243394582.jpg",
+        "recInfo": "또봇-TRDC-3-B_533_50004210-또봇",
+        "tagName": "영실업로봇",
+        "tagReason": "query"
+      },
+      {
+        "gdid": "00000009_00003562fa0c",
+        "tagId": "Q_고고다이노_50004210",
+        "imgUrl": "https://shopping-phinf.pstatic.net/main_8728732/87287323438.jpg",
+        "recInfo": "또봇-TRDR-4-Q_고고다이노_50004210-또봇",
+        "tagName": "고고다이노",
+        "tagReason": "query"
+      },
+      {
+        "gdid": "00000009_0000646ca0d6",
+        "tagId": "Q_장난감_0",
+        "imgUrl": "https://shopping-phinf.pstatic.net/main_8936484/89364849215.jpg",
+        "recInfo": "또봇-POP-5-Q_장난감_0-또봇",
+        "tagName": "장난감",
+        "tagReason": "query"
+      },
+      {
+        "gdid": "00000009_000032417b4f",
+        "tagId": "Q_자동차장난감_50004212",
+        "imgUrl": "https://shopping-phinf.pstatic.net/main_8588570/85885700080.3.jpg",
+        "recInfo": "또봇-POP-6-Q_자동차장난감_50004212-또봇",
+        "tagName": "자동차장난감",
+        "tagReason": "query"
+      },
+      {
+        "gdid": "00000009_00004d1a323b",
+        "tagId": "B_754_50009362",
+        "imgUrl": "https://shopping-phinf.pstatic.net/main_8959427/89594277319.jpg",
+        "recInfo": "또봇-TRDC-7-B_754_50009362-또봇",
+        "tagName": "손오공카드",
+        "tagReason": "query"
+      },
+      {
+        "gdid": "00000009_00000be377f7",
+        "tagId": "Q_렉스카이저_50004210",
+        "imgUrl": "https://shopping-phinf.pstatic.net/main_8918056/89180563755.jpg",
+        "recInfo": "또봇-TRDR-8-Q_렉스카이저_50004210-또봇",
+        "tagName": "렉스카이저",
+        "tagReason": "query"
+      },
+      {
+        "gdid": "00000009_000056311e41",
+        "tagId": "B_444_50004209",
+        "imgUrl": "https://shopping-phinf.pstatic.net/main_8347553/83475533005.2.jpg",
+        "recInfo": "또봇-TRDC-9-B_444_50004209-또봇",
+        "tagName": "이케아기차",
+        "tagReason": "query"
+      },
+      {
+        "gdid": "00000009_000069c361f5",
+        "tagId": "B_211073_50004642",
+        "imgUrl": "https://shopping-phinf.pstatic.net/main_8920679/89206797863.jpg",
+        "recInfo": "또봇-TRDC-10-B_211073_50004642-또봇",
+        "tagName": "헬로카봇작동완구",
+        "tagReason": "query"
+      },
+      {
+        "gdid": "00000009_000079a90382",
+        "tagId": "B_149104_50004212",
+        "imgUrl": "https://shopping-phinf.pstatic.net/main_8543388/85433888621.2.jpg",
+        "recInfo": "또봇-TRDC-11-B_149104_50004212-또봇",
+        "tagName": "아이코닉스자동차",
+        "tagReason": "query"
+      }
+    ]
+  },
+  "relatedQueries": [
+    { "query": "또봇헤비메탈", "imageUrl": "https://shopping-phinf.pstatic.net/main_8931060/89310602837.jpg" },
+    { "query": "또봇sos", "imageUrl": "https://shopping-phinf.pstatic.net/main_8949099/89490995335.jpg" },
+    { "query": "또봇w", "imageUrl": "https://shopping-phinf.pstatic.net/main_4941583/49415830134.20240726234951.jpg" },
+    { "query": "또봇팝", "imageUrl": "https://shopping-phinf.pstatic.net/main_5675500/56755006992.20250916162454.jpg" },
+    { "query": "또봇x", "imageUrl": "https://shopping-phinf.pstatic.net/main_4575453/45754538470.20240210151512.jpg" },
+    {
+      "query": "또봇트라이탄",
+      "imageUrl": "https://shopping-phinf.pstatic.net/main_5290995/52909956763.20250209210159.jpg"
+    },
+    { "query": "또봇c", "imageUrl": "https://shopping-phinf.pstatic.net/main_5667179/56671796914.20250910202934.jpg" },
+    { "query": "또봇v", "imageUrl": "https://shopping-phinf.pstatic.net/main_2905075/29050759586.20211001100235.jpg" },
+    { "query": "또봇소닉", "imageUrl": "https://shopping-phinf.pstatic.net/main_5389782/53897825694.jpg" },
+    { "query": "또봇미니", "imageUrl": "https://shopping-phinf.pstatic.net/main_8776258/87762585970.2.jpg" },
+    {
+      "query": "또봇델타트론",
+      "imageUrl": "https://shopping-phinf.pstatic.net/main_8136867/8136867655.20141205100743.jpg"
+    },
+    {
+      "query": "또봇기가세븐",
+      "imageUrl": "https://shopping-phinf.pstatic.net/main_5664061/56640619000.20250908155105.jpg"
+    },
+    { "query": "또봇테트란", "imageUrl": "https://shopping-phinf.pstatic.net/main_8875894/88758948264.jpg" },
+    { "query": "또봇a", "imageUrl": "https://shopping-phinf.pstatic.net/main_4997450/49974509043.20240827005621.jpg" },
+    { "query": "또봇스피드", "imageUrl": "https://shopping-phinf.pstatic.net/main_8905096/89050965957.jpg" }
+  ],
+  "product10Prices": { "price": 11885600, "purchaseCount": 299 },
+  "product40Prices": { "price": 31053200, "purchaseCount": 701 },
+  "product80Prices": { "price": 274281600, "purchaseCount": 4924 },
+  "relatedQueriesBottom": [
+    { "query": "또봇쎈", "imageUrl": "https://shopping-phinf.pstatic.net/main_4400014/44000141712.20231113203211.jpg" },
+    { "query": "또봇z", "imageUrl": "https://shopping-phinf.pstatic.net/main_5585099/55850995024.20250718204644.jpg" },
+    {
+      "query": "또봇닥쎈붐",
+      "imageUrl": "https://shopping-phinf.pstatic.net/main_5505171/55051718269.20250531161344.jpg"
+    },
+    { "query": "또봇붐", "imageUrl": "https://shopping-phinf.pstatic.net/main_4357030/43570309902.20231029174445.jpg" },
+    {
+      "query": "변신로봇",
+      "imageUrl": "https://shopping-phinf.pstatic.net/main_5325091/53250919288.20250529163637.jpg"
+    },
+    { "query": "또봇닥", "imageUrl": "https://shopping-phinf.pstatic.net/main_4397700/43977001475.20231112114146.jpg" },
+    { "query": "신비아파트", "imageUrl": "https://shopping-phinf.pstatic.net/main_5448818/54488180088.jpg" },
+    { "query": "카봇", "imageUrl": "https://shopping-phinf.pstatic.net/main_4723833/47238334619.20240422150259.jpg" },
+    {
+      "query": "미니특공대",
+      "imageUrl": "https://shopping-phinf.pstatic.net/main_5498583/54985837175.20250603010250.jpg"
+    },
+    {
+      "query": "로봇장난감",
+      "imageUrl": "https://shopping-phinf.pstatic.net/main_5373785/53737851263.20250529164431.jpg"
+    },
+    {
+      "query": "뽑기장난감",
+      "imageUrl": "https://shopping-phinf.pstatic.net/main_3648274/36482744305.20250520004109.jpg"
+    },
+    {
+      "query": "일본장난감",
+      "imageUrl": "https://shopping-phinf.pstatic.net/main_5678755/56787551042.20250919011659.jpg"
+    },
+    { "query": "고고다이노", "imageUrl": "https://shopping-phinf.pstatic.net/main_8968901/89689017583.jpg" },
+    {
+      "query": "미미월드",
+      "imageUrl": "https://shopping-phinf.pstatic.net/main_4015207/40152070818.20250904012506.jpg"
+    },
+    { "query": "옥토넛탐험선", "imageUrl": "https://shopping-phinf.pstatic.net/main_8334519/83345197945.2.jpg" }
+  ]
+}
