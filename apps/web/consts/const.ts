@@ -17,6 +17,9 @@ export const PATH = {
 
   // 쿠팡 탑픽
   TOP_PICK_DASHBOARD: '/top-pick/dashboard',
+  TOP_PICK_ITEM_WINNER_SOURCING: '/top-pick/item-winner-sourcing',
+  TOP_PICK_PRODUCT_UPLOAD: '/top-pick/product-upload',
+  TOP_PICK_SETTINGS: '/top-pick/settings',
 
   // 해외구매대행
   SHIPPING_AGENCY: '/agency',

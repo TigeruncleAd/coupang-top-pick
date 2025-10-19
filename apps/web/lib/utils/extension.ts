@@ -48,6 +48,30 @@ export async function openOffscreenWindowExt({
   }
 }
 
+export async function wingSearchViaExtension({
+  extensionId,
+  keyword,
+  searchPage = 0,
+  searchOrder = 'DEFAULT',
+  sortType = 'DEFAULT',
+  excludedProductIds = [],
+}: {
+  extensionId: string
+  keyword: string
+  searchPage?: number
+  searchOrder?: string
+  sortType?: string
+  excludedProductIds?: string[]
+}) {
+  return await pushToExtension({
+    extensionId,
+    payload: {
+      type: 'WING_SEARCH',
+      payload: { keyword, searchPage, searchOrder, sortType, excludedProductIds },
+    },
+  })
+}
+
 /**
  * 확장 프로그램 스토리지에서 최신 productId를 가져옵니다
  */

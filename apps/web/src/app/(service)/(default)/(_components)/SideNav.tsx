@@ -78,69 +78,12 @@ interface NavItem {
   items?: NavItem[]
 }
 
-// const navigationA: NavItem[] = [
-//   {
-//     name: '쇼핑몰 수집',
-//     href: PATH.SEARCH_MALL,
-//     icon: CheckCircleIcon,
-//     current: false,
-//   },
-//   {
-//     name: '상품 매칭',
-//     href: PATH.MATCH_TAOBAO,
-//     icon: CircleStackIcon,
-//     current: false,
-//   },
-//   {
-//     name: '수집된 상품',
-//     href: PATH.PRODUCT,
-//     icon: ShoppingCartIcon,
-//     current: false,
-//   },
-// ]
-
-// const navigationS: NavItem[] = [
-//   {
-//     name: '상품 업로드',
-//     href: PATH.UPLOAD_PRODUCT,
-//     icon: SunIcon,
-//     current: false,
-//   },
-//   {
-//     name: '업로드한 상품 관리',
-//     href: PATH.MANAGE_UPLOAD_PRODUCT,
-//     icon: SunIcon,
-//     current: false,
-//   },
-//   {
-//     name: '설정',
-//     href: PATH.SETTING,
-//     icon: Cog6ToothIcon,
-//     current: false,
-//   },
-// ]
-
-// const navigationAdmin: NavItem[] = [
-//   {
-//     name: '사용자 관리',
-//     href: PATH.USER,
-//     icon: UserGroupIcon,
-//     current: false,
-//   },
-//   {
-//     name: '쇼핑몰 블랙리스트',
-//     href: PATH.MALL_BLACKLIST,
-//     icon: UserGroupIcon,
-//     current: false,
-//   },
-// ]
-
 // 대시보드, 쇼핑몰 수집, 상품 수집, 상품 매칭, 상품관리, 설정, 공지사항
-const agencyNavMain: NavItem[] = [
+const topPickNavMain: NavItem[] = [
   {
-    title: '대시보드',
-    url: PATH.AGENCY_DASHBOARD,
-    icon: BarChart3,
+    title: '아이템 위너 소싱',
+    url: PATH.TOP_PICK_ITEM_WINNER_SOURCING,
+    icon: BotIcon,
   },
   // {
   //   title: '상품 BEST 수집',
@@ -152,23 +95,23 @@ const agencyNavMain: NavItem[] = [
   //   url: PATH.AGENCY_PRODUCT_MATCHING,
   //   icon: CheckCircle,
   // },
-  {
-    title: 'AI 소싱',
-    url: PATH.AGENCY_AI_SOURCING,
-    icon: BotIcon,
-    items: [
-      {
-        title: '키워드 소싱',
-        url: PATH.AGENCY_AI_SOURCING_KEYWORD_SOURCING,
-        icon: ShoppingCart,
-      },
-      {
-        title: '타오바오 매칭',
-        url: PATH.AGENCY_AI_SOURCING_PRODUCT_MATCHING,
-        icon: CheckCircle,
-      },
-    ],
-  },
+  // {
+  //   title: 'AI 소싱',
+  //   url: PATH.AGENCY_AI_SOURCING,
+  //   icon: BotIcon,
+  //   items: [
+  //     {
+  //       title: '키워드 소싱',
+  //       url: PATH.AGENCY_AI_SOURCING_KEYWORD_SOURCING,
+  //       icon: ShoppingCart,
+  //     },
+  //     {
+  //       title: '타오바오 매칭',
+  //       url: PATH.AGENCY_AI_SOURCING_PRODUCT_MATCHING,
+  //       icon: CheckCircle,
+  //     },
+  //   ],
+  // },
   // {
   //   title: '핸드픽 소싱',
   //   url: PATH.AGENCY_HANDPICK_SOURCING,
@@ -176,20 +119,20 @@ const agencyNavMain: NavItem[] = [
   // },
   {
     title: '상품 등록',
-    url: PATH.AGENCY_PRODUCTS,
+    url: PATH.TOP_PICK_PRODUCT_UPLOAD,
     // icon: FolderOpen,
     icon: Package,
   },
   {
     title: '설정',
-    url: PATH.AGENCY_SETTINGS,
+    url: PATH.TOP_PICK_SETTINGS,
     icon: Settings,
   },
-  {
-    title: '공지사항',
-    url: PATH.AGENCY_NOTICES,
-    icon: Bell,
-  },
+  // {
+  //   title: '공지사항',
+  //   url: PATH.AGENCY_NOTICES,
+  //   icon: Bell,
+  // },
 ]
 
 const analyzeNavMain: NavItem[] = [
@@ -263,9 +206,9 @@ export default function SideNav({ ...props }) {
   const license = me?.license
   const role = me?.role
 
-  const isAgency = pathname?.startsWith('/agency') || pathname === '/'
-  const isAnalyze = pathname?.startsWith('/analyze')
-  const isBlog = pathname?.startsWith('/blog')
+  const isTopPick = pathname?.startsWith('/top-pick') || pathname === '/'
+  // const isAnalyze = pathname?.startsWith('/analyze')
+  // const isBlog = pathname?.startsWith('/blog')
 
   // const nav = useMemo(() => {
   //   let newNav = navigationA
@@ -280,13 +223,7 @@ export default function SideNav({ ...props }) {
   //   return newNav
   // }, [me])
 
-  const defaultTool = isAgency
-    ? SERVICE_TOOLS[0]
-    : isAnalyze
-      ? SERVICE_TOOLS[1]
-      : isBlog
-        ? SERVICE_TOOLS[2]
-        : SERVICE_TOOLS[0]
+  const defaultTool = SERVICE_TOOLS[0]
 
   return (
     <Sidebar {...props}>
@@ -305,10 +242,10 @@ export default function SideNav({ ...props }) {
         <ToolSwitcher tools={SERVICE_TOOLS} defaultTool={defaultTool as string} />
       </SidebarHeader>
       <SidebarContent>
-        {isAgency && (
+        {isTopPick && (
           <SidebarGroup className="group-data-[collapsible=icon]:hidden">
             <SidebarMenu className="gap-y-2">
-              {agencyNavMain.map(item => {
+              {topPickNavMain.map(item => {
                 const isActive = pathname?.startsWith(item.url)
 
                 if (item.items) {
@@ -355,106 +292,6 @@ export default function SideNav({ ...props }) {
                     </Collapsible>
                   )
                 }
-
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild className="h-10 w-full gap-x-3">
-                      <Link
-                        href={item.url}
-                        className={clsx(
-                          isActive ? 'bg-zinc-100 text-zinc-700 hover:bg-zinc-100 hover:text-zinc-700' : '',
-                          'text-lg font-bold',
-                        )}>
-                        <item.icon size={40} />
-                        <span className="text-lg font-bold">{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              })}
-            </SidebarMenu>
-          </SidebarGroup>
-        )}
-
-        {isAnalyze && (
-          <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-            <SidebarMenu className="gap-y-2">
-              {analyzeNavMain.map(item => {
-                const isActive = pathname?.startsWith(item.url)
-
-                if (item.items) {
-                  return (
-                    <Collapsible key={item.title} asChild defaultOpen={true} className="group/collapsible">
-                      <SidebarMenuItem>
-                        <CollapsibleTrigger asChild>
-                          <SidebarMenuButton
-                            tooltip={item.title}
-                            className={clsx(
-                              // isActive ? 'bg-zinc-100 text-zinc-700 hover:bg-zinc-100 hover:text-zinc-700 ' : ''
-                              'h-10 w-full gap-x-3 text-lg font-bold',
-                            )}>
-                            {item.icon && <item.icon />}
-                            <span className="text-lg font-bold">{item.title}</span>
-                            <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                          </SidebarMenuButton>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                          <SidebarMenuSub className="gap-y-2">
-                            {item.items?.map(subItem => {
-                              const isSubActive = pathname?.startsWith(subItem.url)
-
-                              return (
-                                <SidebarMenuSubItem key={subItem.title}>
-                                  <SidebarMenuSubButton asChild>
-                                    <Link
-                                      href={subItem.url}
-                                      className={clsx(
-                                        isSubActive
-                                          ? 'bg-zinc-100 text-zinc-700 hover:bg-zinc-100 hover:text-zinc-700'
-                                          : '',
-                                        'h-8',
-                                      )}>
-                                      <span className="text-lg font-bold">{subItem.title}</span>
-                                    </Link>
-                                  </SidebarMenuSubButton>
-                                </SidebarMenuSubItem>
-                              )
-                            })}
-                          </SidebarMenuSub>
-                        </CollapsibleContent>
-                      </SidebarMenuItem>
-                    </Collapsible>
-                  )
-                }
-
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild className="h-10 w-full gap-x-3">
-                      <Link
-                        href={item.url}
-                        className={clsx(
-                          isActive ? 'bg-zinc-100 text-zinc-700 hover:bg-zinc-100 hover:text-zinc-700' : '',
-                          'text-lg font-bold',
-                        )}>
-                        <item.icon size={40} />
-                        <span className="text-lg font-bold">{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              })}
-            </SidebarMenu>
-          </SidebarGroup>
-        )}
-
-        {isBlog && (
-          <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-            <SidebarMenu className="gap-y-2">
-              {blogNavMain.map(item => {
-                const isActive = pathname?.startsWith(item.url)
-                console.log('isActive', isActive)
-                console.log('item.url', item.url)
-                console.log('pathname', pathname)
 
                 return (
                   <SidebarMenuItem key={item.title}>
