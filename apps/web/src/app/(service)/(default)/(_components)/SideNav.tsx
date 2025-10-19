@@ -297,7 +297,7 @@ export default function SideNav({ ...props }) {
               <Link href="#">
                 {/* <IconInnerShadowTop className="!size-5" /> */}
                 {/* <Image src="/images/logo/titan-logo.webp" alt="타이탄 툴즈" width={20} height={20} /> */}
-                <span className="text-base font-semibold">셀로직 - SELLOGIC</span>
+                <span className="text-base font-semibold">쿠팡탑픽 - TOP PICK</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

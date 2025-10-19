@@ -76,7 +76,7 @@ export default function SigninForm() {
           {/* 로고 섹션 */}
           <div className="mb-8 flex flex-col items-center justify-center gap-3">
             {/* <Image src="/images/logo/titan-logo.webp" alt="Selling Tools" width={32} height={32} /> */}
-            <h1 className="text-xl font-bold">셀로직 - SELLOGIC</h1>
+            <h1 className="text-xl font-bold">쿠팡탑픽 - TOP PICK</h1>
           </div>
 
           {/* 로그인 카드 */}

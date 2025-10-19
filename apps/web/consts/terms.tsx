@@ -4,8 +4,8 @@ export const termContents = {
       <div className="pb-2 pt-4">
         <h2 className="text-text-1-strong">제1조 목적</h2>
         <p className="text-text-2 text-color-text-medium mt-2">
-          본 이용약관은 ㈜셀로직(이하 “회사”라 합니다)가 제공하는 『셀로직』(이하 “서비스”라 합니다)의 서비스 이용조건과
-          운영에 관한 제반 사항 규정을 목적으로 합니다.
+          본 이용약관은 ㈜쿠팡탑픽(이하 “회사”라 합니다)가 제공하는 『쿠팡탑픽』(이하 “서비스”라 합니다)의 서비스
+          이용조건과 운영에 관한 제반 사항 규정을 목적으로 합니다.
         </p>
       </div>
       <div className="pb-2 pt-4">

@@ -1,8 +1,8 @@
 export const METADATA = {
   common: {
     URL: 'https://titan-tools.vercel.app',
-    TITLE: '셀로직 - SELLOGIC',
-    DESCRIPTION: '셀로직 - SELLOGIC',
+    TITLE: '쿠팡탑픽 - TOP PICK',
+    DESCRIPTION: '쿠팡탑픽 - TOP PICK',
     KAKAO_THUMBNAIL: '/',
     // KAKAO_THUMBNAIL: '',
     KAKAO_IMAGE_WIDTH: '800',
@@ -14,6 +14,9 @@ export const PATH = {
   HOME: '/',
   SIGNIN: '/auth/signin',
   SIGNUP: '/auth/signup',
+
+  // 쿠팡 탑픽
+  TOP_PICK_DASHBOARD: '/top-pick/dashboard',
 
   // 해외구매대행
   SHIPPING_AGENCY: '/agency',

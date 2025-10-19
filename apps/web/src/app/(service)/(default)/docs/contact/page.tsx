@@ -22,9 +22,9 @@ export default function ContactPage() {
           <div>
             <div className="text-color-text-high pb-32">
               <div className="pb-2 pt-4">
-                <h2 className="text-text-1-strong">셀로직</h2>
+                <h2 className="text-text-1-strong">쿠팡탑픽</h2>
                 <p className="text-text-2 text-color-text-medium mt-2">
-                  셀로직은 <b>㈜셀로직</b>이 제공하는 서비스입니다.
+                  쿠팡탑픽은 <b>㈜쿠팡탑픽</b>이 제공하는 서비스입니다.
                   <br />
                   문의사항은 다음 연락처로 남겨주세요.
                 </p>
