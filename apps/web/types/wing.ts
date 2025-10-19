@@ -43,3 +43,48 @@ export interface WingSearchHttpEnvelope {
   status: number
   data: WingPreMatchingSearchResult
 }
+
+// Product-items detail API response types
+
+export interface WingItemAttribute {
+  attributeTypeId: number
+  attributeName: string
+  attributeValue: string
+}
+
+export interface WingItemControlFlags {
+  DELIVERY_SOURCE: string
+  DO_NOT_MERGE: string
+  MAIN_LOCALE: string
+  VALID: string
+}
+
+export interface WingProductItem {
+  itemId: number
+  buyboxWinnerPrice: number | null
+  itemBuyboxCompetitorCount: number
+  itemImage: string
+  deliveryMethod: WingDeliveryMethod
+  attributes: WingItemAttribute[]
+  controlFlags: WingItemControlFlags
+  vendorItemIds: number[]
+}
+
+export interface WingProductItemsDetail {
+  productId: number
+  productName: string
+  categoryPath: string
+  brand: string
+  manufacture: string
+  productImage: string
+  productRating: number
+  ratingCount: number
+  deliveryMethod: WingDeliveryMethod
+  items: WingProductItem[]
+}
+
+export interface WingProductItemsHttpEnvelope {
+  ok: boolean
+  status: number
+  data: WingProductItemsDetail
+}

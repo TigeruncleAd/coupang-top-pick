@@ -2,13 +2,20 @@
 import { useState, useTransition } from 'react'
 import { Input } from '@repo/ui/components/input'
 import { Button } from '@repo/ui/components/button'
-import { wingSearchViaExtension, openOffscreenWindowExt } from '@/lib/utils/extension'
+import {
+  wingSearchViaExtension,
+  openOffscreenWindowExt,
+  wingProductItemsViaExtension,
+  pushToExtension,
+} from '@/lib/utils/extension'
 import type { WingSearchHttpEnvelope, WingProductSummary } from '@/types/wing'
 import { Star, StarHalf } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 const MIN_ITEM_COUNT_OF_PRODUCT = 50
 
 export default function Client({ extensionId }: { extensionId: string }) {
+  const router = useRouter()
   const [keyword, setKeyword] = useState('')
   const [isPending, startTransition] = useTransition()
   const [result, setResult] = useState<WingSearchHttpEnvelope | null>(null)
@@ -39,6 +46,13 @@ export default function Client({ extensionId }: { extensionId: string }) {
         return
       }
       setResult(envelope)
+
+      // 검색 완료 후 WING 검색 탭 닫기
+      await new Promise(r => setTimeout(r, 1000))
+      await pushToExtension({
+        extensionId,
+        payload: { type: 'CLOSE_SEARCH_TAB' },
+      })
     })
   }
 
@@ -96,8 +110,9 @@ export default function Client({ extensionId }: { extensionId: string }) {
                   />
                   <div className="flex flex-1 flex-col gap-1">
                     <h3 className="font-semibold">{product.productName}</h3>
-                    {product.itemName && <p className="text-sm text-blue-500">옵션명: {product.itemName}</p>}
-                    <p className="text-muted-foreground text-sm">쿠팡상품ID: {product.productId}</p>
+                    <p className="text-muted-foreground text-sm">상품ID: {product.productId}</p>
+                    {product.itemName && <p className="text-sm text-blue-500">위너 아이템명: {product.itemName}</p>}
+                    {product.itemId && <p className="text-sm text-blue-500">위너 아이템ID: {product.itemId}</p>}
                     {product.brandName && <p className="text-sm">브랜드명: {product.brandName}</p>}
                     {product.manufacture && <p className="text-sm">제조사: {product.manufacture}</p>}
                     {product.displayCategoryInfo?.[0] && (
@@ -115,7 +130,22 @@ export default function Client({ extensionId }: { extensionId: string }) {
                         상품 보기
                       </a>
                     </Button>
-                    <Button size="sm" disabled>
+                    <Button
+                      size="sm"
+                      onClick={async () => {
+                        const uploadUrl = 'https://wing.coupang.com/tenants/seller-web/vendor-inventory/formV2'
+                        window.open(uploadUrl, '_blank', 'noopener,noreferrer')
+                        await new Promise(r => setTimeout(r, 1500))
+                        await wingProductItemsViaExtension({
+                          extensionId,
+                          productId: product.productId,
+                          itemId: product.itemId,
+                          categoryId: product.categoryId,
+                          targetTabUrl: uploadUrl,
+                          productName: product.productName,
+                          vendorItemId: product.vendorItemId,
+                        })
+                      }}>
                       업로드하기
                     </Button>
                   </div>

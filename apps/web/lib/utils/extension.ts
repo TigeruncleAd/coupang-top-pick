@@ -72,6 +72,34 @@ export async function wingSearchViaExtension({
   })
 }
 
+export async function wingProductItemsViaExtension({
+  extensionId,
+  productId,
+  itemId,
+  categoryId,
+  allowSingleProduct = true,
+  targetTabUrl,
+  productName,
+  vendorItemId,
+}: {
+  extensionId: string
+  productId: number
+  itemId: number
+  categoryId: number
+  allowSingleProduct?: boolean
+  targetTabUrl?: string
+  productName?: string
+  vendorItemId?: number
+}) {
+  return await pushToExtension({
+    extensionId,
+    payload: {
+      type: 'WING_PRODUCT_ITEMS',
+      payload: { productId, itemId, categoryId, allowSingleProduct, targetTabUrl, productName, vendorItemId },
+    },
+  })
+}
+
 /**
  * 확장 프로그램 스토리지에서 최신 productId를 가져옵니다
  */
