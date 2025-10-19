@@ -6,6 +6,8 @@ import { wingSearchViaExtension, openOffscreenWindowExt } from '@/lib/utils/exte
 import type { WingSearchHttpEnvelope, WingProductSummary } from '@/types/wing'
 import { Star, StarHalf } from 'lucide-react'
 
+const MIN_ITEM_COUNT_OF_PRODUCT = 50
+
 export default function Client({ extensionId }: { extensionId: string }) {
   const [keyword, setKeyword] = useState('')
   const [isPending, startTransition] = useTransition()
@@ -40,7 +42,8 @@ export default function Client({ extensionId }: { extensionId: string }) {
     })
   }
 
-  const filtered = result?.data?.result?.filter(p => (p.itemCountOfProduct ?? 0) >= 10).slice(0, 30) ?? []
+  const filtered =
+    result?.data?.result?.filter(p => (p.itemCountOfProduct ?? 0) >= MIN_ITEM_COUNT_OF_PRODUCT).slice(0, 30) ?? []
 
   function renderStars(rating: number | null | undefined, ratingCount: number | null | undefined) {
     if (!rating) return null
@@ -93,6 +96,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
                   />
                   <div className="flex flex-1 flex-col gap-1">
                     <h3 className="font-semibold">{product.productName}</h3>
+                    {product.itemName && <p className="text-sm text-blue-500">옵션명: {product.itemName}</p>}
                     <p className="text-muted-foreground text-sm">쿠팡상품ID: {product.productId}</p>
                     {product.brandName && <p className="text-sm">브랜드명: {product.brandName}</p>}
                     {product.manufacture && <p className="text-sm">제조사: {product.manufacture}</p>}
