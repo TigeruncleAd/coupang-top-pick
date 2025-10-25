@@ -69,9 +69,9 @@ export default function Client({ extensionId }: { extensionId: string }) {
             </h2>
           </div>
           {isLoadingProducts ? (
-            <p className="text-sm text-gray-500">로딩 중...</p>
+            <p className="text-muted-foreground text-sm">로딩 중...</p>
           ) : userProducts.length === 0 ? (
-            <p className="text-sm text-gray-500">저장된 상품이 없습니다.</p>
+            <p className="text-muted-foreground text-sm">저장된 상품이 없습니다.</p>
           ) : (
             <>
               <div className="grid gap-4 md:grid-cols-2">
@@ -82,23 +82,25 @@ export default function Client({ extensionId }: { extensionId: string }) {
                   const productUrl = `https://www.coupang.com/vp/products/${product.productId}?itemId=${product.itemId}&vendorItemId=${product.vendorItemId}`
                   const displayCategoryInfo = product.displayCategoryInfo as any[]
                   return (
-                    <div key={product.id.toString()} className="flex gap-4 rounded-lg border bg-white p-4 shadow-sm">
+                    <div
+                      key={product.id.toString()}
+                      className="border-border bg-card flex gap-4 rounded-lg border p-4 shadow-sm">
                       <img
                         src={imgUrl}
                         alt={product.productName}
                         className="h-32 w-32 flex-shrink-0 rounded object-cover"
                       />
                       <div className="flex flex-1 flex-col gap-1">
-                        <h3 className="line-clamp-2 font-semibold">{product.productName}</h3>
-                        <p className="text-sm text-gray-500">가격: {product.salePrice.toLocaleString()}원</p>
+                        <h3 className="text-foreground line-clamp-2 font-semibold">{product.productName}</h3>
+                        <p className="text-muted-foreground text-sm">가격: {product.salePrice.toLocaleString()}원</p>
                         {displayCategoryInfo?.[0] && (
-                          <p className="text-xs text-gray-400">{displayCategoryInfo[0].categoryHierarchy}</p>
+                          <p className="text-muted-foreground/70 text-xs">{displayCategoryInfo[0].categoryHierarchy}</p>
                         )}
                         <div className="mt-1">{renderStars(product.rating, product.ratingCount)}</div>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-muted-foreground text-xs">
                           경쟁상품: {product.itemCountOfProduct.toLocaleString()}개
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-muted-foreground text-xs">
                           최근 28일: 조회 {product.pvLast28Day.toLocaleString()} / 판매{' '}
                           {product.salesLast28d.toLocaleString()}
                         </p>

@@ -296,10 +296,10 @@ export default function Client({ extensionId }: { extensionId: string }) {
         {/* 검색 결과 */}
         {filtered.length > 0 && (
           <div>
-            <div className="sticky top-0 mb-4 flex items-center justify-between bg-black/70 backdrop-blur-sm">
+            <div className="border-border bg-background/95 sticky top-0 z-10 mb-4 flex items-center justify-between rounded-lg border p-4 backdrop-blur-sm">
               <div>
-                <h2 className="text-xl font-bold">검색 결과 (상위 {filtered.length}개)</h2>
-                <p className="mt-1 text-sm text-gray-500">
+                <h2 className="text-foreground text-xl font-bold">검색 결과 (상위 {filtered.length}개)</h2>
+                <p className="text-muted-foreground mt-1 text-sm">
                   국내배송, 경쟁상품 {MIN_ITEM_COUNT_OF_PRODUCT}개 이상, 최대 20개까지 표시
                 </p>
               </div>

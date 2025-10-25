@@ -44,29 +44,29 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(function Produc
     : `https://thumbnail6.coupangcdn.com/thumbnails/remote/260x260/image/${product.imagePath}`
   const productUrl = `https://www.coupang.com/vp/products/${product.productId}?itemId=${product.itemId}&vendorItemId=${product.vendorItemId}`
 
-  // 검증 상태에 따른 스타일 결정
+  // 검증 상태에 따른 스타일 결정 (dark 모드 기준)
   const getValidationStatus = () => {
     if (!validationResult) return null
 
     if (validationResult.error) {
       return {
-        icon: <XCircle className="h-4 w-4 text-red-500" />,
+        icon: <XCircle className="h-4 w-4 text-red-400" />,
         text: '검증 실패',
-        className: 'text-red-600 bg-red-50 border-red-200',
+        className: 'text-red-400 bg-red-950/30 border-red-800/50',
       }
     }
 
     if (validationResult.hasOptionPicker) {
       return {
-        icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
+        icon: <CheckCircle2 className="h-4 w-4 text-green-400" />,
         text: `검증 완료 - 드롭다운 옵션 존재`,
-        className: 'text-green-600 bg-green-50 border-green-200',
+        className: 'text-green-400 bg-green-950/30 border-green-800/50',
       }
     } else {
       return {
-        icon: <XCircle className="h-4 w-4 text-orange-500" />,
+        icon: <XCircle className="h-4 w-4 text-orange-400" />,
         text: '검증 실패',
-        className: 'text-orange-600 bg-orange-50 border-orange-200',
+        className: 'text-orange-400 bg-orange-950/30 border-orange-800/50',
       }
     }
   }
@@ -76,23 +76,29 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(function Produc
   return (
     <div
       ref={ref}
-      className={`flex gap-4 rounded-lg border p-4 shadow-sm ${validationStatus ? validationStatus.className : ''}`}>
+      className={`border-border bg-card flex gap-4 rounded-lg border p-4 shadow-sm ${validationStatus ? validationStatus.className : ''}`}>
       <img src={imgUrl} alt={product.productName} className="h-32 w-32 flex-shrink-0 rounded object-cover" />
       <div className="flex flex-1 flex-col gap-1">
-        <h3 className="font-semibold">{product.productName}</h3>
+        <h3 className="text-foreground font-semibold">{product.productName}</h3>
         <p className="text-muted-foreground text-sm">상품ID: {product.productId}</p>
-        {product.itemName && <p className="text-sm text-blue-500">위너 아이템명: {product.itemName}</p>}
-        {product.itemId && <p className="text-sm text-blue-500">위너 아이템ID: {product.itemId}</p>}
-        {product.brandName && <p className="text-sm">브랜드명: {product.brandName}</p>}
-        {product.manufacture && <p className="text-sm">제조사: {product.manufacture}</p>}
+        {product.itemName && <p className="text-sm text-blue-400">위너 아이템명: {product.itemName}</p>}
+        {product.itemId && <p className="text-sm text-blue-400">위너 아이템ID: {product.itemId}</p>}
+        {product.brandName && <p className="text-muted-foreground text-sm">브랜드명: {product.brandName}</p>}
+        {product.manufacture && <p className="text-muted-foreground text-sm">제조사: {product.manufacture}</p>}
         {product.displayCategoryInfo?.[0] && (
-          <p className="text-sm">카테고리: {product.displayCategoryInfo[0].categoryHierarchy}</p>
+          <p className="text-muted-foreground text-sm">카테고리: {product.displayCategoryInfo[0].categoryHierarchy}</p>
         )}
         <div className="mt-1">{renderStars(product.rating, product.ratingCount)}</div>
-        <p className="text-sm">경쟁상품수: {product.itemCountOfProduct?.toLocaleString() ?? '-'}</p>
-        <p className="text-sm">조회수(최근 28일): {product.pvLast28Day?.toLocaleString() ?? '-'}</p>
-        <p className="text-sm">판매량(최근 28일): {product.salesLast28d?.toLocaleString() ?? '-'}</p>
-        <p className="text-sm">배송정보: 국내배송</p>
+        <p className="text-muted-foreground text-sm">
+          경쟁상품수: {product.itemCountOfProduct?.toLocaleString() ?? '-'}
+        </p>
+        <p className="text-muted-foreground text-sm">
+          조회수(최근 28일): {product.pvLast28Day?.toLocaleString() ?? '-'}
+        </p>
+        <p className="text-muted-foreground text-sm">
+          판매량(최근 28일): {product.salesLast28d?.toLocaleString() ?? '-'}
+        </p>
+        <p className="text-muted-foreground text-sm">배송정보: 국내배송</p>
 
         {/* 검증 상태 표시 */}
         {validationStatus && (
