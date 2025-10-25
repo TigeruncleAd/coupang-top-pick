@@ -6,10 +6,22 @@ import { Star, StarHalf, Trash2 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getUserProducts, deleteProduct } from '@/serverActions/product/product.action'
 import { toast } from 'sonner'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@repo/ui/components/alert-dialog'
+import type { Product } from '@repo/database'
 
 export default function Client({ extensionId }: { extensionId: string }) {
   const queryClient = useQueryClient()
   const [currentPage, setCurrentPage] = useState(1)
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null)
 
   // 사용자 상품 목록 조회 (페이지네이션)
   const { data: userProductsData, isLoading: isLoadingProducts } = useQuery({
@@ -34,11 +46,20 @@ export default function Client({ extensionId }: { extensionId: string }) {
       }
       queryClient.invalidateQueries({ queryKey: ['userProducts'] })
       toast.success('상품이 삭제되었습니다.')
+      setProductToDelete(null)
     },
     onError: (error: Error) => {
       toast.error(error.message || '상품 삭제에 실패했습니다.')
+      setProductToDelete(null)
     },
   })
+
+  // 삭제 확인 후 실행
+  const handleConfirmDelete = () => {
+    if (productToDelete) {
+      deleteProductMutation.mutate(productToDelete.productId)
+    }
+  }
 
   function renderStars(rating: number | null | undefined, ratingCount: number | null | undefined) {
     if (!rating) return null
@@ -132,7 +153,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
                         <Button
                           size="sm"
                           variant="destructive"
-                          onClick={() => deleteProductMutation.mutate(product.productId)}
+                          onClick={() => setProductToDelete(product)}
                           disabled={deleteProductMutation.isPending}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -203,6 +224,35 @@ export default function Client({ extensionId }: { extensionId: string }) {
             </>
           )}
         </div>
+
+        {/* 삭제 확인 다이얼로그 */}
+        <AlertDialog open={!!productToDelete} onOpenChange={open => !open && setProductToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>상품을 삭제하시겠습니까?</AlertDialogTitle>
+              <AlertDialogDescription>
+                이 작업은 되돌릴 수 없습니다. 선택한 상품이 영구적으로 삭제됩니다.
+              </AlertDialogDescription>
+              {productToDelete && (
+                <div className="bg-muted mt-3 rounded-md p-3">
+                  <p className="text-foreground text-sm font-medium">{productToDelete.productName}</p>
+                  <p className="text-muted-foreground mt-1 text-xs">
+                    상품ID: {productToDelete.productId.toString()}
+                  </p>
+                </div>
+              )}
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleteProductMutation.isPending}>취소</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleConfirmDelete}
+                disabled={deleteProductMutation.isPending}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                {deleteProductMutation.isPending ? '삭제 중...' : '삭제'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   )
