@@ -1,10 +1,10 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@repo/ui/components/button'
 import { wingProductItemsViaExtension } from '@/lib/utils/extension'
 import { Star, StarHalf, Trash2 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { getUserProducts, deleteProduct } from '@/serverActions/product/product.action'
+import { getUserProducts, deleteProduct, updateProductStatus } from '@/serverActions/product/product.action'
 import { toast } from 'sonner'
 import {
   AlertDialog,
@@ -36,6 +36,19 @@ export default function Client({ extensionId }: { extensionId: string }) {
   const totalCount = userProductsData?.totalCount ?? 0
   const totalPages = userProductsData?.totalPages ?? 1
 
+  // 상품 상태 업데이트 mutation
+  const updateProductStatusMutation = useMutation({
+    mutationFn: ({ productId, status }: { productId: bigint; status: 'READY' | 'UPLOADED_RAW' }) =>
+      updateProductStatus(productId, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userProducts'] })
+      toast.success('상품이 업로드되었습니다.')
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || '상태 업데이트에 실패했습니다.')
+    },
+  })
+
   // 상품 삭제 mutation
   const deleteProductMutation = useMutation({
     mutationFn: (productId: bigint) => deleteProduct(productId),
@@ -60,6 +73,53 @@ export default function Client({ extensionId }: { extensionId: string }) {
       deleteProductMutation.mutate(productToDelete.productId)
     }
   }
+
+  // 확장프로그램 메시지 리스너 (상품 업로드 완료 알림)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    console.log('[product-upload/view] 🎯 Message listener setup started')
+
+    const handleMessage = (event: MessageEvent) => {
+      console.log('[product-upload/view] 📨 window.message received')
+      console.log('[product-upload/view] Event origin:', event.origin)
+      console.log('[product-upload/view] Event data:', event.data)
+      console.log('[product-upload/view] Event source:', event.data?.source)
+
+      // 확장프로그램에서 온 메시지만 처리
+      if (event.data?.source !== 'coupang-extension') {
+        console.log('[product-upload/view] ⚠️ Message ignored - not from coupang-extension')
+        return
+      }
+
+      console.log('[product-upload/view] ✅ Message from coupang-extension confirmed')
+      console.log('[product-upload/view] Message type:', event.data.type)
+
+      if (event.data.type === 'UPDATE_PRODUCT_STATUS' && event.data.productId) {
+        console.log('[product-upload/view] 🎯 UPDATE_PRODUCT_STATUS message received!')
+        console.log('[product-upload/view] ProductId:', event.data.productId)
+        console.log('[product-upload/view] 📤 Triggering mutation...')
+
+        // 상태 업데이트
+        updateProductStatusMutation.mutate({
+          productId: BigInt(event.data.productId),
+          status: 'UPLOADED_RAW',
+        })
+
+        console.log('[product-upload/view] ✅ Mutation triggered')
+      } else {
+        console.log('[product-upload/view] ⚠️ Message type or productId missing')
+      }
+    }
+
+    window.addEventListener('message', handleMessage)
+    console.log('[product-upload/view] ✅ Message listener registered')
+
+    return () => {
+      console.log('[product-upload/view] 🧹 Cleaning up message listener')
+      window.removeEventListener('message', handleMessage)
+    }
+  }, [updateProductStatusMutation])
 
   function renderStars(rating: number | null | undefined, ratingCount: number | null | undefined) {
     if (!rating) return null

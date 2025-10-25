@@ -60,10 +60,18 @@ enum DELIVERY_METHOD {
   GLOBAL      // 해외배송
 }
 
+enum PRODUCT_STATUS {
+  READY         // 준비 (초기 상태)
+  UPLOADED_RAW  // 1차 업로드 완료
+}
+
 model Product {
   id        BigInt   @id @default(autoincrement())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // 상태
+  status PRODUCT_STATUS @default(READY)
 
   // 기본 상품 정보
   productId      BigInt  @unique // 쿠팡 상품 ID
