@@ -83,76 +83,6 @@ importers:
         specifier: ^3.5.1
         version: 3.5.1(javascript-obfuscator@4.1.1)(webpack@5.102.1)
 
-  apps/market-api:
-    dependencies:
-      '@prisma/nextjs-monorepo-workaround-plugin':
-        specifier: ^5.22.0
-        version: 5.22.0
-      '@repo/utils':
-        specifier: workspace:*
-        version: link:../../packages/utils
-      axios:
-        specifier: ^1.11.0
-        version: 1.11.0
-      bcryptjs:
-        specifier: ^2.4.3
-        version: 2.4.3
-      env-cmd:
-        specifier: ^10.1.0
-        version: 10.1.0
-      iconv-lite:
-        specifier: ^0.6.3
-        version: 0.6.3
-      jsonwebtoken:
-        specifier: ^9.0.2
-        version: 9.0.2
-      lodash:
-        specifier: ^4.17.21
-        version: 4.17.21
-      next:
-        specifier: 15.3.2
-        version: 15.3.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-      node-html-parser:
-        specifier: ^6.1.13
-        version: 6.1.13
-      react:
-        specifier: ^19.1.1
-        version: 19.1.1
-      react-dom:
-        specifier: ^19.1.1
-        version: 19.1.1(react@19.1.1)
-      uuid:
-        specifier: ^9.0.1
-        version: 9.0.1
-    devDependencies:
-      '@next/eslint-plugin-next':
-        specifier: ^14.2.32
-        version: 14.2.32
-      '@repo/database':
-        specifier: workspace:*
-        version: link:../../packages/database
-      '@repo/eslint-config':
-        specifier: workspace:*
-        version: link:../../packages/eslint-config
-      '@repo/typescript-config':
-        specifier: workspace:*
-        version: link:../../packages/typescript-config
-      '@types/jsonwebtoken':
-        specifier: ^9.0.10
-        version: 9.0.10
-      '@types/node':
-        specifier: ^22.18.1
-        version: 22.18.1
-      '@types/react':
-        specifier: ^19.1.12
-        version: 19.1.12
-      '@types/react-dom':
-        specifier: ^19.1.9
-        version: 19.1.9(@types/react@19.1.12)
-      typescript:
-        specifier: ^5.9.2
-        version: 5.9.2
-
   apps/web:
     dependencies:
       '@aws-sdk/client-lambda':
@@ -2049,9 +1979,6 @@ packages:
   '@prisma/get-platform@6.16.3':
     resolution: {integrity: sha512-X1LxiFXinJ4iQehrodGp0f66Dv6cDL0GbRlcCoLtSu6f4Wi+hgo7eND/afIs5029GQLgNWKZ46vn8hjyXTsHLA==}
 
-  '@prisma/nextjs-monorepo-workaround-plugin@5.22.0':
-    resolution: {integrity: sha512-wuKp7FqhETHP2MJJu5y//ac83/EpDpoupcjlmp/Ijv3fnG576EIxY4SU4j24xXPIBOTuApkCk4RkgonkeAOXuQ==}
-
   '@prisma/nextjs-monorepo-workaround-plugin@6.16.3':
     resolution: {integrity: sha512-sTp5m7evUaQpcA9CdAqUYGYbrfPY7LBazIFTdgtMxHquDCVbzkkCHNguKs9xWoaNCWQKGWY6a+AxeASmLyJjPQ==}
 
@@ -3925,9 +3852,6 @@ packages:
   basic-ftp@5.0.5:
     resolution: {integrity: sha512-4Bcg1P8xhUuqcii/S0Z9wiHIrQVPMermM1any+MX5GeGD7faD3/msQUDGLol9wOcz4/jbg/WJnGqoJF6LiBdtg==}
     engines: {node: '>=10.0.0'}
-
-  bcryptjs@2.4.3:
-    resolution: {integrity: sha512-V/Hy/X9Vt7f3BbPJEi8BdVFMByHi+jNXrYkW3huaybV/kQ0KJg0Y6PkEMbn+zeT+i+SiKZ/HMqJGIIt4LZDqNQ==}
 
   bcryptjs@3.0.2:
     resolution: {integrity: sha512-k38b3XOZKv60C4E2hVsXTolJWfkGRMbILBIe2IBITXciy5bOsTKot5kDrf3ZfufQtQOUN5mXceUEpU1rTl9Uog==}
@@ -9293,8 +9217,6 @@ snapshots:
     dependencies:
       '@prisma/debug': 6.16.3
 
-  '@prisma/nextjs-monorepo-workaround-plugin@5.22.0': {}
-
   '@prisma/nextjs-monorepo-workaround-plugin@6.16.3': {}
 
   '@protobufjs/aspromise@1.1.2': {}
@@ -11373,8 +11295,6 @@ snapshots:
   baseline-browser-mapping@2.8.18: {}
 
   basic-ftp@5.0.5: {}
-
-  bcryptjs@2.4.3: {}
 
   bcryptjs@3.0.2: {}
 

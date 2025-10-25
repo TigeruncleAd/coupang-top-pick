@@ -1,0 +1,104 @@
+import { Button } from '@repo/ui/components/button'
+import { Star, StarHalf, Plus, Check } from 'lucide-react'
+import { wingProductItemsViaExtension } from '@/lib/utils/extension'
+import type { WingProductSummary } from '@/types/wing'
+
+interface ProductCardProps {
+  product: WingProductSummary
+  extensionId: string
+  onSave?: (product: WingProductSummary) => void
+  isSaving?: boolean
+  isSaved?: boolean
+}
+
+function renderStars(rating: number | null | undefined, ratingCount: number | null | undefined) {
+  if (!rating) return null
+  const full = Math.floor(rating)
+  const hasHalf = rating % 1 >= 0.5
+  return (
+    <div className="flex items-center gap-0.5">
+      {Array.from({ length: full }).map((_, i) => (
+        <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+      ))}
+      {hasHalf && <StarHalf className="h-4 w-4 fill-yellow-400 text-yellow-400" />}
+      <span className="ml-1 text-sm">{rating.toFixed(1)}</span>
+      {ratingCount != null && (
+        <span className="text-muted-foreground ml-1 text-sm">({ratingCount.toLocaleString()}개 상품평)</span>
+      )}
+    </div>
+  )
+}
+
+export default function ProductCard({ product, extensionId, onSave, isSaving, isSaved }: ProductCardProps) {
+  const imgUrl = product.imagePath.startsWith('http')
+    ? product.imagePath
+    : `https://thumbnail6.coupangcdn.com/thumbnails/remote/260x260/image/${product.imagePath}`
+  const productUrl = `https://www.coupang.com/vp/products/${product.productId}?itemId=${product.itemId}&vendorItemId=${product.vendorItemId}`
+
+  return (
+    <div className="flex gap-4 rounded-lg border p-4 shadow-sm">
+      <img src={imgUrl} alt={product.productName} className="h-32 w-32 flex-shrink-0 rounded object-cover" />
+      <div className="flex flex-1 flex-col gap-1">
+        <h3 className="font-semibold">{product.productName}</h3>
+        <p className="text-muted-foreground text-sm">상품ID: {product.productId}</p>
+        {product.itemName && <p className="text-sm text-blue-500">위너 아이템명: {product.itemName}</p>}
+        {product.itemId && <p className="text-sm text-blue-500">위너 아이템ID: {product.itemId}</p>}
+        {product.brandName && <p className="text-sm">브랜드명: {product.brandName}</p>}
+        {product.manufacture && <p className="text-sm">제조사: {product.manufacture}</p>}
+        {product.displayCategoryInfo?.[0] && (
+          <p className="text-sm">카테고리: {product.displayCategoryInfo[0].categoryHierarchy}</p>
+        )}
+        <div className="mt-1">{renderStars(product.rating, product.ratingCount)}</div>
+        <p className="text-sm">경쟁상품수: {product.itemCountOfProduct?.toLocaleString() ?? '-'}</p>
+        <p className="text-sm">조회수(최근 28일): {product.pvLast28Day?.toLocaleString() ?? '-'}</p>
+        <p className="text-sm">판매량(최근 28일): {product.salesLast28d?.toLocaleString() ?? '-'}</p>
+        <p className="text-sm">배송정보: 국내배송</p>
+      </div>
+      <div className="flex flex-col gap-2">
+        {onSave && (
+          <Button
+            size="sm"
+            variant={isSaved ? 'outline' : 'default'}
+            onClick={() => onSave(product)}
+            disabled={isSaving || isSaved}
+            className={isSaved ? 'border-green-500 bg-green-50 text-green-700 hover:bg-green-100' : ''}>
+            {isSaved ? (
+              <>
+                <Check className="mr-1 h-4 w-4" />
+                저장완료
+              </>
+            ) : (
+              <>
+                <Plus className="mr-1 h-4 w-4" />
+                저장하기
+              </>
+            )}
+          </Button>
+        )}
+        <Button size="sm" variant="outline" asChild>
+          <a href={productUrl} target="_blank" rel="noopener noreferrer">
+            상품 보기
+          </a>
+        </Button>
+        {/* <Button
+          size="sm"
+          onClick={async () => {
+            const uploadUrl = 'https://wing.coupang.com/tenants/seller-web/vendor-inventory/formV2'
+            window.open(uploadUrl, '_blank', 'noopener,noreferrer')
+            await new Promise(r => setTimeout(r, 1500))
+            await wingProductItemsViaExtension({
+              extensionId,
+              productId: product.productId,
+              itemId: product.itemId,
+              categoryId: product.categoryId,
+              targetTabUrl: uploadUrl,
+              productName: product.productName,
+              vendorItemId: product.vendorItemId,
+            })
+          }}>
+          업로드하기
+        </Button> */}
+      </div>
+    </div>
+  )
+}

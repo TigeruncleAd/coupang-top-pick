@@ -42,6 +42,7 @@ export interface WingSearchHttpEnvelope {
   ok: boolean
   status: number
   data: WingPreMatchingSearchResult
+  keyword?: string
 }
 
 // Product-items detail API response types

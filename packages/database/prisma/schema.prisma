@@ -49,7 +49,69 @@ model User {
   remainingProductCount       Int          @default(200)
   remainingUploadProductCount Int          @default(0)
 
+  // 관계
+  products Product[]
   // referral Referral?
+}
+
+enum DELIVERY_METHOD {
+  DOMESTIC    // 국내배송
+  DIRECT      // 직접배송
+  GLOBAL      // 해외배송
+}
+
+model Product {
+  id        BigInt   @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 기본 상품 정보
+  productId      BigInt  @unique // 쿠팡 상품 ID
+  productName    String // 상품명
+  brandName      String? // 브랜드명
+  manufacture    String? // 제조사
+
+  // 아이템 정보 (옵션)
+  itemId        BigInt // 쿠팡 아이템 ID
+  itemName      String // 아이템명
+  vendorItemId  BigInt // 벤더 아이템 ID
+
+  // 카테고리 정보
+  categoryId           Int // 카테고리 ID
+  displayCategoryInfo  Json // 카테고리 상세 정보 (배열)
+
+  // 가격 및 경쟁 정보
+  salePrice          Int // 판매가
+  itemCountOfProduct Int // 경쟁 상품 수
+
+  // 이미지
+  imagePath String // 이미지 경로
+
+  // 평점 정보
+  rating      Float @default(0) // 평점
+  ratingCount Int   @default(0) // 리뷰 개수
+
+  // 판매 지표
+  pvLast28Day  Int @default(0) // 최근 28일 조회수
+  salesLast28d Int @default(0) // 최근 28일 판매량
+
+  // 배송 정보
+  deliveryMethod String // 배송 방식 (DOMESTIC, DIRECT, GLOBAL)
+
+  // 추가 정보 (nullable)
+  matchType         String? // 매칭 타입
+  sponsored         String? // 스폰서 여부
+  matchingResultId  String? // 매칭 결과 ID
+  attributeTypes    Json? // 속성 타입
+
+  // 사용자 관계
+  userId BigInt
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([productId])
+  @@index([deliveryMethod])
+  @@index([createdAt])
 }
 
 // model Referral {
