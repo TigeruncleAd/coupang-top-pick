@@ -1,17 +1,29 @@
 'use client'
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef, useEffect } from 'react'
 import { Input } from '@repo/ui/components/input'
 import { Button } from '@repo/ui/components/button'
-import { wingSearchViaExtension, openOffscreenWindowExt, pushToExtension } from '@/lib/utils/extension'
+import {
+  wingSearchViaExtension,
+  openOffscreenWindowExt,
+  pushToExtension,
+  checkCoupangOptionPicker,
+} from '@/lib/utils/extension'
 import type { WingSearchHttpEnvelope, WingProductSummary } from '@/types/wing'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createProduct } from '@/serverActions/product/product.action'
+import { createProduct, createProductsBulk } from '@/serverActions/product/product.action'
 import { toast } from 'sonner'
 import ProductCard from './ProductCard'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@repo/ui/components/collapsible'
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronRight, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 
 const MIN_ITEM_COUNT_OF_PRODUCT = 3
+
+type ValidationResult = {
+  productId: number
+  hasOptionPicker: boolean
+  optionCount: number
+  error?: string
+}
 
 export default function Client({ extensionId }: { extensionId: string }) {
   const queryClient = useQueryClient()
@@ -21,6 +33,11 @@ export default function Client({ extensionId }: { extensionId: string }) {
   const [error, setError] = useState<string>('')
   const [isJsonOpen, setIsJsonOpen] = useState(false)
   const [savedProducts, setSavedProducts] = useState<Set<string>>(new Set())
+  const [isValidating, setIsValidating] = useState(false)
+  const [validationResults, setValidationResults] = useState<ValidationResult[]>([])
+  const [validationProgress, setValidationProgress] = useState({ current: 0, total: 0 })
+  const [isValidatingAndSaving, setIsValidatingAndSaving] = useState(false)
+  const productRefs = useRef<Map<number, HTMLDivElement>>(new Map())
 
   // 상품 생성 mutation
   const createProductMutation = useMutation({
@@ -33,6 +50,27 @@ export default function Client({ extensionId }: { extensionId: string }) {
     },
     onError: (error: Error) => {
       toast.error(error.message || '상품 저장에 실패했습니다.')
+    },
+  })
+
+  // 일괄 저장 mutation
+  const createProductsBulkMutation = useMutation({
+    mutationFn: (products: WingProductSummary[]) => createProductsBulk(products),
+    onSuccess: result => {
+      queryClient.invalidateQueries({ queryKey: ['userProducts'] })
+
+      if (result.created > 0) {
+        toast.success(`${result.created}개 상품이 저장되었습니다.`)
+      }
+      if (result.skipped > 0) {
+        toast.info(`${result.skipped}개 상품은 이미 등록되어 건너뛰었습니다.`)
+      }
+      if (result.errors.length > 0) {
+        toast.error(`${result.errors.length}개 상품 저장 실패`)
+      }
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || '일괄 저장에 실패했습니다.')
     },
   })
 
@@ -87,6 +125,140 @@ export default function Client({ extensionId }: { extensionId: string }) {
 
   const filtered = result?.data?.result ?? []
 
+  // 전체 검증 함수
+  const handleValidateAll = async () => {
+    if (filtered.length === 0) {
+      toast.error('검증할 상품이 없습니다.')
+      return
+    }
+
+    setIsValidating(true)
+    setValidationResults([])
+    setValidationProgress({ current: 0, total: filtered.length })
+
+    const results: ValidationResult[] = []
+
+    for (let i = 0; i < filtered.length; i++) {
+      const product = filtered[i]
+      setValidationProgress({ current: i + 1, total: filtered.length })
+
+      // 현재 검증 중인 상품으로 스크롤
+      const productElement = productRefs.current.get(product.productId)
+      if (productElement) {
+        productElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+
+      try {
+        const res = await checkCoupangOptionPicker({
+          extensionId,
+          productId: product.productId,
+          itemId: product.itemId,
+          vendorItemId: product.vendorItemId,
+        })
+
+        results.push({
+          productId: product.productId,
+          hasOptionPicker: res.hasOptionPicker || false,
+          optionCount: res.optionCount || 0,
+          error: res.ok ? undefined : res.error,
+        })
+      } catch (error) {
+        results.push({
+          productId: product.productId,
+          hasOptionPicker: false,
+          optionCount: 0,
+          error: String(error),
+        })
+      } finally {
+        setValidationResults(results)
+      }
+
+      // 요청 간 딜레이 (쿠팡 서버 부하 방지)
+      await new Promise(r => setTimeout(r, 1000))
+    }
+
+    setValidationResults(results)
+    setIsValidating(false)
+
+    const withOptions = results.filter(r => r.hasOptionPicker).length
+    toast.success(`검증 완료: 옵션 있음 ${withOptions}개 / 없음 ${results.length - withOptions}개`)
+  }
+
+  // 전체 검증 후 저장 함수
+  const handleValidateAndSave = async () => {
+    if (filtered.length === 0) {
+      toast.error('검증할 상품이 없습니다.')
+      return
+    }
+
+    setIsValidatingAndSaving(true)
+    setValidationResults([])
+    setValidationProgress({ current: 0, total: filtered.length })
+
+    const results: ValidationResult[] = []
+
+    // 1단계: 전체 검증
+    for (let i = 0; i < filtered.length; i++) {
+      const product = filtered[i]
+      setValidationProgress({ current: i + 1, total: filtered.length })
+
+      // 현재 검증 중인 상품으로 스크롤
+      const productElement = productRefs.current.get(product.productId)
+      if (productElement) {
+        productElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+
+      try {
+        const res = await checkCoupangOptionPicker({
+          extensionId,
+          productId: product.productId,
+          itemId: product.itemId,
+          vendorItemId: product.vendorItemId,
+        })
+
+        results.push({
+          productId: product.productId,
+          hasOptionPicker: res.hasOptionPicker || false,
+          optionCount: res.optionCount || 0,
+          error: res.ok ? undefined : res.error,
+        })
+      } catch (error) {
+        results.push({
+          productId: product.productId,
+          hasOptionPicker: false,
+          optionCount: 0,
+          error: String(error),
+        })
+      } finally {
+        setValidationResults(results)
+      }
+
+      // 요청 간 딜레이
+      await new Promise(r => setTimeout(r, 1000))
+    }
+
+    // 2단계: 옵션이 있는 상품만 필터링하여 저장
+    const productsToSave = filtered.filter(product => {
+      const validationResult = results.find(r => r.productId === product.productId)
+      return validationResult?.hasOptionPicker && !validationResult?.error
+    })
+
+    if (productsToSave.length === 0) {
+      toast.warning('저장할 상품이 없습니다. (옵션이 있는 상품이 없음)')
+      setIsValidatingAndSaving(false)
+      return
+    }
+
+    // 3단계: 일괄 저장
+    await createProductsBulkMutation.mutateAsync(productsToSave)
+
+    // 저장된 상품 ID를 savedProducts Set에 추가
+    const savedProductIds = productsToSave.map(p => p.productId.toString())
+    setSavedProducts(prev => new Set([...prev, ...savedProductIds]))
+
+    setIsValidatingAndSaving(false)
+  }
+
   return (
     <div className="w-full">
       <div className="mx-auto w-full max-w-6xl space-y-8">
@@ -105,6 +277,8 @@ export default function Client({ extensionId }: { extensionId: string }) {
 
         {error ? <p className="mt-4 text-sm text-red-500">{error}</p> : null}
 
+        {result && <div></div>}
+
         {result && (
           <Collapsible open={isJsonOpen} onOpenChange={setIsJsonOpen}>
             <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg border p-4">
@@ -122,23 +296,77 @@ export default function Client({ extensionId }: { extensionId: string }) {
         {/* 검색 결과 */}
         {filtered.length > 0 && (
           <div>
-            <div className="mb-4">
-              <h2 className="text-xl font-bold">검색 결과 (상위 {filtered.length}개)</h2>
-              <p className="mt-1 text-sm text-gray-500">
-                국내배송, 경쟁상품 {MIN_ITEM_COUNT_OF_PRODUCT}개 이상, 최대 20개까지 표시
-              </p>
+            <div className="sticky top-0 mb-4 flex items-center justify-between bg-black/70 backdrop-blur-sm">
+              <div>
+                <h2 className="text-xl font-bold">검색 결과 (상위 {filtered.length}개)</h2>
+                <p className="mt-1 text-sm text-gray-500">
+                  국내배송, 경쟁상품 {MIN_ITEM_COUNT_OF_PRODUCT}개 이상, 최대 20개까지 표시
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleValidateAll}
+                  disabled={isValidating || isValidatingAndSaving}
+                  variant="outline"
+                  className="gap-2">
+                  {isValidating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      검증 중... ({validationProgress.current}/{validationProgress.total})
+                    </>
+                  ) : (
+                    '전체 검증'
+                  )}
+                </Button>
+                <Button
+                  onClick={handleValidateAndSave}
+                  disabled={isValidating || isValidatingAndSaving || createProductsBulkMutation.isPending}
+                  variant="default"
+                  className="gap-2">
+                  {isValidatingAndSaving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      {createProductsBulkMutation.isPending
+                        ? '저장 중...'
+                        : `검증 중... (${validationProgress.current}/${validationProgress.total})`}
+                    </>
+                  ) : (
+                    '전체 검증 후 저장'
+                  )}
+                </Button>
+              </div>
             </div>
+
             <div className="space-y-4">
-              {filtered.map(product => (
-                <ProductCard
-                  key={product.productId}
-                  product={product}
-                  extensionId={extensionId}
-                  onSave={product => createProductMutation.mutate(product)}
-                  isSaving={createProductMutation.isPending}
-                  isSaved={savedProducts.has(product.productId.toString())}
-                />
-              ))}
+              {filtered.map(product => {
+                const validationResult = validationResults.find(r => r.productId === product.productId)
+                return (
+                  <ProductCard
+                    key={product.productId}
+                    ref={el => {
+                      if (el) {
+                        productRefs.current.set(product.productId, el)
+                      } else {
+                        productRefs.current.delete(product.productId)
+                      }
+                    }}
+                    product={product}
+                    extensionId={extensionId}
+                    onSave={product => createProductMutation.mutate(product)}
+                    isSaving={createProductMutation.isPending}
+                    isSaved={savedProducts.has(product.productId.toString())}
+                    validationResult={
+                      validationResult
+                        ? {
+                            hasOptionPicker: validationResult.hasOptionPicker,
+                            optionCount: validationResult.optionCount,
+                            error: validationResult.error,
+                          }
+                        : undefined
+                    }
+                  />
+                )
+              })}
             </div>
           </div>
         )}

@@ -168,3 +168,40 @@ export async function clearLatestProductIdFromExtension({
     }
   })
 }
+
+/**
+ * 쿠팡 상품 페이지에서 option-picker-container 존재 여부 체크
+ */
+export async function checkCoupangOptionPicker({
+  extensionId,
+  productId,
+  itemId,
+  vendorItemId,
+}: {
+  extensionId: string
+  productId: number
+  itemId: number
+  vendorItemId: number
+}): Promise<{ ok: boolean; hasOptionPicker?: boolean; optionCount?: number; error?: string }> {
+  return new Promise(resolve => {
+    try {
+      if (typeof chrome === 'undefined' || !chrome.runtime?.sendMessage) {
+        resolve({ ok: false, error: 'Chrome runtime not available' })
+        return
+      }
+
+      chrome.runtime.sendMessage(
+        extensionId,
+        {
+          type: 'CHECK_COUPANG_OPTION_PICKER',
+          payload: { productId, itemId, vendorItemId },
+        },
+        (res: any) => {
+          resolve(res || { ok: false, error: 'No response' })
+        },
+      )
+    } catch (error) {
+      resolve({ ok: false, error: String(error) })
+    }
+  })
+}

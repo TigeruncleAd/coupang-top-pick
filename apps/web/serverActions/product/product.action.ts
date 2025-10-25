@@ -95,6 +95,69 @@ export async function getUserProducts(
   }
 }
 
+export async function createProductsBulk(
+  productsData: WingProductSummary[],
+): Promise<{ created: number; skipped: number; errors: string[] }> {
+  const user = await getServerUser()
+
+  if (!user) {
+    throw new Error('Unauthorized')
+  }
+
+  let created = 0
+  let skipped = 0
+  const errors: string[] = []
+
+  for (const productData of productsData) {
+    try {
+      // productId로 이미 존재하는지 확인
+      const existingProduct = await prisma.product.findUnique({
+        where: {
+          productId: productData.productId,
+        },
+      })
+
+      if (existingProduct) {
+        skipped++
+        continue
+      }
+
+      await prisma.product.create({
+        data: {
+          userId: user.id,
+          productId: productData.productId,
+          productName: productData.productName,
+          brandName: productData.brandName,
+          manufacture: productData.manufacture,
+          itemId: productData.itemId,
+          itemName: productData.itemName,
+          vendorItemId: productData.vendorItemId,
+          categoryId: productData.categoryId,
+          displayCategoryInfo: JSON.parse(JSON.stringify(productData.displayCategoryInfo || [])),
+          salePrice: productData.salePrice,
+          itemCountOfProduct: productData.itemCountOfProduct || 0,
+          imagePath: productData.imagePath,
+          rating: productData.rating || 0,
+          ratingCount: productData.ratingCount || 0,
+          pvLast28Day: productData.pvLast28Day || 0,
+          salesLast28d: productData.salesLast28d || 0,
+          deliveryMethod: productData.deliveryMethod,
+          matchType: productData.matchType || null,
+          sponsored: productData.sponsored ? String(productData.sponsored) : null,
+          matchingResultId: productData.matchingResultId ? String(productData.matchingResultId) : null,
+          attributeTypes: productData.attributeTypes ? JSON.parse(JSON.stringify(productData.attributeTypes)) : null,
+        },
+      })
+
+      created++
+    } catch (error) {
+      errors.push(`상품 ID ${productData.productId}: ${error instanceof Error ? error.message : String(error)}`)
+    }
+  }
+
+  return { created, skipped, errors }
+}
+
 export async function deleteProduct(productId: bigint) {
   const user = await getServerUser()
 

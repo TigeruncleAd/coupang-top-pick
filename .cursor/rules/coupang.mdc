@@ -14,3 +14,7 @@ alwaysApply: true
    6-2. 판매기간: 설정안함
 7. 상품정보제공고시: 전체 상품 상세페이지 참조
 8. 판매요청
+
+## 상품 상세페이지 URL 포맷
+
+https://www.coupang.com/vp/products/{productId}?itemId={itemId}&vendorItemId={vendorItemId}

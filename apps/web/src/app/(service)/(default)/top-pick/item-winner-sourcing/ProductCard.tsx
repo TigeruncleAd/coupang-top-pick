@@ -1,7 +1,8 @@
 import { Button } from '@repo/ui/components/button'
-import { Star, StarHalf, Plus, Check } from 'lucide-react'
+import { Star, StarHalf, Plus, Check, CheckCircle2, XCircle } from 'lucide-react'
 import { wingProductItemsViaExtension } from '@/lib/utils/extension'
 import type { WingProductSummary } from '@/types/wing'
+import { forwardRef } from 'react'
 
 interface ProductCardProps {
   product: WingProductSummary
@@ -9,6 +10,11 @@ interface ProductCardProps {
   onSave?: (product: WingProductSummary) => void
   isSaving?: boolean
   isSaved?: boolean
+  validationResult?: {
+    hasOptionPicker: boolean
+    optionCount: number
+    error?: string
+  }
 }
 
 function renderStars(rating: number | null | undefined, ratingCount: number | null | undefined) {
@@ -29,14 +35,48 @@ function renderStars(rating: number | null | undefined, ratingCount: number | nu
   )
 }
 
-export default function ProductCard({ product, extensionId, onSave, isSaving, isSaved }: ProductCardProps) {
+const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(function ProductCard(
+  { product, extensionId, onSave, isSaving, isSaved, validationResult },
+  ref,
+) {
   const imgUrl = product.imagePath.startsWith('http')
     ? product.imagePath
     : `https://thumbnail6.coupangcdn.com/thumbnails/remote/260x260/image/${product.imagePath}`
   const productUrl = `https://www.coupang.com/vp/products/${product.productId}?itemId=${product.itemId}&vendorItemId=${product.vendorItemId}`
 
+  // 검증 상태에 따른 스타일 결정
+  const getValidationStatus = () => {
+    if (!validationResult) return null
+
+    if (validationResult.error) {
+      return {
+        icon: <XCircle className="h-4 w-4 text-red-500" />,
+        text: '검증 실패',
+        className: 'text-red-600 bg-red-50 border-red-200',
+      }
+    }
+
+    if (validationResult.hasOptionPicker) {
+      return {
+        icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
+        text: `검증 완료 - 드롭다운 옵션 존재`,
+        className: 'text-green-600 bg-green-50 border-green-200',
+      }
+    } else {
+      return {
+        icon: <XCircle className="h-4 w-4 text-orange-500" />,
+        text: '검증 실패',
+        className: 'text-orange-600 bg-orange-50 border-orange-200',
+      }
+    }
+  }
+
+  const validationStatus = getValidationStatus()
+
   return (
-    <div className="flex gap-4 rounded-lg border p-4 shadow-sm">
+    <div
+      ref={ref}
+      className={`flex gap-4 rounded-lg border p-4 shadow-sm ${validationStatus ? validationStatus.className : ''}`}>
       <img src={imgUrl} alt={product.productName} className="h-32 w-32 flex-shrink-0 rounded object-cover" />
       <div className="flex flex-1 flex-col gap-1">
         <h3 className="font-semibold">{product.productName}</h3>
@@ -53,6 +93,14 @@ export default function ProductCard({ product, extensionId, onSave, isSaving, is
         <p className="text-sm">조회수(최근 28일): {product.pvLast28Day?.toLocaleString() ?? '-'}</p>
         <p className="text-sm">판매량(최근 28일): {product.salesLast28d?.toLocaleString() ?? '-'}</p>
         <p className="text-sm">배송정보: 국내배송</p>
+
+        {/* 검증 상태 표시 */}
+        {validationStatus && (
+          <div className="mt-2 flex items-center gap-2 rounded-md border px-3 py-2">
+            {validationStatus.icon}
+            <span className="text-sm font-medium">{validationStatus.text}</span>
+          </div>
+        )}
       </div>
       <div className="flex flex-col gap-2">
         {onSave && (
@@ -101,4 +149,6 @@ export default function ProductCard({ product, extensionId, onSave, isSaving, is
       </div>
     </div>
   )
-}
+})
+
+export default ProductCard
