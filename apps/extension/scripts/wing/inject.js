@@ -1071,123 +1071,206 @@
                                                                                       '[wing/inject] ✅ Confirmation modal "판매요청" button clicked!',
                                                                                     )
 
-                                                                                    // 성공 모달 확인 (재시도 로직 추가)
-                                                                                    const checkSuccessModal = (
-                                                                                      retryCount = 0,
-                                                                                    ) => {
-                                                                                      console.log(
-                                                                                        `[wing/inject] Checking for success modal... (attempt ${retryCount + 1}/5)`,
-                                                                                      )
-
-                                                                                      // 모든 .alert-title 요소 찾기
-                                                                                      const allTitles =
-                                                                                        document.querySelectorAll(
-                                                                                          '.alert-title, h2.alert-title',
-                                                                                        )
-                                                                                      console.log(
-                                                                                        '[wing/inject] Found alert titles:',
-                                                                                        allTitles.length,
-                                                                                      )
-
-                                                                                      // 성공 모달 제목 찾기
-                                                                                      const successTitle = Array.from(
-                                                                                        allTitles,
-                                                                                      ).find(el =>
-                                                                                        el.textContent?.includes(
-                                                                                          '상품등록이 완료되었습니다',
-                                                                                        ),
-                                                                                      )
-
-                                                                                      if (successTitle) {
-                                                                                        console.log(
-                                                                                          '[wing/inject] ✅ Product registration success confirmed!',
-                                                                                        )
-                                                                                        console.log(
-                                                                                          '[wing/inject] Success title text:',
-                                                                                          successTitle.textContent,
-                                                                                        )
-
-                                                                                        // 등록상품ID 추출
-                                                                                        const alertText =
-                                                                                          document.querySelector(
-                                                                                            '.alert-text, p.alert-text',
-                                                                                          )
-                                                                                        console.log(
-                                                                                          '[wing/inject] Alert text:',
-                                                                                          alertText?.textContent,
-                                                                                        )
-
-                                                                                        const match =
-                                                                                          alertText?.textContent?.match(
-                                                                                            /등록상품ID\s*:\s*(\d+)/,
-                                                                                          )
-                                                                                        const registeredProductId =
-                                                                                          match ? match[1] : null
-
-                                                                                        console.log(
-                                                                                          '[wing/inject] 📝 Registered Product ID:',
-                                                                                          registeredProductId,
-                                                                                        )
-
-                                                                                        console.log(
-                                                                                          '[wing/inject] 🎊 Product registration fully completed!',
-                                                                                        )
-
-                                                                                        // product-upload 페이지에 알림 전송 (탭 닫기 + status 업데이트)
-                                                                                        if (productId) {
-                                                                                          console.log(
-                                                                                            '[wing/inject] 📤 Sending PRODUCT_UPLOAD_SUCCESS message...',
-                                                                                          )
-                                                                                          console.log(
-                                                                                            '[wing/inject] ProductId to send:',
-                                                                                            Number(productId),
-                                                                                          )
-
-                                                                                          chrome.runtime.sendMessage(
-                                                                                            {
-                                                                                              type: 'PRODUCT_UPLOAD_SUCCESS',
-                                                                                              productId:
-                                                                                                Number(productId),
-                                                                                            },
-                                                                                            response => {
-                                                                                              console.log(
-                                                                                                '[wing/inject] ✅ Notification sent, response:',
-                                                                                                response,
-                                                                                              )
-                                                                                            },
-                                                                                          )
-                                                                                        } else {
-                                                                                          console.warn(
-                                                                                            '[wing/inject] ⚠️ No productId to send',
-                                                                                          )
-                                                                                        }
-                                                                                      } else {
-                                                                                        console.warn(
-                                                                                          '[wing/inject] ⚠️ Success modal not found yet',
-                                                                                        )
-
-                                                                                        // 최대 5번 재시도
-                                                                                        if (retryCount < 4) {
-                                                                                          setTimeout(
-                                                                                            () =>
-                                                                                              checkSuccessModal(
-                                                                                                retryCount + 1,
-                                                                                              ),
-                                                                                            1000,
-                                                                                          )
-                                                                                        } else {
-                                                                                          console.error(
-                                                                                            '[wing/inject] ❌ Success modal not found after 5 attempts',
-                                                                                          )
-                                                                                        }
-                                                                                      }
-                                                                                    }
-
-                                                                                    // 1초 후 첫 시도
-                                                                                    setTimeout(
-                                                                                      () => checkSuccessModal(0),
-                                                                                      1000,
+                                                                                    // 성공 모달 반복 체크 (최대 30초)
+                                                                                    console.log(
+                                                                                      '[wing/inject] Starting success modal polling...',
                                                                                     )
+
+                                                                                    let checkCount = 0
+                                                                                    const maxChecks = 30 // 30초 동안 체크
+                                                                                    let modalFound = false
+
+                                                                                    const pollSuccessModal =
+                                                                                      setInterval(() => {
+                                                                                        checkCount++
+                                                                                        console.log(
+                                                                                          `[wing/inject] Polling for success modal... (${checkCount}/${maxChecks})`,
+                                                                                        )
+
+                                                                                        // 모달이 이미 발견되었으면 폴링 중지되어야 함
+                                                                                        if (modalFound) {
+                                                                                          console.warn(
+                                                                                            '[wing/inject] ⚠️ Modal already processed but polling still running',
+                                                                                          )
+                                                                                          clearInterval(
+                                                                                            pollSuccessModal,
+                                                                                          )
+                                                                                          return
+                                                                                        }
+
+                                                                                        // 실제로 표시되는 모달 찾기 (display: block 또는 display가 none이 아닌)
+                                                                                        const modalElements =
+                                                                                          Array.from(
+                                                                                            document.querySelectorAll(
+                                                                                              '.modal',
+                                                                                            ),
+                                                                                          )
+                                                                                        console.log(
+                                                                                          '[wing/inject] Found .modal elements:',
+                                                                                          modalElements.length,
+                                                                                        )
+
+                                                                                        const visibleModal =
+                                                                                          modalElements.find(modal => {
+                                                                                            const display =
+                                                                                              window.getComputedStyle(
+                                                                                                modal,
+                                                                                              ).display
+                                                                                            console.log(
+                                                                                              '[wing/inject] Modal display:',
+                                                                                              display,
+                                                                                            )
+                                                                                            return display !== 'none'
+                                                                                          })
+
+                                                                                        if (!visibleModal) {
+                                                                                          console.log(
+                                                                                            '[wing/inject] No visible modal found',
+                                                                                          )
+                                                                                          return
+                                                                                        }
+
+                                                                                        console.log(
+                                                                                          '[wing/inject] ✅ Visible modal found!',
+                                                                                        )
+
+                                                                                        // 성공 모달인지 확인
+                                                                                        const successTitle =
+                                                                                          visibleModal.querySelector(
+                                                                                            '.alert-title, h2.alert-title',
+                                                                                          )
+                                                                                        const isSuccessModal =
+                                                                                          successTitle?.textContent?.includes(
+                                                                                            '상품등록이 완료되었습니다',
+                                                                                          )
+
+                                                                                        console.log(
+                                                                                          '[wing/inject] Is success modal:',
+                                                                                          isSuccessModal,
+                                                                                        )
+                                                                                        console.log(
+                                                                                          '[wing/inject] Title text:',
+                                                                                          successTitle?.textContent,
+                                                                                        )
+
+                                                                                        if (isSuccessModal) {
+                                                                                          if (!modalFound) {
+                                                                                            modalFound = true
+                                                                                            console.log(
+                                                                                              '[wing/inject] ✅ Success modal detected!',
+                                                                                            )
+                                                                                            console.log(
+                                                                                              '[wing/inject] Modal text:',
+                                                                                              successModal?.textContent,
+                                                                                            )
+
+                                                                                            // 폴링 중지
+                                                                                            clearInterval(
+                                                                                              pollSuccessModal,
+                                                                                            )
+                                                                                            console.log(
+                                                                                              '[wing/inject] ⏹️ Polling stopped',
+                                                                                            )
+
+                                                                                            // 등록상품ID 추출 (visible modal 내부에서만 찾기)
+                                                                                            const allParagraphs =
+                                                                                              Array.from(
+                                                                                                visibleModal.querySelectorAll(
+                                                                                                  'p',
+                                                                                                ),
+                                                                                              )
+                                                                                            console.log(
+                                                                                              '[wing/inject] Found paragraphs in visible modal:',
+                                                                                              allParagraphs.length,
+                                                                                            )
+                                                                                            allParagraphs.forEach(
+                                                                                              (p, idx) => {
+                                                                                                console.log(
+                                                                                                  `[wing/inject] Paragraph ${idx}:`,
+                                                                                                  p.textContent,
+                                                                                                )
+                                                                                              },
+                                                                                            )
+
+                                                                                            const alertText =
+                                                                                              allParagraphs.find(p =>
+                                                                                                p.textContent?.includes(
+                                                                                                  '등록상품ID',
+                                                                                                ),
+                                                                                              )
+                                                                                            console.log(
+                                                                                              '[wing/inject] Alert text element:',
+                                                                                              alertText,
+                                                                                            )
+                                                                                            console.log(
+                                                                                              '[wing/inject] Alert text content:',
+                                                                                              alertText?.textContent,
+                                                                                            )
+
+                                                                                            const match =
+                                                                                              alertText?.textContent?.match(
+                                                                                                /등록상품ID\s*:\s*(\d+)/,
+                                                                                              )
+                                                                                            const registeredProductId =
+                                                                                              match ? match[1] : null
+
+                                                                                            console.log(
+                                                                                              '[wing/inject] 📝 Registered Product ID:',
+                                                                                              registeredProductId,
+                                                                                            )
+
+                                                                                            console.log(
+                                                                                              '[wing/inject] 🎊 Product registration fully completed!',
+                                                                                            )
+
+                                                                                            // product-upload 페이지에 알림 전송 및 탭 닫기
+                                                                                            if (productId) {
+                                                                                              console.log(
+                                                                                                '[wing/inject] 📤 Sending PRODUCT_UPLOAD_SUCCESS message...',
+                                                                                              )
+                                                                                              console.log(
+                                                                                                '[wing/inject] ProductId to send:',
+                                                                                                Number(productId),
+                                                                                              )
+
+                                                                                              // Background가 sender.tab.id로 탭을 닫을 것
+                                                                                              chrome.runtime.sendMessage(
+                                                                                                {
+                                                                                                  type: 'PRODUCT_UPLOAD_SUCCESS',
+                                                                                                  productId:
+                                                                                                    Number(productId),
+                                                                                                },
+                                                                                                response => {
+                                                                                                  console.log(
+                                                                                                    '[wing/inject] ✅ Notification sent, response:',
+                                                                                                    response,
+                                                                                                  )
+                                                                                                },
+                                                                                              )
+                                                                                            } else {
+                                                                                              console.warn(
+                                                                                                '[wing/inject] ⚠️ No productId to send',
+                                                                                              )
+                                                                                            }
+                                                                                          }
+                                                                                        }
+
+                                                                                        // 최대 체크 횟수 도달
+                                                                                        if (checkCount >= maxChecks) {
+                                                                                          console.log(
+                                                                                            '[wing/inject] ⏰ Polling timeout reached',
+                                                                                          )
+                                                                                          clearInterval(
+                                                                                            pollSuccessModal,
+                                                                                          )
+
+                                                                                          if (!modalFound) {
+                                                                                            console.error(
+                                                                                              '[wing/inject] ❌ Success modal not found after 30 seconds',
+                                                                                            )
+                                                                                          }
+                                                                                        }
+                                                                                      }, 1000) // 1초마다 체크
                                                                                   } else {
                                                                                     console.warn(
                                                                                       '[wing/inject] ⚠️ Confirmation modal button not found',

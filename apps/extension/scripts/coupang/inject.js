@@ -97,7 +97,7 @@ import html2canvas from 'html2canvas'
           }
 
           // 492x492ex를 1000x1000ex로 변환
-          const convertedImages = images.map(img => img.replace('492x492ex', '1000x1000ex'))
+          const convertedImages = images.map(img => img.replace('492x492ex', '1000x1000'))
           console.log('[coupang/inject] ✅ Converted images:', convertedImages.length)
           console.log('[coupang/inject] 🎨 Sample converted:', convertedImages[0])
 

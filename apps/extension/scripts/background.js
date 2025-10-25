@@ -526,16 +526,25 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         const { productId } = msg
         console.log('[background] 🎉 PRODUCT_UPLOAD_SUCCESS message received!')
         console.log('[background] ProductId:', productId)
-        console.log('[background] Sender tab:', sender.tab?.id)
+        console.log('[background] Sender tab ID:', sender.tab?.id)
 
-        // 현재 Wing 탭 닫기
-        const currentTab = sender.tab
-        if (currentTab?.id) {
-          console.log('[background] 🗑️ Closing Wing tab:', currentTab.id)
-          await chrome.tabs.remove(currentTab.id)
-          console.log('[background] ✅ Wing tab closed')
+        // 먼저 응답 전송 (탭이 닫히기 전에)
+        sendResponse({ ok: true })
+        console.log('[background] ✅ Response sent to wing tab')
+
+        // Wing 탭 닫기 (sender.tab.id 사용)
+        const wingTabId = sender.tab?.id
+        if (wingTabId) {
+          console.log('[background] 🗑️ Closing Wing tab:', wingTabId)
+          try {
+            await chrome.tabs.remove(wingTabId)
+            console.log('[background] ✅ Wing tab closed successfully')
+          } catch (closeError) {
+            console.error('[background] ❌ Error closing Wing tab:', closeError)
+            console.error('[background] Error details:', closeError.message)
+          }
         } else {
-          console.warn('[background] ⚠️ No sender tab to close')
+          console.warn('[background] ⚠️ No sender tab ID available')
         }
 
         // /top-pick/product-upload 페이지 찾기
@@ -575,12 +584,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           console.log('[background] Available tabs:')
           tabs.forEach(tab => console.log(`  - ${tab.id}: ${tab.url}`))
         }
-
-        sendResponse({ ok: true })
       } catch (e) {
         console.error('[background] ❌ Error handling product upload success:', e)
         console.error('[background] Error stack:', e.stack)
-        sendResponse({ ok: false, error: String(e) })
       }
     })()
     return true
