@@ -1,0 +1,32 @@
+{
+  "name": "coupang-checker-extension",
+  "version": "0.0.3",
+  "description": "",
+  "main": "config.js",
+  "scripts": {
+    "build": "webpack --config webpack.config.js",
+    "zip": "node zip.js",
+    "deploy": "npm run build && npm run zip"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@babel/runtime": "^7.x.x",
+    "html2canvas": "^1.4.1",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.x.x",
+    "@babel/plugin-proposal-class-properties": "^7.x.x",
+    "@babel/plugin-transform-runtime": "^7.x.x",
+    "@babel/preset-env": "^7.x.x",
+    "archiver": "^7.0.1",
+    "babel-loader": "^8.x.x",
+    "copy-webpack-plugin": "^13.0.1",
+    "javascript-obfuscator": "^4.1.1",
+    "terser-webpack-plugin": "^5.3.11",
+    "webpack": "^5.97.1",
+    "webpack-cli": "^6.0.1",
+    "webpack-obfuscator": "^3.5.1"
+  }
+}

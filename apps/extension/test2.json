@@ -1,0 +1,54 @@
+:authority
+search.shopping.naver.com
+:method
+GET
+:path
+/api/search/all?sort=rel&pagingIndex=1&pagingSize=80&viewType=list&productSet=checkout&agency=true&query=%EA%B5%AD%EC%9E%90&origQuery=%EA%B5%AD%EC%9E%90&adQuery=%EA%B5%AD%EC%9E%90&iq=&eq=&xq=
+:scheme
+https
+accept
+application/json, text/plain, */*
+accept-encoding
+gzip, deflate, br, zstd
+accept-language
+ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7
+cache-control
+no-cache
+cookie
+NNB=BMGLBGMJCXAWQ; SRT30=1757484425; NAC=uWaVBwwbqrzB; NACT=1; nid_inf=1763248259; NID_AUT=NnUf1GbyvhBNgAUgpXtVj3/JzUA8L0PiGpm267y5Qvd0Wj5f0Tb7AQ3LX3Js3vtr; SHP_BUCKET_ID=7; NID_SES=AAABv2v3rvRMyd3ioH6HTJuZgtGTDW4jFxksUfxDo+ZVKtOqtg5ABd3F4cCwvFv79RjNeLR6Fe6am5f5u6NeUJlvS2N3GHgBNwjxc7E5u5u4IlSfuokeE4kF5w+RbWtM1OoDb7YxF5Qr+7Rrwdcz97Ztxq4irbjKcym3ABa4svgnmBGp/ifxFB7pYlw0rHyS0zuhkmzI5PJbJble9Gcm85glP/Rj9t/Zd/Zh+75S2/cYBIhqlHwJoJ3zPSus5hhxin3UDqOxYrn6BO5ter+HRPNX6EIIowsTl7lvgqhQ/Kdb680M7fCmUFw6/ZmvslZYo1eIsYNFYQ4G9+oql2QQBRlY8CXlsdCMGBGB0gP+UqEr/FJw2PKrvIpxNhXxS9+2alXBP+4yl8Es78vOfwcgRjeTPiM/aYoFUWO2TF2a0CU1PhwFARvSbfClBIjdjUNqk1n2gR+4xyZKJzA22QklP+nzbXYQcut89RDowutU687yXRU6Iv1fVpaj/q0IKDgh54HeoxD2OU2dbuDpFxFzs8OceyqyxTY6vFFjc9pcGGAJgqthzXhKZQkQ3D5kjDjwLYIkZWXUlQOCEXDbcqc0R3QiASk=; X-Wtm-Cpt-Tk=gzm1wRW-CMh-PnyepT0VAN1tuM1qpesSn8KTCkZHgPBpeFgoFPO2DyUtDSBhD7nXVAiar8Tk-cZ1aoxMTd-8Os13cFxGSXNBRxUql-lGHWojQCl03RJ-SaNoWtuv8qFTXJSKm57ljVtMsu4-b4qPHCvK7l661TdRNPUhvbDiDioOurNF3cL4aWNiaGrfiv8HzB2p3ExaFT-siJKtgUmJ63nLh_wklJM9mOFj0rRcn1eQKg3GFnRsQQmDVFi2FZ8i2u9BGWtEew_-fJhrBb-BiNrp3QEZwoevp6nnt84VJ3OV4qoXZA3S3wgKwbx6kBoR7zagyq_00uxQcGEyr_IGWYWbyC-jNuNhVMR6qSExV9auqwM11KDL9sP5; sus_val=xg/aW6hFo9XHbUUexjXHSjFs; SRT5=1757488257; BUC=l_GP6TeqbATyvnMdJoaL8BIOUdqJJjdGLlPguSmEaOM=
+logic
+PART
+pragma
+no-cache
+priority
+u=1, i
+referer
+https://search.shopping.naver.com/search/all?pagingIndex=1&pagingSize=80&productSet=checkout&query=%EA%B5%AD%EC%9E%90&sort=rel&timestamp=&viewType=list&ksToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjIiLCJpYXQiOjE3NTc0ODY1ODMsImV4cCI6MTc1NzU3Mjk4M30.VWgg0rWaw6d7IpX3VQAKhav5rDbXCEM-yDHYvKN3mWM&isDev=true&agency=true
+sec-ch-ua
+"Not;A=Brand";v="99", "Google Chrome";v="139", "Chromium";v="139"
+sec-ch-ua-arch
+"x86"
+sec-ch-ua-bitness
+"64"
+sec-ch-ua-form-factors
+"Desktop"
+sec-ch-ua-full-version-list
+"Not;A=Brand";v="99.0.0.0", "Google Chrome";v="139.0.7258.157", "Chromium";v="139.0.7258.157"
+sec-ch-ua-mobile
+?0
+sec-ch-ua-model
+""
+sec-ch-ua-platform
+"Windows"
+sec-ch-ua-platform-version
+"19.0.0"
+sec-ch-ua-wow64
+?0
+sec-fetch-dest
+empty
+sec-fetch-mode
+cors
+sec-fetch-site
+same-origin
+user-agent
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36

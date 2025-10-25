@@ -1,0 +1,65 @@
+{
+  "key": "bnigndlbhdpnochgpeaggneleekpmhji",
+  "manifest_version": 3,
+  "name": "coupang-checker-extension",
+  "description": "Crawling for store site",
+  "version": "0.0.4",
+  "icons": {
+    "16": "/images/icon/16x16.png",
+    "32": "/images/icon/32x32.png",
+    "48": "/images/icon/48x48.png",
+    "128": "/images/icon/128x128.png"
+  },
+  "background": {
+    "service_worker": "dist/scripts/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://wing.coupang.com/*"],
+      "js": ["dist/scripts/wing/inject.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    },
+    {
+      "matches": ["https://www.coupang.com/*"],
+      "js": ["dist/scripts/coupang/inject.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["http://localhost:3000/*", "https://coupang-top-pick-web.vercel.app/*"],
+      "js": ["dist/scripts/product-upload/inject.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_icon": "/images/icon/32x32.png",
+    "default_popup": "/popup/popup.html"
+  },
+  "permissions": ["webRequest", "tabs", "storage", "cookies", "offscreen", "scripting", "activeTab"],
+  "host_permissions": [
+    "*://*/*",
+    "http://localhost:3000/*",
+    "https://titan-tools-ui-web.vercel.app/*",
+    "https://coupang-top-pick-web.vercel.app/*"
+  ],
+  "externally_connectable": {
+    "matches": [
+      "*://localhost:*/*",
+      "http://localhost:3000/*",
+      "https://titan-tools-ui-web.vercel.app/*",
+      "https://coupang-top-pick-web.vercel.app/*"
+    ]
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "dist/scripts/naver/offscreen/offscreen.html",
+        "dist/scripts/naver/offscreen/offscreen.js",
+        "dist/scripts/naver/keyword/inject_script.js",
+        "dist/scripts/naver/ranking/inject_script.js"
+      ],
+      "matches": ["*://*/*"]
+    }
+  ]
+}

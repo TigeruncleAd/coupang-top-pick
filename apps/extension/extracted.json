@@ -1,0 +1,182 @@
+{
+  "status": "success",
+  "data": {
+    "keyword": "라부부",
+    "keywordId": 73721825,
+    "clickCount": 36437.7,
+    "averagePrice": 68923,
+    "firstCategory": 4927,
+    "searchCountPC": 155600,
+    "statsFromNPay": {
+      "sales": 488560800,
+      "saleCount": 8130,
+      "salesTop10": 362574600,
+      "salesFrom80": 587918000,
+      "averagePrice": 73391,
+      "saleCountTop10": 6196,
+      "saleCountFrom80": 9714,
+      "averagePriceTop10": 57650,
+      "averagePriceFrom80": 79467
+    },
+    "averageAdPrice": 70,
+    "categoryResult": [
+      {
+        "count": 40,
+        "percent": 100,
+        "categoryInfoList": [
+          {
+            "id": 50000008,
+            "name": "생활/건강"
+          },
+          {
+            "id": 50000056,
+            "name": "수집품"
+          },
+          {
+            "id": 50000951,
+            "name": "모형/프라모델/피규어"
+          },
+          {
+            "id": 50007028,
+            "name": "피규어"
+          }
+        ]
+      }
+    ],
+    "statsFrom1Page": {
+      "sales": 488560800,
+      "saleCount": 8130,
+      "averagePrice": 68923
+    },
+    "adClickRateStats": {
+      "adClickRatePC": 1.29,
+      "adClickRateTotal": 2.66,
+      "adClickRateMobile": 2.82,
+      "adClickRatePCDesc": "보통",
+      "adClickRatePCGrade": "C",
+      "adClickRateTotalDesc": "좋음",
+      "adClickRateMobileDesc": "좋음",
+      "adClickRateTotalGrade": "B",
+      "adClickRateMobileGrade": "B"
+    },
+    "adPriceClickRate": 0,
+    "totalSearchCount": 1468900,
+    "adEfficiencyScore": 95,
+    "searchCountMobile": 1313300,
+    "tieProductPercent": 0,
+    "totalProductCount": 129675,
+    "brandKeywordResult": {
+      "brandKeywords": [],
+      "isBrandKeyword": false
+    },
+    "productAdPriceRate": 0.001,
+    "soldProductPercent": 47.5,
+    "mainProductImageUrl": "https://shopping-phinf.pstatic.net/main_8962398/89623980634.1.jpg",
+    "adPriceClickRateDesc": "아주좋음",
+    "clickCompetitionRate": 3.56,
+    "clickCountForShowing": 36438,
+    "competitionIntensity": 0.09,
+    "openProdPercentScore": 101.25,
+    "adEfficiencyScoreDesc": "아주좋음",
+    "adPriceClickRateGrade": "A",
+    "competitionTotalScore": 65.03,
+    "overseaProductPercent": 22.5,
+    "tieProductPercentDesc": "아주좋음",
+    "productAdPriceRateDesc": "아주좋음",
+    "soldProductPercentDesc": "보통",
+    "productAdPriceRateGrade": "A",
+    "clickCompetitionRateDesc": "아주좋음",
+    "competitionIntensityDesc": "아주좋음",
+    "openProdPercentScoreDesc": "아주좋음",
+    "openProductPercentResult": [
+      {
+        "name": "1Y",
+        "percent": 100
+      },
+      {
+        "name": "6M",
+        "percent": 97.5
+      },
+      {
+        "name": "1M",
+        "percent": 27.5
+      },
+      {
+        "name": "1Y-2Y",
+        "percent": 0
+      },
+      {
+        "name": "2Y-3Y",
+        "percent": 0
+      },
+      {
+        "name": "OVER-3Y",
+        "percent": 0
+      }
+    ],
+    "clickCompetitionRateGrade": "A",
+    "competitionIntensityGrade": "A",
+    "competitionTotalScoreDesc": "좋음",
+    "overseaProductPercentDesc": "나쁨"
+  }
+}
+
+
+{
+  "status": "success",
+  "data": {
+      "pc": {
+          "shoppingTabOrder": 2,
+          "shoppingSectionOrder": 1,
+          "tabNames": [
+              "이미지",
+              "쇼핑",
+              "블로그",
+              "카페",
+              "지식iN",
+              "인플루언서",
+              "동영상",
+              "뉴스",
+              "숏텐츠",
+              "어학사전",
+              "지도",
+              "도서",
+              "지식백과",
+              "학술정보"
+          ],
+          "sectionNames": [
+              "쇼핑",
+              "플러스스토어",
+              "웹사이트",
+              "이미지",
+              "플레이스",
+              "카페 중고거래"
+          ]
+      },
+      "shoppingKeywordQuotient": 84,
+      "shoppingKeywordQuotientDesc": "아주좋음",
+      "adult": false
+  }
+}
+
+{
+  "status": "success",
+  "data": {
+      "coupangAveragePrice": 63489.72,
+      "coupangRocketZetDesc": "좋음",
+      "coupangRocketZetRatio": "27.78",
+      "coupangRocketZetScore": "72.22",
+      "coupangCompetitionDesc": "아주좋음",
+      "coupangCompetitionGrade": "A",
+      "coupangCompetitionRatio": "0.02",
+      "coupangCompetitionScore": 100,
+      "naverMonthlySearchCount": 1066200,
+      "coupangTotalProductCount": 17608,
+      "coupangAverageReviewCount": 41.67,
+      "coupangRocketDeliveryDesc": "아주좋음",
+      "coupangRocketDeliveryRatio": "0.00",
+      "coupangRocketDeliveryScore": "100.00",
+      "coupangTotalCompetitionDesc": "아주좋음",
+      "coupangTotalCompetitionScore": 94.44
+  }
+}
