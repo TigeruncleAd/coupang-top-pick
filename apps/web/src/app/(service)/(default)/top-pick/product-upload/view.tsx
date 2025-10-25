@@ -236,9 +236,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
               {productToDelete && (
                 <div className="bg-muted mt-3 rounded-md p-3">
                   <p className="text-foreground text-sm font-medium">{productToDelete.productName}</p>
-                  <p className="text-muted-foreground mt-1 text-xs">
-                    상품ID: {productToDelete.productId.toString()}
-                  </p>
+                  <p className="text-muted-foreground mt-1 text-xs">상품ID: {productToDelete.productId.toString()}</p>
                 </div>
               )}
             </AlertDialogHeader>
