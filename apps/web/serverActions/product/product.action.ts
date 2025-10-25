@@ -184,3 +184,33 @@ export async function deleteProduct(productId: bigint) {
 
   return { success: true }
 }
+
+export async function updateProductStatus(productId: bigint, status: 'READY' | 'UPLOADED_RAW') {
+  const user = await getServerUser()
+
+  if (!user) {
+    throw new Error('Unauthorized')
+  }
+
+  const product = await prisma.product.findFirst({
+    where: {
+      productId,
+      userId: user.id,
+    },
+  })
+
+  if (!product) {
+    throw new Error('상품을 찾을 수 없습니다.')
+  }
+
+  await prisma.product.update({
+    where: {
+      id: product.id,
+    },
+    data: {
+      status,
+    },
+  })
+
+  return { success: true }
+}
