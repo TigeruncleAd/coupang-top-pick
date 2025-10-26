@@ -1172,8 +1172,20 @@
                                                                                           : null
 
                                                                                         console.log(
-                                                                                          '[wing/inject] 📝 Vendor Inventory ID:',
+                                                                                          '[wing/inject] 🔍 Regex match result:',
+                                                                                          match,
+                                                                                        )
+                                                                                        console.log(
+                                                                                          '[wing/inject] 📝 Extracted Vendor Inventory ID:',
                                                                                           vendorInventoryId,
+                                                                                        )
+                                                                                        console.log(
+                                                                                          '[wing/inject] VendorInventoryId type:',
+                                                                                          typeof vendorInventoryId,
+                                                                                        )
+                                                                                        console.log(
+                                                                                          '[wing/inject] VendorInventoryId is null?',
+                                                                                          vendorInventoryId === null,
                                                                                         )
 
                                                                                         console.log(
@@ -1192,6 +1204,10 @@
                                                                                           console.log(
                                                                                             '[wing/inject] VendorInventoryId to send:',
                                                                                             vendorInventoryId,
+                                                                                          )
+                                                                                          console.log(
+                                                                                            '[wing/inject] VendorInventoryId type to send:',
+                                                                                            typeof vendorInventoryId,
                                                                                           )
 
                                                                                           // Background가 sender.tab.id로 탭을 닫을 것

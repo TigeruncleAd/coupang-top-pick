@@ -190,6 +190,14 @@ export async function updateProductStatus(
   status: 'READY' | 'UPLOADED_RAW',
   vendorInventoryId?: string,
 ) {
+  console.log('[updateProductStatus] 📝 Starting status update')
+  console.log('[updateProductStatus] ProductId:', productId)
+  console.log('[updateProductStatus] Status:', status)
+  console.log('[updateProductStatus] VendorInventoryId:', vendorInventoryId)
+  console.log('[updateProductStatus] VendorInventoryId type:', typeof vendorInventoryId)
+  console.log('[updateProductStatus] VendorInventoryId is undefined?', vendorInventoryId === undefined)
+  console.log('[updateProductStatus] VendorInventoryId is null?', vendorInventoryId === null)
+
   const user = await getServerUser()
 
   if (!user) {
@@ -207,15 +215,25 @@ export async function updateProductStatus(
     throw new Error('상품을 찾을 수 없습니다.')
   }
 
+  const updateData: any = { status }
+
+  if (vendorInventoryId !== undefined && vendorInventoryId !== null && vendorInventoryId !== '') {
+    updateData.vendorInventoryId = vendorInventoryId
+    console.log('[updateProductStatus] ✅ Will update vendorInventoryId to:', vendorInventoryId)
+  } else {
+    console.log('[updateProductStatus] ⚠️ VendorInventoryId not provided or empty, skipping update')
+  }
+
+  console.log('[updateProductStatus] Update data:', updateData)
+
   await prisma.product.update({
     where: {
       id: product.id,
     },
-    data: {
-      status,
-      ...(vendorInventoryId !== undefined && { vendorInventoryId }),
-    },
+    data: updateData,
   })
+
+  console.log('[updateProductStatus] ✅ Update completed')
 
   return { success: true }
 }

@@ -22,6 +22,9 @@ export default function Client({ extensionId }: { extensionId: string }) {
   const queryClient = useQueryClient()
   const [currentPage, setCurrentPage] = useState(1)
   const [productToDelete, setProductToDelete] = useState<Product | null>(null)
+  const [isBulkUploading, setIsBulkUploading] = useState(false)
+  const [currentUploadIndex, setCurrentUploadIndex] = useState<number>(-1)
+  const [bulkUploadTotal, setBulkUploadTotal] = useState<number>(0)
 
   // 사용자 상품 목록 조회 (페이지네이션)
   const { data: userProductsData, isLoading: isLoadingProducts } = useQuery({
@@ -130,6 +133,98 @@ export default function Client({ extensionId }: { extensionId: string }) {
     }
   }, [updateProductStatusMutation])
 
+  // 전체 업로드 함수
+  const handleBulkUpload = async () => {
+    // READY 상태인 상품만 필터링
+    const readyProducts = userProducts.filter(p => p.status === 'READY')
+
+    if (readyProducts.length === 0) {
+      toast.error('업로드할 상품이 없습니다.')
+      return
+    }
+
+    setIsBulkUploading(true)
+    setBulkUploadTotal(readyProducts.length)
+    setCurrentUploadIndex(0)
+
+    for (let i = 0; i < readyProducts.length; i++) {
+      const product = readyProducts[i]
+      setCurrentUploadIndex(i + 1)
+
+      console.log(`[bulk-upload] Starting upload for product ${i + 1}/${readyProducts.length}`)
+      console.log(`[bulk-upload] Product ID: ${product.productId}`)
+
+      try {
+        // 업로드 시작
+        const uploadUrl = 'https://wing.coupang.com/tenants/seller-web/vendor-inventory/formV2'
+        const wingTab = window.open(uploadUrl, '_blank', 'noopener,noreferrer')
+
+        await new Promise(r => setTimeout(r, 1500))
+
+        await wingProductItemsViaExtension({
+          extensionId,
+          productId: Number(product.productId),
+          itemId: Number(product.itemId),
+          categoryId: product.categoryId,
+          targetTabUrl: uploadUrl,
+          productName: product.productName,
+          vendorItemId: Number(product.vendorItemId),
+        })
+
+        // 5분 타임아웃으로 성공 메시지 대기
+        const timeout = 5 * 60 * 1000 // 5분
+        const uploadPromise = new Promise<boolean>(resolve => {
+          const handleUploadSuccess = (event: MessageEvent) => {
+            if (
+              event.data.type === 'UPDATE_PRODUCT_STATUS' &&
+              event.data.productId === Number(product.productId) &&
+              event.data.source === 'coupang-extension'
+            ) {
+              console.log(`[bulk-upload] Upload success for product ${product.productId}`)
+              window.removeEventListener('message', handleUploadSuccess)
+              resolve(true)
+            }
+          }
+          window.addEventListener('message', handleUploadSuccess)
+        })
+
+        const timeoutPromise = new Promise<boolean>(resolve => {
+          setTimeout(() => {
+            console.log(`[bulk-upload] Timeout for product ${product.productId}`)
+            resolve(false)
+          }, timeout)
+        })
+
+        const success = await Promise.race([uploadPromise, timeoutPromise])
+
+        if (!success) {
+          console.log(`[bulk-upload] Timeout reached, closing wing tab`)
+          toast.error(`상품 ${i + 1}/${readyProducts.length} 업로드 타임아웃`)
+
+          // 타임아웃 시 Wing 탭 닫기
+          if (wingTab && !wingTab.closed) {
+            wingTab.close()
+          }
+        } else {
+          toast.success(`상품 ${i + 1}/${readyProducts.length} 업로드 완료`)
+        }
+
+        // 다음 상품으로 넘어가기 전 잠시 대기
+        await new Promise(r => setTimeout(r, 2000))
+      } catch (error) {
+        console.error(`[bulk-upload] Error uploading product ${product.productId}:`, error)
+        toast.error(`상품 ${i + 1}/${readyProducts.length} 업로드 실패`)
+      }
+    }
+
+    // 완료
+    setIsBulkUploading(false)
+    setCurrentUploadIndex(-1)
+    setBulkUploadTotal(0)
+    toast.success(`전체 업로드 완료 (${readyProducts.length}개)`)
+    queryClient.invalidateQueries({ queryKey: ['userProducts'] })
+  }
+
   function renderStars(rating: number | null | undefined, ratingCount: number | null | undefined) {
     if (!rating) return null
     const full = Math.floor(rating)
@@ -154,9 +249,19 @@ export default function Client({ extensionId }: { extensionId: string }) {
         {/* 내 상품 목록 */}
         <div>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold">
-              저장된 상품 (총 {totalCount}개 / 현재 페이지: {currentPage}/{totalPages})
-            </h2>
+            <div className="flex flex-col gap-2">
+              <h2 className="text-xl font-bold">
+                저장된 상품 (총 {totalCount}개 / 현재 페이지: {currentPage}/{totalPages})
+              </h2>
+              {isBulkUploading && (
+                <p className="text-sm text-blue-400">
+                  전체 업로드 진행 중... ({currentUploadIndex}/{bulkUploadTotal})
+                </p>
+              )}
+            </div>
+            <Button onClick={handleBulkUpload} disabled={isBulkUploading || userProducts.length === 0}>
+              {isBulkUploading ? '업로드 중...' : '전체 업로드'}
+            </Button>
           </div>
           {isLoadingProducts ? (
             <p className="text-muted-foreground text-sm">로딩 중...</p>
@@ -165,16 +270,21 @@ export default function Client({ extensionId }: { extensionId: string }) {
           ) : (
             <>
               <div className="grid gap-4 md:grid-cols-2">
-                {userProducts.map(product => {
+                {userProducts.map((product, idx) => {
                   const imgUrl = product.imagePath.startsWith('http')
                     ? product.imagePath
                     : `https://thumbnail6.coupangcdn.com/thumbnails/remote/260x260/image/${product.imagePath}`
                   const productUrl = `https://www.coupang.com/vp/products/${product.productId}?itemId=${product.itemId}&vendorItemId=${product.vendorItemId}`
                   const displayCategoryInfo = product.displayCategoryInfo as any[]
+                  const isCurrentlyUploading =
+                    isBulkUploading &&
+                    product.status === 'READY' &&
+                    userProducts.filter(p => p.status === 'READY').findIndex(p => p.id === product.id) ===
+                      currentUploadIndex - 1
                   return (
                     <div
                       key={product.id.toString()}
-                      className="border-border bg-card flex gap-4 rounded-lg border p-4 shadow-sm">
+                      className={`border-border bg-card flex gap-4 rounded-lg border p-4 shadow-sm ${isCurrentlyUploading ? 'ring-2 ring-blue-500' : ''}`}>
                       <img
                         src={imgUrl}
                         alt={product.productName}
@@ -183,7 +293,11 @@ export default function Client({ extensionId }: { extensionId: string }) {
                       <div className="flex flex-1 flex-col gap-1">
                         <div className="flex items-start gap-2">
                           <h3 className="text-foreground line-clamp-2 flex-1 font-semibold">{product.productName}</h3>
-                          {product.status === 'READY' ? (
+                          {isCurrentlyUploading ? (
+                            <span className="shrink-0 animate-pulse rounded-full bg-yellow-500/20 px-3 py-1 text-xs font-medium text-yellow-400">
+                              업로드 중
+                            </span>
+                          ) : product.status === 'READY' ? (
                             <span className="bg-muted text-muted-foreground shrink-0 rounded-full px-3 py-1 text-xs font-medium">
                               업로드 준비
                             </span>
@@ -240,7 +354,8 @@ export default function Client({ extensionId }: { extensionId: string }) {
                                 productName: product.productName,
                                 vendorItemId: Number(product.vendorItemId),
                               })
-                            }}>
+                            }}
+                            disabled={isBulkUploading}>
                             업로드하기
                           </Button>
                         )}
@@ -248,7 +363,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
                           size="sm"
                           variant="destructive"
                           onClick={() => setProductToDelete(product)}
-                          disabled={deleteProductMutation.isPending}>
+                          disabled={deleteProductMutation.isPending || isBulkUploading}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
