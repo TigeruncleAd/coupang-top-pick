@@ -491,102 +491,51 @@
                                         }
                                       }, 500)
 
-                                      // 기본 등록 탭에서 "대표이미지" 섹션의 "이미지 URL주소로 등록" 버튼 찾기
+                                      // 기본 등록 탭에서 "대표이미지" 드롭존 찾기
                                       setTimeout(() => {
-                                        console.log(
-                                          '[wing/inject] Looking for "이미지 URL주소로 등록" button in 대표이미지 section...',
-                                        )
+                                        console.log('[wing/inject] Looking for main image dropzone...')
 
-                                        let imageButtonAttempts = 0
-                                        const maxImageButtonAttempts = 50 // 10초 대기
-                                        const imageButtonPollInterval = setInterval(() => {
-                                          imageButtonAttempts++
+                                        let dropzoneAttempts = 0
+                                        const maxDropzoneAttempts = 50
+                                        const dropzonePollInterval = setInterval(() => {
+                                          dropzoneAttempts++
 
-                                          // "대표이미지" 섹션 내의 "이미지 URL주소로 등록" 버튼 찾기
-                                          // .element-row-title에서 "대표이미지"를 포함하는 row를 찾고, 그 형제 .element-row-content에서 버튼 찾기
+                                          // "대표이미지" 섹션의 dropzone 찾기
                                           const elementRows = document.querySelectorAll('.element-row')
-                                          let targetButton = null
+                                          let mainImageDropzone = null
 
                                           elementRows.forEach(row => {
                                             const titleDiv = row.querySelector('.element-row-title')
                                             if (titleDiv && titleDiv.textContent?.includes('대표이미지')) {
-                                              // 이 row의 .element-row-content에서 버튼 찾기
                                               const contentDiv = row.querySelector('.element-row-content')
                                               if (contentDiv) {
-                                                const urlReaderComponent =
-                                                  contentDiv.querySelector('.image-url-reader-component')
-                                                if (urlReaderComponent) {
-                                                  const button = urlReaderComponent.querySelector('button')
-                                                  if (button && button.textContent?.includes('이미지 URL주소로 등록')) {
-                                                    targetButton = button
-                                                  }
-                                                }
+                                                mainImageDropzone = contentDiv.querySelector('.customdropzone')
                                               }
                                             }
                                           })
 
-                                          if (!targetButton) {
+                                          if (!mainImageDropzone) {
                                             console.log(
-                                              `[wing/inject] [${imageButtonAttempts}/${maxImageButtonAttempts}] "이미지 URL주소로 등록" button not found yet`,
+                                              `[wing/inject] [${dropzoneAttempts}/${maxDropzoneAttempts}] Main image dropzone not found yet`,
                                             )
-                                            if (imageButtonAttempts >= maxImageButtonAttempts) {
+                                            if (dropzoneAttempts >= maxDropzoneAttempts) {
                                               console.warn(
-                                                '[wing/inject] ❌ Timeout: "이미지 URL주소로 등록" button did not appear',
+                                                '[wing/inject] ❌ Timeout: Main image dropzone did not appear',
                                               )
-                                              clearInterval(imageButtonPollInterval)
+                                              clearInterval(dropzonePollInterval)
                                             }
                                             return
                                           }
 
-                                          console.log(
-                                            '[wing/inject] ✅ Found "이미지 URL주소로 등록" button! Clicking...',
-                                          )
-                                          clearInterval(imageButtonPollInterval)
-                                          targetButton.click()
-                                          console.log('[wing/inject] ✅ "이미지 URL주소로 등록" button clicked')
+                                          console.log('[wing/inject] ✅ Found main image dropzone!')
+                                          clearInterval(dropzonePollInterval)
 
-                                          // 버튼 클릭 후 모달 input에 대표 이미지 URL 입력
-                                          setTimeout(() => {
-                                            console.log('[wing/inject] Looking for image URL modal input...')
+                                          // 대표 이미지 blob 업로드
+                                          setTimeout(async () => {
+                                            console.log('[wing/inject] Uploading main image via dropzone...')
 
-                                            let modalInputAttempts = 0
-                                            const maxModalInputAttempts = 50
-                                            const modalInputPollInterval = setInterval(() => {
-                                              modalInputAttempts++
-
-                                              // 모달의 input 찾기 (.popup-wrapper 내부)
-                                              const popupWrapper = document.querySelector(
-                                                '.popup-wrapper .floating-popup',
-                                              )
-                                              if (!popupWrapper) {
-                                                console.log(
-                                                  `[wing/inject] [${modalInputAttempts}/${maxModalInputAttempts}] Popup wrapper not found yet`,
-                                                )
-                                                if (modalInputAttempts >= maxModalInputAttempts) {
-                                                  console.warn('[wing/inject] ❌ Timeout: Popup wrapper did not appear')
-                                                  clearInterval(modalInputPollInterval)
-                                                }
-                                                return
-                                              }
-
-                                              const urlInput = popupWrapper.querySelector(
-                                                '.image-url-input input[placeholder*="URL주소"]',
-                                              )
-                                              if (!urlInput) {
-                                                console.log(
-                                                  `[wing/inject] [${modalInputAttempts}/${maxModalInputAttempts}] URL input not found yet`,
-                                                )
-                                                if (modalInputAttempts >= maxModalInputAttempts) {
-                                                  console.warn('[wing/inject] ❌ Timeout: URL input did not appear')
-                                                  clearInterval(modalInputPollInterval)
-                                                }
-                                                return
-                                              }
-
-                                              console.log('[wing/inject] ✅ Found URL input!')
-                                              clearInterval(modalInputPollInterval)
-
-                                              // 대표 이미지 URL 가져오기 (첫 번째 이미지만)
+                                            try {
+                                              // 대표 이미지 가져오기
                                               const images = window.__COUPANG_PRODUCT_IMAGES__ || []
                                               console.log('[wing/inject] 📸 Available images:', images.length)
 
@@ -596,729 +545,737 @@
                                               }
 
                                               const mainImageUrl = images[0]
-                                              console.log('[wing/inject] 📤 Uploading main image:', mainImageUrl)
+                                              console.log('[wing/inject] 📤 Fetching main image:', mainImageUrl)
 
-                                              // URL 입력
-                                              urlInput.focus()
-                                              const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-                                                window.HTMLInputElement.prototype,
-                                                'value',
-                                              ).set
-                                              nativeInputValueSetter.call(urlInput, mainImageUrl)
+                                              // Background를 통해 이미지 fetch
+                                              const blobResponse = await chrome.runtime.sendMessage({
+                                                type: 'FETCH_IMAGE_BLOBS',
+                                                payload: { imageUrls: [mainImageUrl] },
+                                              })
 
-                                              urlInput.dispatchEvent(new Event('input', { bubbles: true }))
-                                              urlInput.dispatchEvent(new Event('change', { bubbles: true }))
-                                              urlInput.blur()
-                                              console.log('[wing/inject] ✅ Main image URL set:', mainImageUrl)
+                                              if (!blobResponse?.ok || !blobResponse?.blobs?.[0]) {
+                                                console.error('[wing/inject] ❌ Failed to fetch image')
+                                                return
+                                              }
 
-                                              // "저장" 버튼 클릭
+                                              const blobData = blobResponse.blobs[0]
+                                              if (blobData.error) {
+                                                console.error('[wing/inject] ❌ Blob fetch error:', blobData.error)
+                                                return
+                                              }
+
+                                              // base64를 File로 변환
+                                              const base64Response = await fetch(blobData.base64)
+                                              const blob = await base64Response.blob()
+                                              const file = new File([blob], 'main_image.jpg', {
+                                                type: blobData.type || 'image/jpeg',
+                                              })
+
+                                              console.log(
+                                                '[wing/inject] ✅ File created:',
+                                                file.name,
+                                                file.size,
+                                                'bytes',
+                                              )
+
+                                              // DataTransfer 객체 생성
+                                              const dataTransfer = new DataTransfer()
+                                              dataTransfer.items.add(file)
+
+                                              // drag-and-drop 이벤트 시뮬레이션
+                                              console.log('[wing/inject] 🎯 Simulating drag-drop on dropzone...')
+
+                                              const dragEnterEvent = new DragEvent('dragenter', {
+                                                bubbles: true,
+                                                cancelable: true,
+                                                dataTransfer: dataTransfer,
+                                              })
+                                              mainImageDropzone.dispatchEvent(dragEnterEvent)
+
+                                              const dragOverEvent = new DragEvent('dragover', {
+                                                bubbles: true,
+                                                cancelable: true,
+                                                dataTransfer: dataTransfer,
+                                              })
+                                              mainImageDropzone.dispatchEvent(dragOverEvent)
+
+                                              const dropEvent = new DragEvent('drop', {
+                                                bubbles: true,
+                                                cancelable: true,
+                                                dataTransfer: dataTransfer,
+                                              })
+                                              mainImageDropzone.dispatchEvent(dropEvent)
+
+                                              console.log('[wing/inject] ✅ Drop event dispatched')
+                                              console.log('[wing/inject] 🎉 Main image uploaded successfully!')
+
+                                              // 이미지 등록 완료 후 상세설명 섹션 처리
                                               setTimeout(() => {
-                                                const saveButton = popupWrapper.querySelector('.save-button')
-                                                if (saveButton) {
-                                                  console.log('[wing/inject] ✅ Clicking "저장" button...')
-                                                  saveButton.click()
-                                                  console.log('[wing/inject] ✅ "저장" button clicked')
-                                                  console.log('[wing/inject] 🎉 Main image uploaded successfully!')
+                                                console.log('[wing/inject] Moving to 상세설명 section...')
 
-                                                  // 이미지 등록 완료 후 상세설명 섹션 처리
-                                                  setTimeout(() => {
-                                                    console.log('[wing/inject] Moving to 상세설명 section...')
+                                                // 상세설명 섹션으로 스크롤
+                                                const detailSectionTitle = Array.from(
+                                                  document.querySelectorAll('.form-section-title'),
+                                                ).find(el => el.textContent?.includes('상세설명'))
 
-                                                    // 상세설명 섹션으로 스크롤
-                                                    const detailSectionTitle = Array.from(
-                                                      document.querySelectorAll('.form-section-title'),
-                                                    ).find(el => el.textContent?.includes('상세설명'))
+                                                if (detailSectionTitle) {
+                                                  detailSectionTitle.scrollIntoView({
+                                                    behavior: 'smooth',
+                                                    block: 'start',
+                                                  })
+                                                  console.log('[wing/inject] ✅ Scrolled to 상세설명 section')
+                                                }
 
-                                                    if (detailSectionTitle) {
-                                                      detailSectionTitle.scrollIntoView({
-                                                        behavior: 'smooth',
-                                                        block: 'start',
-                                                      })
-                                                      console.log('[wing/inject] ✅ Scrolled to 상세설명 section')
+                                                // "기본 등록" 탭 클릭
+                                                setTimeout(() => {
+                                                  console.log(
+                                                    '[wing/inject] Looking for "기본 등록" tab in 상세설명...',
+                                                  )
+
+                                                  // name="tab-content-level"을 가진 라디오 버튼 중 "기본 등록" 찾기
+                                                  const contentLevelRadios = document.querySelectorAll(
+                                                    'input[name="tab-content-level"][type="radio"]',
+                                                  )
+                                                  let basicContentRadio = null
+                                                  let basicContentLabel = null
+
+                                                  contentLevelRadios.forEach(radio => {
+                                                    const label = document.querySelector(`label[for="${radio.id}"]`)
+                                                    if (label && label.textContent?.includes('기본 등록')) {
+                                                      basicContentRadio = radio
+                                                      basicContentLabel = label
                                                     }
+                                                  })
 
-                                                    // "기본 등록" 탭 클릭
+                                                  if (basicContentRadio && basicContentLabel) {
+                                                    console.log(
+                                                      '[wing/inject] ✅ Found "기본 등록" tab in 상세설명! Clicking...',
+                                                    )
+                                                    basicContentRadio.click()
+                                                    basicContentLabel.click()
+                                                    console.log('[wing/inject] ✅ "기본 등록" tab clicked in 상세설명')
+
+                                                    // "이미지 등록" 버튼 클릭
                                                     setTimeout(() => {
-                                                      console.log(
-                                                        '[wing/inject] Looking for "기본 등록" tab in 상세설명...',
-                                                      )
+                                                      console.log('[wing/inject] Looking for "이미지 등록" button...')
 
-                                                      // name="tab-content-level"을 가진 라디오 버튼 중 "기본 등록" 찾기
-                                                      const contentLevelRadios = document.querySelectorAll(
-                                                        'input[name="tab-content-level"][type="radio"]',
-                                                      )
-                                                      let basicContentRadio = null
-                                                      let basicContentLabel = null
+                                                      // "이미지 등록" 버튼 찾기
+                                                      const imageUploadButtons =
+                                                        document.querySelectorAll('button.sc-common-btn')
+                                                      let imageUploadButton = null
 
-                                                      contentLevelRadios.forEach(radio => {
-                                                        const label = document.querySelector(`label[for="${radio.id}"]`)
-                                                        if (label && label.textContent?.includes('기본 등록')) {
-                                                          basicContentRadio = radio
-                                                          basicContentLabel = label
+                                                      imageUploadButtons.forEach(btn => {
+                                                        if (btn.textContent?.trim() === '이미지 등록') {
+                                                          imageUploadButton = btn
                                                         }
                                                       })
 
-                                                      if (basicContentRadio && basicContentLabel) {
+                                                      if (imageUploadButton) {
                                                         console.log(
-                                                          '[wing/inject] ✅ Found "기본 등록" tab in 상세설명! Clicking...',
+                                                          '[wing/inject] ✅ Found "이미지 등록" button! Clicking...',
                                                         )
-                                                        basicContentRadio.click()
-                                                        basicContentLabel.click()
-                                                        console.log(
-                                                          '[wing/inject] ✅ "기본 등록" tab clicked in 상세설명',
-                                                        )
+                                                        imageUploadButton.click()
+                                                        console.log('[wing/inject] ✅ "이미지 등록" button clicked')
 
-                                                        // "이미지 등록" 버튼 클릭
-                                                        setTimeout(() => {
+                                                        // 모달이 열린 후 이미지 업로드
+                                                        setTimeout(async () => {
                                                           console.log(
-                                                            '[wing/inject] Looking for "이미지 등록" button...',
+                                                            '[wing/inject] Uploading images to detail modal...',
                                                           )
 
-                                                          // "이미지 등록" 버튼 찾기
-                                                          const imageUploadButtons =
-                                                            document.querySelectorAll('button.sc-common-btn')
-                                                          let imageUploadButton = null
-
-                                                          imageUploadButtons.forEach(btn => {
-                                                            if (btn.textContent?.trim() === '이미지 등록') {
-                                                              imageUploadButton = btn
-                                                            }
-                                                          })
-
-                                                          if (imageUploadButton) {
-                                                            console.log(
-                                                              '[wing/inject] ✅ Found "이미지 등록" button! Clicking...',
+                                                          const images = window.__COUPANG_PRODUCT_IMAGES__ || []
+                                                          if (images.length < 2) {
+                                                            console.warn(
+                                                              '[wing/inject] ⚠️ Not enough images for detail upload',
                                                             )
-                                                            imageUploadButton.click()
-                                                            console.log('[wing/inject] ✅ "이미지 등록" button clicked')
+                                                            return
+                                                          }
 
-                                                            // 모달이 열린 후 이미지 업로드
-                                                            setTimeout(async () => {
+                                                          // 모달 내부의 hidden file input 찾기
+                                                          const modalDialog = document.querySelector('.modal-dialog')
+                                                          if (!modalDialog) {
+                                                            console.warn('[wing/inject] ⚠️ Modal dialog not found')
+                                                            return
+                                                          }
+
+                                                          const fileInput = modalDialog.querySelector(
+                                                            'input[type="file"][hidden][multiple]',
+                                                          )
+                                                          if (!fileInput) {
+                                                            console.warn('[wing/inject] ⚠️ File input not found')
+                                                            return
+                                                          }
+
+                                                          console.log('[wing/inject] ✅ Found file input')
+
+                                                          try {
+                                                            // 드롭존 찾기
+                                                            const dropZone =
+                                                              modalDialog.querySelector('.image-drop-zone')
+                                                            if (!dropZone) {
+                                                              console.warn('[wing/inject] ⚠️ Drop zone not found')
+                                                              return
+                                                            }
+
+                                                            console.log('[wing/inject] ✅ Found drop zone')
+
+                                                            // Vue 인스턴스 확인
+                                                            console.log(
+                                                              '[wing/inject] 🔍 Vue instance:',
+                                                              dropZone.__vue__,
+                                                            )
+                                                            console.log('[wing/inject] 🔍 Dropzone:', window.Dropzone)
+
+                                                            // hidden file input 확인
+                                                            console.log('[wing/inject] 🔍 File input:', fileInput)
+                                                            console.log('[wing/inject] 🔍 File input events:', {
+                                                              onchange: fileInput.onchange,
+                                                              listeners: fileInput._listeners || 'N/A',
+                                                            })
+
+                                                            // 상세설명 이미지 준비
+                                                            const files = []
+                                                            const itemBriefCapture = window.__ITEM_BRIEF_CAPTURE__
+
+                                                            console.log('[wing/inject] 🔍 Checking itemBriefCapture...')
+                                                            console.log(
+                                                              '[wing/inject] 📸 itemBriefCapture exists:',
+                                                              !!itemBriefCapture,
+                                                            )
+                                                            console.log(
+                                                              '[wing/inject] 📏 itemBriefCapture length:',
+                                                              itemBriefCapture?.length || 0,
+                                                            )
+                                                            console.log(
+                                                              '[wing/inject] 📦 Available images count:',
+                                                              images?.length || 0,
+                                                            )
+
+                                                            // 첫 번째 이미지: 대표 이미지 (썸네일)
+                                                            const mainImageUrl = images[0]
+                                                            if (mainImageUrl) {
                                                               console.log(
-                                                                '[wing/inject] Uploading images to detail modal...',
+                                                                '[wing/inject] 📸 Fetching main image via background:',
+                                                                mainImageUrl,
                                                               )
 
-                                                              const images = window.__COUPANG_PRODUCT_IMAGES__ || []
-                                                              if (images.length < 2) {
-                                                                console.warn(
-                                                                  '[wing/inject] ⚠️ Not enough images for detail upload',
-                                                                )
-                                                                return
-                                                              }
+                                                              const blobResponse = await chrome.runtime.sendMessage({
+                                                                type: 'FETCH_IMAGE_BLOBS',
+                                                                payload: { imageUrls: [mainImageUrl] },
+                                                              })
 
-                                                              // 모달 내부의 hidden file input 찾기
-                                                              const modalDialog =
-                                                                document.querySelector('.modal-dialog')
-                                                              if (!modalDialog) {
-                                                                console.warn('[wing/inject] ⚠️ Modal dialog not found')
-                                                                return
-                                                              }
-
-                                                              const fileInput = modalDialog.querySelector(
-                                                                'input[type="file"][hidden][multiple]',
-                                                              )
-                                                              if (!fileInput) {
-                                                                console.warn('[wing/inject] ⚠️ File input not found')
-                                                                return
-                                                              }
-
-                                                              console.log('[wing/inject] ✅ Found file input')
-
-                                                              try {
-                                                                // 드롭존 찾기
-                                                                const dropZone =
-                                                                  modalDialog.querySelector('.image-drop-zone')
-                                                                if (!dropZone) {
-                                                                  console.warn('[wing/inject] ⚠️ Drop zone not found')
-                                                                  return
-                                                                }
-
-                                                                console.log('[wing/inject] ✅ Found drop zone')
-
-                                                                // Vue 인스턴스 확인
-                                                                console.log(
-                                                                  '[wing/inject] 🔍 Vue instance:',
-                                                                  dropZone.__vue__,
-                                                                )
-                                                                console.log(
-                                                                  '[wing/inject] 🔍 Dropzone:',
-                                                                  window.Dropzone,
-                                                                )
-
-                                                                // hidden file input 확인
-                                                                console.log('[wing/inject] 🔍 File input:', fileInput)
-                                                                console.log('[wing/inject] 🔍 File input events:', {
-                                                                  onchange: fileInput.onchange,
-                                                                  listeners: fileInput._listeners || 'N/A',
-                                                                })
-
-                                                                // 상세설명 이미지 준비
-                                                                const files = []
-                                                                const itemBriefCapture = window.__ITEM_BRIEF_CAPTURE__
-
-                                                                console.log(
-                                                                  '[wing/inject] 🔍 Checking itemBriefCapture...',
-                                                                )
-                                                                console.log(
-                                                                  '[wing/inject] 📸 itemBriefCapture exists:',
-                                                                  !!itemBriefCapture,
-                                                                )
-                                                                console.log(
-                                                                  '[wing/inject] 📏 itemBriefCapture length:',
-                                                                  itemBriefCapture?.length || 0,
-                                                                )
-                                                                console.log(
-                                                                  '[wing/inject] 📦 Available images count:',
-                                                                  images?.length || 0,
-                                                                )
-
-                                                                // 첫 번째 이미지: 대표 이미지 (썸네일)
-                                                                const mainImageUrl = images[0]
-                                                                if (mainImageUrl) {
-                                                                  console.log(
-                                                                    '[wing/inject] 📸 Fetching main image via background:',
-                                                                    mainImageUrl,
-                                                                  )
-
-                                                                  const blobResponse = await chrome.runtime.sendMessage(
-                                                                    {
-                                                                      type: 'FETCH_IMAGE_BLOBS',
-                                                                      payload: { imageUrls: [mainImageUrl] },
-                                                                    },
-                                                                  )
-
-                                                                  if (blobResponse?.ok && blobResponse?.blobs?.[0]) {
-                                                                    const blobData = blobResponse.blobs[0]
-                                                                    if (!blobData.error) {
-                                                                      const base64Response = await fetch(
-                                                                        blobData.base64,
-                                                                      )
-                                                                      const blob = await base64Response.blob()
-                                                                      const file = new File(
-                                                                        [blob],
-                                                                        'detail_image_1.jpg',
-                                                                        {
-                                                                          type: blobData.type || 'image/jpeg',
-                                                                        },
-                                                                      )
-                                                                      files.push(file)
-                                                                      console.log(
-                                                                        '[wing/inject] ✅ Main image file created',
-                                                                      )
-                                                                    }
-                                                                  }
-                                                                }
-
-                                                                // 두 번째 이미지: 필수 표기 정보 캡처
-                                                                if (itemBriefCapture) {
-                                                                  console.log(
-                                                                    '[wing/inject] 📸 Using itemBrief capture for 2nd image',
-                                                                  )
-
-                                                                  // base64를 Blob으로 변환
-                                                                  const base64Response = await fetch(itemBriefCapture)
+                                                              if (blobResponse?.ok && blobResponse?.blobs?.[0]) {
+                                                                const blobData = blobResponse.blobs[0]
+                                                                if (!blobData.error) {
+                                                                  const base64Response = await fetch(blobData.base64)
                                                                   const blob = await base64Response.blob()
-                                                                  const file = new File([blob], 'item_brief_info.png', {
-                                                                    type: 'image/png',
+                                                                  const file = new File([blob], 'detail_image_1.jpg', {
+                                                                    type: blobData.type || 'image/jpeg',
                                                                   })
                                                                   files.push(file)
                                                                   console.log(
-                                                                    '[wing/inject] ✅ ItemBrief capture file created',
+                                                                    '[wing/inject] ✅ Main image file created',
                                                                   )
-                                                                } else {
-                                                                  console.warn(
-                                                                    '[wing/inject] ⚠️ ItemBrief capture not available, using 2nd thumbnail',
-                                                                  )
+                                                                }
+                                                              }
+                                                            }
 
-                                                                  // fallback: 두 번째 썸네일 사용
-                                                                  const secondImageUrl = images[1]
-                                                                  if (secondImageUrl) {
-                                                                    const blobResponse =
-                                                                      await chrome.runtime.sendMessage({
-                                                                        type: 'FETCH_IMAGE_BLOBS',
-                                                                        payload: { imageUrls: [secondImageUrl] },
-                                                                      })
+                                                            // 두 번째 이미지: 필수 표기 정보 캡처
+                                                            if (itemBriefCapture) {
+                                                              console.log(
+                                                                '[wing/inject] 📸 Using itemBrief capture for 2nd image',
+                                                              )
 
-                                                                    if (blobResponse?.ok && blobResponse?.blobs?.[0]) {
-                                                                      const blobData = blobResponse.blobs[0]
-                                                                      if (!blobData.error) {
-                                                                        const base64Response = await fetch(
-                                                                          blobData.base64,
-                                                                        )
-                                                                        const blob = await base64Response.blob()
-                                                                        const file = new File(
-                                                                          [blob],
-                                                                          'detail_image_2.jpg',
-                                                                          {
-                                                                            type: blobData.type || 'image/jpeg',
-                                                                          },
-                                                                        )
-                                                                        files.push(file)
-                                                                        console.log(
-                                                                          '[wing/inject] ✅ 2nd thumbnail file created',
-                                                                        )
-                                                                      }
-                                                                    }
+                                                              // base64를 Blob으로 변환
+                                                              const base64Response = await fetch(itemBriefCapture)
+                                                              const blob = await base64Response.blob()
+                                                              const file = new File([blob], 'item_brief_info.png', {
+                                                                type: 'image/png',
+                                                              })
+                                                              files.push(file)
+                                                              console.log(
+                                                                '[wing/inject] ✅ ItemBrief capture file created',
+                                                              )
+                                                            } else {
+                                                              console.warn(
+                                                                '[wing/inject] ⚠️ ItemBrief capture not available, using 2nd thumbnail',
+                                                              )
+
+                                                              // fallback: 두 번째 썸네일 사용
+                                                              const secondImageUrl = images[1]
+                                                              if (secondImageUrl) {
+                                                                const blobResponse = await chrome.runtime.sendMessage({
+                                                                  type: 'FETCH_IMAGE_BLOBS',
+                                                                  payload: { imageUrls: [secondImageUrl] },
+                                                                })
+
+                                                                if (blobResponse?.ok && blobResponse?.blobs?.[0]) {
+                                                                  const blobData = blobResponse.blobs[0]
+                                                                  if (!blobData.error) {
+                                                                    const base64Response = await fetch(blobData.base64)
+                                                                    const blob = await base64Response.blob()
+                                                                    const file = new File(
+                                                                      [blob],
+                                                                      'detail_image_2.jpg',
+                                                                      {
+                                                                        type: blobData.type || 'image/jpeg',
+                                                                      },
+                                                                    )
+                                                                    files.push(file)
+                                                                    console.log(
+                                                                      '[wing/inject] ✅ 2nd thumbnail file created',
+                                                                    )
                                                                   }
                                                                 }
+                                                              }
+                                                            }
 
-                                                                if (files.length === 0) {
-                                                                  console.warn('[wing/inject] ⚠️ No files to upload')
-                                                                  return
-                                                                }
+                                                            if (files.length === 0) {
+                                                              console.warn('[wing/inject] ⚠️ No files to upload')
+                                                              return
+                                                            }
 
-                                                                // DataTransfer 객체 생성
-                                                                const dataTransfer = new DataTransfer()
-                                                                files.forEach(file => dataTransfer.items.add(file))
+                                                            // DataTransfer 객체 생성
+                                                            const dataTransfer = new DataTransfer()
+                                                            files.forEach(file => dataTransfer.items.add(file))
 
-                                                                // 드래그 앤 드롭 이벤트 시뮬레이션
+                                                            // 드래그 앤 드롭 이벤트 시뮬레이션
+                                                            console.log(
+                                                              '[wing/inject] 🎯 Simulating drag and drop events...',
+                                                            )
+
+                                                            // dragenter 이벤트
+                                                            const dragEnterEvent = new DragEvent('dragenter', {
+                                                              bubbles: true,
+                                                              cancelable: true,
+                                                              dataTransfer: dataTransfer,
+                                                            })
+                                                            dropZone.dispatchEvent(dragEnterEvent)
+
+                                                            // dragover 이벤트
+                                                            const dragOverEvent = new DragEvent('dragover', {
+                                                              bubbles: true,
+                                                              cancelable: true,
+                                                              dataTransfer: dataTransfer,
+                                                            })
+                                                            dropZone.dispatchEvent(dragOverEvent)
+
+                                                            // drop 이벤트
+                                                            const dropEvent = new DragEvent('drop', {
+                                                              bubbles: true,
+                                                              cancelable: true,
+                                                              dataTransfer: dataTransfer,
+                                                            })
+                                                            dropZone.dispatchEvent(dropEvent)
+
+                                                            console.log(
+                                                              '[wing/inject] ✅ Drop event dispatched with',
+                                                              files.length,
+                                                              'files',
+                                                            )
+
+                                                            // 저장 버튼 클릭
+                                                            setTimeout(() => {
+                                                              const saveButton = Array.from(
+                                                                modalDialog.querySelectorAll('button.sc-common-btn'),
+                                                              ).find(btn => btn.textContent?.includes('저장'))
+
+                                                              if (saveButton) {
                                                                 console.log(
-                                                                  '[wing/inject] 🎯 Simulating drag and drop events...',
+                                                                  '[wing/inject] ✅ Clicking "저장" button...',
+                                                                )
+                                                                saveButton.click()
+                                                                console.log(
+                                                                  '[wing/inject] 🎉 Detail images uploaded successfully!',
                                                                 )
 
-                                                                // dragenter 이벤트
-                                                                const dragEnterEvent = new DragEvent('dragenter', {
-                                                                  bubbles: true,
-                                                                  cancelable: true,
-                                                                  dataTransfer: dataTransfer,
-                                                                })
-                                                                dropZone.dispatchEvent(dragEnterEvent)
-
-                                                                // dragover 이벤트
-                                                                const dragOverEvent = new DragEvent('dragover', {
-                                                                  bubbles: true,
-                                                                  cancelable: true,
-                                                                  dataTransfer: dataTransfer,
-                                                                })
-                                                                dropZone.dispatchEvent(dragOverEvent)
-
-                                                                // drop 이벤트
-                                                                const dropEvent = new DragEvent('drop', {
-                                                                  bubbles: true,
-                                                                  cancelable: true,
-                                                                  dataTransfer: dataTransfer,
-                                                                })
-                                                                dropZone.dispatchEvent(dropEvent)
-
-                                                                console.log(
-                                                                  '[wing/inject] ✅ Drop event dispatched with',
-                                                                  files.length,
-                                                                  'files',
-                                                                )
-
-                                                                // 저장 버튼 클릭
+                                                                // 상세설명 이미지 저장 후 상품 주요 정보 설정
                                                                 setTimeout(() => {
-                                                                  const saveButton = Array.from(
-                                                                    modalDialog.querySelectorAll(
-                                                                      'button.sc-common-btn',
-                                                                    ),
-                                                                  ).find(btn => btn.textContent?.includes('저장'))
+                                                                  console.log(
+                                                                    '[wing/inject] Setting product meta info...',
+                                                                  )
 
-                                                                  if (saveButton) {
+                                                                  // 상품 주요 정보 섹션으로 스크롤
+                                                                  const productMetaInfoPanel =
+                                                                    document.getElementById('panel-product-meta-info')
+                                                                  if (productMetaInfoPanel) {
+                                                                    productMetaInfoPanel.scrollIntoView({
+                                                                      behavior: 'smooth',
+                                                                      block: 'start',
+                                                                    })
                                                                     console.log(
-                                                                      '[wing/inject] ✅ Clicking "저장" button...',
+                                                                      '[wing/inject] ✅ Scrolled to 상품 주요 정보 section',
                                                                     )
-                                                                    saveButton.click()
+                                                                  }
+
+                                                                  // 약간의 대기 후 설정 시작
+                                                                  setTimeout(() => {
+                                                                    // 1. 인증정보: '상세페이지 별도표기' 선택
+                                                                    const certificationRadio = document.querySelector(
+                                                                      'input[name="certificationType"][value="PRESENTED_IN_DETAIL_PAGE"]',
+                                                                    )
+                                                                    if (certificationRadio) {
+                                                                      certificationRadio.click()
+                                                                      console.log(
+                                                                        '[wing/inject] ✅ Certification type set to "상세페이지 별도표기"',
+                                                                      )
+                                                                    } else {
+                                                                      console.warn(
+                                                                        '[wing/inject] ⚠️ Certification radio not found',
+                                                                      )
+                                                                    }
+
+                                                                    // 2. 판매기간: '설정안함' 선택
+                                                                    const salePeriodRadio = document.querySelector(
+                                                                      'input[name="salePeriod"][value="N"]',
+                                                                    )
+                                                                    if (salePeriodRadio) {
+                                                                      salePeriodRadio.click()
+                                                                      console.log(
+                                                                        '[wing/inject] ✅ Sale period set to "설정안함"',
+                                                                      )
+                                                                    } else {
+                                                                      console.warn(
+                                                                        '[wing/inject] ⚠️ Sale period radio not found',
+                                                                      )
+                                                                    }
+
                                                                     console.log(
-                                                                      '[wing/inject] 🎉 Detail images uploaded successfully!',
+                                                                      '[wing/inject] 🎉 Product meta info set successfully!',
                                                                     )
 
-                                                                    // 상세설명 이미지 저장 후 상품 주요 정보 설정
+                                                                    // 3. 상품정보제공고시: '전체 상품 상세페이지 참조' 체크
                                                                     setTimeout(() => {
                                                                       console.log(
-                                                                        '[wing/inject] Setting product meta info...',
+                                                                        '[wing/inject] Setting notice category...',
                                                                       )
 
-                                                                      // 상품 주요 정보 섹션으로 스크롤
-                                                                      const productMetaInfoPanel =
-                                                                        document.getElementById(
-                                                                          'panel-product-meta-info',
-                                                                        )
-                                                                      if (productMetaInfoPanel) {
-                                                                        productMetaInfoPanel.scrollIntoView({
+                                                                      // 상품정보제공고시 섹션으로 스크롤
+                                                                      const noticeCategoryPanel =
+                                                                        document.getElementById('panel-notice-category')
+                                                                      if (noticeCategoryPanel) {
+                                                                        noticeCategoryPanel.scrollIntoView({
                                                                           behavior: 'smooth',
                                                                           block: 'start',
                                                                         })
                                                                         console.log(
-                                                                          '[wing/inject] ✅ Scrolled to 상품 주요 정보 section',
+                                                                          '[wing/inject] ✅ Scrolled to 상품정보제공고시 section',
                                                                         )
                                                                       }
 
-                                                                      // 약간의 대기 후 설정 시작
+                                                                      // 약간의 대기 후 체크박스 클릭
                                                                       setTimeout(() => {
-                                                                        // 1. 인증정보: '상세페이지 별도표기' 선택
-                                                                        const certificationRadio =
-                                                                          document.querySelector(
-                                                                            'input[name="certificationType"][value="PRESENTED_IN_DETAIL_PAGE"]',
+                                                                        // '전체 상품 상세페이지 참조' 체크박스 찾기
+                                                                        const noticeCheckbox = Array.from(
+                                                                          document.querySelectorAll(
+                                                                            '.notice-category-option-section .sc-common-check input[type="checkbox"]',
+                                                                          ),
+                                                                        ).find(checkbox => {
+                                                                          const label =
+                                                                            checkbox.parentElement?.textContent?.trim()
+                                                                          return label?.includes(
+                                                                            '전체 상품 상세페이지 참조',
                                                                           )
-                                                                        if (certificationRadio) {
-                                                                          certificationRadio.click()
-                                                                          console.log(
-                                                                            '[wing/inject] ✅ Certification type set to "상세페이지 별도표기"',
-                                                                          )
-                                                                        } else {
-                                                                          console.warn(
-                                                                            '[wing/inject] ⚠️ Certification radio not found',
-                                                                          )
-                                                                        }
+                                                                        })
 
-                                                                        // 2. 판매기간: '설정안함' 선택
-                                                                        const salePeriodRadio = document.querySelector(
-                                                                          'input[name="salePeriod"][value="N"]',
-                                                                        )
-                                                                        if (salePeriodRadio) {
-                                                                          salePeriodRadio.click()
+                                                                        if (noticeCheckbox) {
+                                                                          noticeCheckbox.click()
                                                                           console.log(
-                                                                            '[wing/inject] ✅ Sale period set to "설정안함"',
+                                                                            '[wing/inject] ✅ Notice category checkbox clicked: "전체 상품 상세페이지 참조"',
                                                                           )
                                                                         } else {
                                                                           console.warn(
-                                                                            '[wing/inject] ⚠️ Sale period radio not found',
+                                                                            '[wing/inject] ⚠️ Notice category checkbox not found',
                                                                           )
                                                                         }
 
                                                                         console.log(
-                                                                          '[wing/inject] 🎉 Product meta info set successfully!',
+                                                                          '[wing/inject] 🎉 All product registration steps completed!',
                                                                         )
 
-                                                                        // 3. 상품정보제공고시: '전체 상품 상세페이지 참조' 체크
+                                                                        // 4. 판매요청 버튼 클릭
                                                                         setTimeout(() => {
                                                                           console.log(
-                                                                            '[wing/inject] Setting notice category...',
+                                                                            '[wing/inject] Clicking 판매요청 button...',
                                                                           )
 
-                                                                          // 상품정보제공고시 섹션으로 스크롤
-                                                                          const noticeCategoryPanel =
-                                                                            document.getElementById(
-                                                                              'panel-notice-category',
-                                                                            )
-                                                                          if (noticeCategoryPanel) {
-                                                                            noticeCategoryPanel.scrollIntoView({
-                                                                              behavior: 'smooth',
-                                                                              block: 'start',
-                                                                            })
+                                                                          // '판매요청' 버튼 찾기
+                                                                          const saleRequestButton = Array.from(
+                                                                            document.querySelectorAll(
+                                                                              'footer.form-footer button.wing-web-component',
+                                                                            ),
+                                                                          ).find(btn =>
+                                                                            btn.textContent?.includes('판매요청'),
+                                                                          )
+
+                                                                          if (saleRequestButton) {
+                                                                            saleRequestButton.click()
                                                                             console.log(
-                                                                              '[wing/inject] ✅ Scrolled to 상품정보제공고시 section',
-                                                                            )
-                                                                          }
-
-                                                                          // 약간의 대기 후 체크박스 클릭
-                                                                          setTimeout(() => {
-                                                                            // '전체 상품 상세페이지 참조' 체크박스 찾기
-                                                                            const noticeCheckbox = Array.from(
-                                                                              document.querySelectorAll(
-                                                                                '.notice-category-option-section .sc-common-check input[type="checkbox"]',
-                                                                              ),
-                                                                            ).find(checkbox => {
-                                                                              const label =
-                                                                                checkbox.parentElement?.textContent?.trim()
-                                                                              return label?.includes(
-                                                                                '전체 상품 상세페이지 참조',
-                                                                              )
-                                                                            })
-
-                                                                            if (noticeCheckbox) {
-                                                                              noticeCheckbox.click()
-                                                                              console.log(
-                                                                                '[wing/inject] ✅ Notice category checkbox clicked: "전체 상품 상세페이지 참조"',
-                                                                              )
-                                                                            } else {
-                                                                              console.warn(
-                                                                                '[wing/inject] ⚠️ Notice category checkbox not found',
-                                                                              )
-                                                                            }
-
-                                                                            console.log(
-                                                                              '[wing/inject] 🎉 All product registration steps completed!',
+                                                                              '[wing/inject] ✅ 판매요청 button clicked!',
                                                                             )
 
-                                                                            // 4. 판매요청 버튼 클릭
+                                                                            // 확인 모달의 '판매요청' 버튼 클릭 대기
                                                                             setTimeout(() => {
                                                                               console.log(
-                                                                                '[wing/inject] Clicking 판매요청 button...',
+                                                                                '[wing/inject] Looking for confirmation modal...',
                                                                               )
 
-                                                                              // '판매요청' 버튼 찾기
-                                                                              const saleRequestButton = Array.from(
-                                                                                document.querySelectorAll(
-                                                                                  'footer.form-footer button.wing-web-component',
-                                                                                ),
-                                                                              ).find(btn =>
-                                                                                btn.textContent?.includes('판매요청'),
-                                                                              )
-
-                                                                              if (saleRequestButton) {
-                                                                                saleRequestButton.click()
-                                                                                console.log(
-                                                                                  '[wing/inject] ✅ 판매요청 button clicked!',
+                                                                              // sweet-alert 모달에서 '판매요청' 확인 버튼 찾기
+                                                                              const confirmButton =
+                                                                                document.querySelector(
+                                                                                  '.sweet-alert button.confirm.alert-confirm',
                                                                                 )
 
-                                                                                // 확인 모달의 '판매요청' 버튼 클릭 대기
-                                                                                setTimeout(() => {
-                                                                                  console.log(
-                                                                                    '[wing/inject] Looking for confirmation modal...',
-                                                                                  )
+                                                                              if (confirmButton) {
+                                                                                confirmButton.click()
+                                                                                console.log(
+                                                                                  '[wing/inject] ✅ Confirmation modal "판매요청" button clicked!',
+                                                                                )
 
-                                                                                  // sweet-alert 모달에서 '판매요청' 확인 버튼 찾기
-                                                                                  const confirmButton =
-                                                                                    document.querySelector(
-                                                                                      '.sweet-alert button.confirm.alert-confirm',
-                                                                                    )
+                                                                                // 성공 모달 반복 체크 (최대 30초)
+                                                                                console.log(
+                                                                                  '[wing/inject] Starting success modal polling...',
+                                                                                )
 
-                                                                                  if (confirmButton) {
-                                                                                    confirmButton.click()
+                                                                                let checkCount = 0
+                                                                                const maxChecks = 30 // 30초 동안 체크
+                                                                                let modalFound = false
+
+                                                                                const pollSuccessModal = setInterval(
+                                                                                  () => {
+                                                                                    checkCount++
                                                                                     console.log(
-                                                                                      '[wing/inject] ✅ Confirmation modal "판매요청" button clicked!',
+                                                                                      `[wing/inject] Polling for success modal... (${checkCount}/${maxChecks})`,
                                                                                     )
 
-                                                                                    // 성공 모달 반복 체크 (최대 30초)
+                                                                                    // 모달이 이미 발견되었으면 폴링 중지되어야 함
+                                                                                    if (modalFound) {
+                                                                                      console.warn(
+                                                                                        '[wing/inject] ⚠️ Modal already processed but polling still running',
+                                                                                      )
+                                                                                      clearInterval(pollSuccessModal)
+                                                                                      return
+                                                                                    }
+
+                                                                                    // 실제로 표시되는 모달 찾기 (display: block 또는 display가 none이 아닌)
+                                                                                    const modalElements = Array.from(
+                                                                                      document.querySelectorAll(
+                                                                                        '.modal',
+                                                                                      ),
+                                                                                    )
                                                                                     console.log(
-                                                                                      '[wing/inject] Starting success modal polling...',
+                                                                                      '[wing/inject] Found .modal elements:',
+                                                                                      modalElements.length,
                                                                                     )
 
-                                                                                    let checkCount = 0
-                                                                                    const maxChecks = 30 // 30초 동안 체크
-                                                                                    let modalFound = false
-
-                                                                                    const pollSuccessModal =
-                                                                                      setInterval(() => {
-                                                                                        checkCount++
+                                                                                    const visibleModal =
+                                                                                      modalElements.find(modal => {
+                                                                                        const display =
+                                                                                          window.getComputedStyle(
+                                                                                            modal,
+                                                                                          ).display
                                                                                         console.log(
-                                                                                          `[wing/inject] Polling for success modal... (${checkCount}/${maxChecks})`,
+                                                                                          '[wing/inject] Modal display:',
+                                                                                          display,
                                                                                         )
+                                                                                        return display !== 'none'
+                                                                                      })
 
-                                                                                        // 모달이 이미 발견되었으면 폴링 중지되어야 함
-                                                                                        if (modalFound) {
-                                                                                          console.warn(
-                                                                                            '[wing/inject] ⚠️ Modal already processed but polling still running',
-                                                                                          )
-                                                                                          clearInterval(
-                                                                                            pollSuccessModal,
-                                                                                          )
-                                                                                          return
-                                                                                        }
+                                                                                    if (!visibleModal) {
+                                                                                      console.log(
+                                                                                        '[wing/inject] No visible modal found',
+                                                                                      )
+                                                                                      return
+                                                                                    }
 
-                                                                                        // 실제로 표시되는 모달 찾기 (display: block 또는 display가 none이 아닌)
-                                                                                        const modalElements =
-                                                                                          Array.from(
-                                                                                            document.querySelectorAll(
-                                                                                              '.modal',
-                                                                                            ),
-                                                                                          )
+                                                                                    console.log(
+                                                                                      '[wing/inject] ✅ Visible modal found!',
+                                                                                    )
+
+                                                                                    // 성공 모달인지 확인
+                                                                                    const successTitle =
+                                                                                      visibleModal.querySelector(
+                                                                                        '.alert-title, h2.alert-title',
+                                                                                      )
+                                                                                    const isSuccessModal =
+                                                                                      successTitle?.textContent?.includes(
+                                                                                        '상품등록이 완료되었습니다',
+                                                                                      )
+
+                                                                                    console.log(
+                                                                                      '[wing/inject] Is success modal:',
+                                                                                      isSuccessModal,
+                                                                                    )
+                                                                                    console.log(
+                                                                                      '[wing/inject] Title text:',
+                                                                                      successTitle?.textContent,
+                                                                                    )
+
+                                                                                    if (isSuccessModal) {
+                                                                                      if (!modalFound) {
+                                                                                        modalFound = true
                                                                                         console.log(
-                                                                                          '[wing/inject] Found .modal elements:',
-                                                                                          modalElements.length,
-                                                                                        )
-
-                                                                                        const visibleModal =
-                                                                                          modalElements.find(modal => {
-                                                                                            const display =
-                                                                                              window.getComputedStyle(
-                                                                                                modal,
-                                                                                              ).display
-                                                                                            console.log(
-                                                                                              '[wing/inject] Modal display:',
-                                                                                              display,
-                                                                                            )
-                                                                                            return display !== 'none'
-                                                                                          })
-
-                                                                                        if (!visibleModal) {
-                                                                                          console.log(
-                                                                                            '[wing/inject] No visible modal found',
-                                                                                          )
-                                                                                          return
-                                                                                        }
-
-                                                                                        console.log(
-                                                                                          '[wing/inject] ✅ Visible modal found!',
-                                                                                        )
-
-                                                                                        // 성공 모달인지 확인
-                                                                                        const successTitle =
-                                                                                          visibleModal.querySelector(
-                                                                                            '.alert-title, h2.alert-title',
-                                                                                          )
-                                                                                        const isSuccessModal =
-                                                                                          successTitle?.textContent?.includes(
-                                                                                            '상품등록이 완료되었습니다',
-                                                                                          )
-
-                                                                                        console.log(
-                                                                                          '[wing/inject] Is success modal:',
-                                                                                          isSuccessModal,
+                                                                                          '[wing/inject] ✅ Success modal detected!',
                                                                                         )
                                                                                         console.log(
-                                                                                          '[wing/inject] Title text:',
+                                                                                          '[wing/inject] Modal text:',
                                                                                           successTitle?.textContent,
                                                                                         )
 
-                                                                                        if (isSuccessModal) {
-                                                                                          if (!modalFound) {
-                                                                                            modalFound = true
+                                                                                        // 폴링 중지
+                                                                                        clearInterval(pollSuccessModal)
+                                                                                        console.log(
+                                                                                          '[wing/inject] ⏹️ Polling stopped',
+                                                                                        )
+
+                                                                                        // 등록상품ID 추출 (visible modal 내부에서만 찾기)
+                                                                                        const allParagraphs =
+                                                                                          Array.from(
+                                                                                            visibleModal.querySelectorAll(
+                                                                                              'p',
+                                                                                            ),
+                                                                                          )
+                                                                                        console.log(
+                                                                                          '[wing/inject] Found paragraphs in visible modal:',
+                                                                                          allParagraphs.length,
+                                                                                        )
+                                                                                        allParagraphs.forEach(
+                                                                                          (p, idx) => {
                                                                                             console.log(
-                                                                                              '[wing/inject] ✅ Success modal detected!',
+                                                                                              `[wing/inject] Paragraph ${idx}:`,
+                                                                                              p.textContent,
                                                                                             )
-                                                                                            console.log(
-                                                                                              '[wing/inject] Modal text:',
-                                                                                              successModal?.textContent,
-                                                                                            )
+                                                                                          },
+                                                                                        )
 
-                                                                                            // 폴링 중지
-                                                                                            clearInterval(
-                                                                                              pollSuccessModal,
-                                                                                            )
-                                                                                            console.log(
-                                                                                              '[wing/inject] ⏹️ Polling stopped',
-                                                                                            )
+                                                                                        const alertText =
+                                                                                          allParagraphs.find(p =>
+                                                                                            p.textContent?.includes(
+                                                                                              '등록상품ID',
+                                                                                            ),
+                                                                                          )
+                                                                                        console.log(
+                                                                                          '[wing/inject] Alert text element:',
+                                                                                          alertText,
+                                                                                        )
+                                                                                        console.log(
+                                                                                          '[wing/inject] Alert text content:',
+                                                                                          alertText?.textContent,
+                                                                                        )
 
-                                                                                            // 등록상품ID 추출 (visible modal 내부에서만 찾기)
-                                                                                            const allParagraphs =
-                                                                                              Array.from(
-                                                                                                visibleModal.querySelectorAll(
-                                                                                                  'p',
-                                                                                                ),
-                                                                                              )
-                                                                                            console.log(
-                                                                                              '[wing/inject] Found paragraphs in visible modal:',
-                                                                                              allParagraphs.length,
-                                                                                            )
-                                                                                            allParagraphs.forEach(
-                                                                                              (p, idx) => {
-                                                                                                console.log(
-                                                                                                  `[wing/inject] Paragraph ${idx}:`,
-                                                                                                  p.textContent,
-                                                                                                )
-                                                                                              },
-                                                                                            )
+                                                                                        const match =
+                                                                                          alertText?.textContent?.match(
+                                                                                            /등록상품ID\s*:\s*(\d+)/,
+                                                                                          )
+                                                                                        const vendorInventoryId = match
+                                                                                          ? match[1]
+                                                                                          : null
 
-                                                                                            const alertText =
-                                                                                              allParagraphs.find(p =>
-                                                                                                p.textContent?.includes(
-                                                                                                  '등록상품ID',
-                                                                                                ),
-                                                                                              )
-                                                                                            console.log(
-                                                                                              '[wing/inject] Alert text element:',
-                                                                                              alertText,
-                                                                                            )
-                                                                                            console.log(
-                                                                                              '[wing/inject] Alert text content:',
-                                                                                              alertText?.textContent,
-                                                                                            )
+                                                                                        console.log(
+                                                                                          '[wing/inject] 📝 Vendor Inventory ID:',
+                                                                                          vendorInventoryId,
+                                                                                        )
 
-                                                                                            const match =
-                                                                                              alertText?.textContent?.match(
-                                                                                                /등록상품ID\s*:\s*(\d+)/,
-                                                                                              )
-                                                                                            const registeredProductId =
-                                                                                              match ? match[1] : null
+                                                                                        console.log(
+                                                                                          '[wing/inject] 🎊 Product registration fully completed!',
+                                                                                        )
 
-                                                                                            console.log(
-                                                                                              '[wing/inject] 📝 Registered Product ID:',
-                                                                                              registeredProductId,
-                                                                                            )
-
-                                                                                            console.log(
-                                                                                              '[wing/inject] 🎊 Product registration fully completed!',
-                                                                                            )
-
-                                                                                            // product-upload 페이지에 알림 전송 및 탭 닫기
-                                                                                            if (productId) {
-                                                                                              console.log(
-                                                                                                '[wing/inject] 📤 Sending PRODUCT_UPLOAD_SUCCESS message...',
-                                                                                              )
-                                                                                              console.log(
-                                                                                                '[wing/inject] ProductId to send:',
-                                                                                                Number(productId),
-                                                                                              )
-
-                                                                                              // Background가 sender.tab.id로 탭을 닫을 것
-                                                                                              chrome.runtime.sendMessage(
-                                                                                                {
-                                                                                                  type: 'PRODUCT_UPLOAD_SUCCESS',
-                                                                                                  productId:
-                                                                                                    Number(productId),
-                                                                                                },
-                                                                                                response => {
-                                                                                                  console.log(
-                                                                                                    '[wing/inject] ✅ Notification sent, response:',
-                                                                                                    response,
-                                                                                                  )
-                                                                                                },
-                                                                                              )
-                                                                                            } else {
-                                                                                              console.warn(
-                                                                                                '[wing/inject] ⚠️ No productId to send',
-                                                                                              )
-                                                                                            }
-                                                                                          }
-                                                                                        }
-
-                                                                                        // 최대 체크 횟수 도달
-                                                                                        if (checkCount >= maxChecks) {
+                                                                                        // product-upload 페이지에 알림 전송 및 탭 닫기
+                                                                                        if (productId) {
                                                                                           console.log(
-                                                                                            '[wing/inject] ⏰ Polling timeout reached',
+                                                                                            '[wing/inject] 📤 Sending PRODUCT_UPLOAD_SUCCESS message...',
                                                                                           )
-                                                                                          clearInterval(
-                                                                                            pollSuccessModal,
+                                                                                          console.log(
+                                                                                            '[wing/inject] ProductId to send:',
+                                                                                            Number(productId),
+                                                                                          )
+                                                                                          console.log(
+                                                                                            '[wing/inject] VendorInventoryId to send:',
+                                                                                            vendorInventoryId,
                                                                                           )
 
-                                                                                          if (!modalFound) {
-                                                                                            console.error(
-                                                                                              '[wing/inject] ❌ Success modal not found after 30 seconds',
-                                                                                            )
-                                                                                          }
+                                                                                          // Background가 sender.tab.id로 탭을 닫을 것
+                                                                                          chrome.runtime.sendMessage(
+                                                                                            {
+                                                                                              type: 'PRODUCT_UPLOAD_SUCCESS',
+                                                                                              productId:
+                                                                                                Number(productId),
+                                                                                              vendorInventoryId:
+                                                                                                vendorInventoryId,
+                                                                                            },
+                                                                                            response => {
+                                                                                              console.log(
+                                                                                                '[wing/inject] ✅ Notification sent, response:',
+                                                                                                response,
+                                                                                              )
+                                                                                            },
+                                                                                          )
+                                                                                        } else {
+                                                                                          console.warn(
+                                                                                            '[wing/inject] ⚠️ No productId to send',
+                                                                                          )
                                                                                         }
-                                                                                      }, 1000) // 1초마다 체크
-                                                                                  } else {
-                                                                                    console.warn(
-                                                                                      '[wing/inject] ⚠️ Confirmation modal button not found',
-                                                                                    )
-                                                                                  }
-                                                                                }, 1000) // 판매요청 버튼 클릭 후 1초 대기
+                                                                                      }
+                                                                                    }
+
+                                                                                    // 최대 체크 횟수 도달
+                                                                                    if (checkCount >= maxChecks) {
+                                                                                      console.log(
+                                                                                        '[wing/inject] ⏰ Polling timeout reached',
+                                                                                      )
+                                                                                      clearInterval(pollSuccessModal)
+
+                                                                                      if (!modalFound) {
+                                                                                        console.error(
+                                                                                          '[wing/inject] ❌ Success modal not found after 30 seconds',
+                                                                                        )
+                                                                                      }
+                                                                                    }
+                                                                                  },
+                                                                                  1000,
+                                                                                ) // 1초마다 체크
                                                                               } else {
                                                                                 console.warn(
-                                                                                  '[wing/inject] ⚠️ 판매요청 button not found',
+                                                                                  '[wing/inject] ⚠️ Confirmation modal button not found',
                                                                                 )
                                                                               }
-                                                                            }, 1000) // 상품정보제공고시 설정 후 1초 대기
-                                                                          }, 500) // 스크롤 후 0.5초 대기
-                                                                        }, 1000) // 상품 주요 정보 설정 후 1초 대기
+                                                                            }, 1000) // 판매요청 버튼 클릭 후 1초 대기
+                                                                          } else {
+                                                                            console.warn(
+                                                                              '[wing/inject] ⚠️ 판매요청 button not found',
+                                                                            )
+                                                                          }
+                                                                        }, 1000) // 상품정보제공고시 설정 후 1초 대기
                                                                       }, 500) // 스크롤 후 0.5초 대기
-                                                                    }, 1000) // 저장 후 1초 대기
-                                                                  } else {
-                                                                    console.warn(
-                                                                      '[wing/inject] ⚠️ "저장" button not found',
-                                                                    )
-                                                                  }
-                                                                }, 2000) // 파일 추가 후 2초 대기
-                                                              } catch (error) {
-                                                                console.error(
-                                                                  '[wing/inject] ❌ Error uploading detail images:',
-                                                                  error,
-                                                                )
+                                                                    }, 1000) // 상품 주요 정보 설정 후 1초 대기
+                                                                  }, 500) // 스크롤 후 0.5초 대기
+                                                                }, 1000) // 저장 후 1초 대기
+                                                              } else {
+                                                                console.warn('[wing/inject] ⚠️ "저장" button not found')
                                                               }
-                                                            }, 1000) // 모달 열린 후 1초 대기
-                                                          } else {
-                                                            console.warn(
-                                                              '[wing/inject] ⚠️ "이미지 등록" button not found',
+                                                            }, 2000) // 파일 추가 후 2초 대기
+                                                          } catch (error) {
+                                                            console.error(
+                                                              '[wing/inject] ❌ Error uploading detail images:',
+                                                              error,
                                                             )
                                                           }
-                                                        }, 1000) // "기본 등록" 탭 클릭 후 1초 대기
+                                                        }, 1000) // 모달 열린 후 1초 대기
                                                       } else {
-                                                        console.warn(
-                                                          '[wing/inject] ⚠️ "기본 등록" tab not found in 상세설명',
-                                                        )
+                                                        console.warn('[wing/inject] ⚠️ "이미지 등록" button not found')
                                                       }
-                                                    }, 1000) // 스크롤 후 1초 대기
-                                                  }, 2000) // 이미지 저장 후 2초 대기
-                                                } else {
-                                                  console.warn('[wing/inject] ❌ "저장" button not found')
-                                                }
-                                              }, 1000) // URL 입력 후 1초 대기
-                                            }, 200)
-                                          }, 1000) // "이미지 URL주소로 등록" 클릭 후 1초 대기
+                                                    }, 1000) // "기본 등록" 탭 클릭 후 1초 대기
+                                                  } else {
+                                                    console.warn(
+                                                      '[wing/inject] ⚠️ "기본 등록" tab not found in 상세설명',
+                                                    )
+                                                  }
+                                                }, 1000) // 스크롤 후 1초 대기
+                                              }, 2000) // 이미지 저장 후 2초 대기
+                                            } catch (error) {
+                                              console.error('[wing/inject] ❌ Error uploading main image:', error)
+                                            }
+                                          }, 2000) // 대표 이미지 업로드 후 2초 대기
                                         }, 200)
                                       }, 1000) // "기본 등록" 클릭 후 1초 대기
                                     }, 200)

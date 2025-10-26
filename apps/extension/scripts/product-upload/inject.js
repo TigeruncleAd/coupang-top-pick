@@ -1,7 +1,11 @@
 // Content script for product-upload page
 ;(function () {
-  console.log('[product-upload/inject] 🚀 Script loaded on:', window.location.href)
-  console.log('[product-upload/inject] 🔧 Chrome runtime available:', !!chrome.runtime)
+  console.log('='.repeat(80))
+  console.log('[product-upload/inject] 🚀🚀🚀 CONTENT SCRIPT LOADED 🚀🚀🚀')
+  console.log('[product-upload/inject] URL:', window.location.href)
+  console.log('[product-upload/inject] Chrome runtime:', !!chrome.runtime)
+  console.log('[product-upload/inject] Time:', new Date().toISOString())
+  console.log('='.repeat(80))
 
   // Background로부터 메시지 받기
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
@@ -13,12 +17,14 @@
     if (msg?.type === 'UPDATE_PRODUCT_STATUS') {
       console.log('[product-upload/inject] ✅ Message type matched!')
       console.log('[product-upload/inject] ProductId:', msg.productId)
+      console.log('[product-upload/inject] VendorInventoryId:', msg.vendorInventoryId)
       console.log('[product-upload/inject] 📤 Forwarding to web page via window.postMessage')
 
       // Web page로 메시지 전달
       const messageToSend = {
         type: 'UPDATE_PRODUCT_STATUS',
         productId: msg.productId,
+        vendorInventoryId: msg.vendorInventoryId,
         source: 'coupang-extension',
       }
       console.log('[product-upload/inject] Message to send:', messageToSend)

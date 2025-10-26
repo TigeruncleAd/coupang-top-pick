@@ -38,8 +38,15 @@ export default function Client({ extensionId }: { extensionId: string }) {
 
   // 상품 상태 업데이트 mutation
   const updateProductStatusMutation = useMutation({
-    mutationFn: ({ productId, status }: { productId: bigint; status: 'READY' | 'UPLOADED_RAW' }) =>
-      updateProductStatus(productId, status),
+    mutationFn: ({
+      productId,
+      status,
+      vendorInventoryId,
+    }: {
+      productId: bigint
+      status: 'READY' | 'UPLOADED_RAW'
+      vendorInventoryId?: string
+    }) => updateProductStatus(productId, status, vendorInventoryId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userProducts'] })
       toast.success('상품이 업로드되었습니다.')
@@ -98,12 +105,14 @@ export default function Client({ extensionId }: { extensionId: string }) {
       if (event.data.type === 'UPDATE_PRODUCT_STATUS' && event.data.productId) {
         console.log('[product-upload/view] 🎯 UPDATE_PRODUCT_STATUS message received!')
         console.log('[product-upload/view] ProductId:', event.data.productId)
+        console.log('[product-upload/view] VendorInventoryId:', event.data.vendorInventoryId)
         console.log('[product-upload/view] 📤 Triggering mutation...')
 
         // 상태 업데이트
         updateProductStatusMutation.mutate({
           productId: BigInt(event.data.productId),
           status: 'UPLOADED_RAW',
+          vendorInventoryId: event.data.vendorInventoryId ? String(event.data.vendorInventoryId) : undefined,
         })
 
         console.log('[product-upload/view] ✅ Mutation triggered')
@@ -172,8 +181,22 @@ export default function Client({ extensionId }: { extensionId: string }) {
                         className="h-32 w-32 flex-shrink-0 rounded object-cover"
                       />
                       <div className="flex flex-1 flex-col gap-1">
-                        <h3 className="text-foreground line-clamp-2 font-semibold">{product.productName}</h3>
+                        <div className="flex items-start gap-2">
+                          <h3 className="text-foreground line-clamp-2 flex-1 font-semibold">{product.productName}</h3>
+                          {product.status === 'READY' ? (
+                            <span className="bg-muted text-muted-foreground shrink-0 rounded-full px-3 py-1 text-xs font-medium">
+                              업로드 준비
+                            </span>
+                          ) : product.status === 'UPLOADED_RAW' ? (
+                            <span className="shrink-0 rounded-full bg-blue-500/20 px-3 py-1 text-xs font-medium text-blue-400">
+                              1차 업로드 완료
+                            </span>
+                          ) : null}
+                        </div>
                         <p className="text-muted-foreground text-sm">가격: {product.salePrice.toLocaleString()}원</p>
+                        {product.vendorInventoryId && (
+                          <p className="text-xs text-blue-400">등록상품ID: {product.vendorInventoryId}</p>
+                        )}
                         {displayCategoryInfo?.[0] && (
                           <p className="text-muted-foreground/70 text-xs">{displayCategoryInfo[0].categoryHierarchy}</p>
                         )}
@@ -192,24 +215,35 @@ export default function Client({ extensionId }: { extensionId: string }) {
                             상품 보기
                           </a>
                         </Button>
-                        <Button
-                          size="sm"
-                          onClick={async () => {
-                            const uploadUrl = 'https://wing.coupang.com/tenants/seller-web/vendor-inventory/formV2'
-                            window.open(uploadUrl, '_blank', 'noopener,noreferrer')
-                            await new Promise(r => setTimeout(r, 1500))
-                            await wingProductItemsViaExtension({
-                              extensionId,
-                              productId: Number(product.productId),
-                              itemId: Number(product.itemId),
-                              categoryId: product.categoryId,
-                              targetTabUrl: uploadUrl,
-                              productName: product.productName,
-                              vendorItemId: Number(product.vendorItemId),
-                            })
-                          }}>
-                          업로드하기
-                        </Button>
+                        {product.status === 'UPLOADED_RAW' && product.vendorInventoryId ? (
+                          <Button size="sm" className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30" asChild>
+                            <a
+                              href={`https://wing.coupang.com/tenants/seller-web/vendor-inventory/modify?vendorInventoryId=${product.vendorInventoryId}`}
+                              target="_blank"
+                              rel="noopener noreferrer">
+                              옵션수정
+                            </a>
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            onClick={async () => {
+                              const uploadUrl = 'https://wing.coupang.com/tenants/seller-web/vendor-inventory/formV2'
+                              window.open(uploadUrl, '_blank', 'noopener,noreferrer')
+                              await new Promise(r => setTimeout(r, 1500))
+                              await wingProductItemsViaExtension({
+                                extensionId,
+                                productId: Number(product.productId),
+                                itemId: Number(product.itemId),
+                                categoryId: product.categoryId,
+                                targetTabUrl: uploadUrl,
+                                productName: product.productName,
+                                vendorItemId: Number(product.vendorItemId),
+                              })
+                            }}>
+                            업로드하기
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           variant="destructive"

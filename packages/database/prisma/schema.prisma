@@ -71,7 +71,9 @@ model Product {
   updatedAt DateTime @updatedAt
 
   // 상태
-  status PRODUCT_STATUS @default(READY)
+  status              PRODUCT_STATUS @default(READY)
+  // registeredProductId BigInt? // Wing에서 등록 완료 후 받은 등록상품ID
+  vendorInventoryId   String? // Wing에서 등록 완료 후 받은 벤더 인벤토리 ID
 
   // 기본 상품 정보
   productId      BigInt  @unique // 쿠팡 상품 ID

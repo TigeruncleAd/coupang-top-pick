@@ -489,10 +489,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true
   }
 
-  if (message.action === 'getCompletedProductIds') {
-    const isDev = message.isDev || false
-    const mallId = message.mallId
-    const ksToken = message.ksToken
+  if (msg.action === 'getCompletedProductIds') {
+    const isDev = msg.isDev || false
+    const mallId = msg.mallId
+    const ksToken = msg.ksToken
 
     const baseUrl = isDev ? DEV_ENDPOINT : ENDPOINT
 
@@ -523,9 +523,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg?.type === 'PRODUCT_UPLOAD_SUCCESS') {
     ;(async () => {
       try {
-        const { productId } = msg
+        const { productId, vendorInventoryId } = msg
         console.log('[background] 🎉 PRODUCT_UPLOAD_SUCCESS message received!')
         console.log('[background] ProductId:', productId)
+        console.log('[background] VendorInventoryId:', vendorInventoryId)
         console.log('[background] Sender tab ID:', sender.tab?.id)
 
         // 먼저 응답 전송 (탭이 닫히기 전에)
@@ -565,6 +566,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           const messageToSend = {
             type: 'UPDATE_PRODUCT_STATUS',
             productId: productId,
+            vendorInventoryId: vendorInventoryId,
           }
           console.log('[background] 📤 Sending message to content script:', messageToSend)
 

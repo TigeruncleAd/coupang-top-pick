@@ -185,7 +185,11 @@ export async function deleteProduct(productId: bigint) {
   return { success: true }
 }
 
-export async function updateProductStatus(productId: bigint, status: 'READY' | 'UPLOADED_RAW') {
+export async function updateProductStatus(
+  productId: bigint,
+  status: 'READY' | 'UPLOADED_RAW',
+  vendorInventoryId?: string,
+) {
   const user = await getServerUser()
 
   if (!user) {
@@ -209,6 +213,7 @@ export async function updateProductStatus(productId: bigint, status: 'READY' | '
     },
     data: {
       status,
+      ...(vendorInventoryId !== undefined && { vendorInventoryId }),
     },
   })
 

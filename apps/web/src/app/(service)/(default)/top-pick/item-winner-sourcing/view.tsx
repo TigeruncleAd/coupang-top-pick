@@ -2,6 +2,8 @@
 import { useState, useTransition, useRef, useEffect } from 'react'
 import { Input } from '@repo/ui/components/input'
 import { Button } from '@repo/ui/components/button'
+import { Switch } from '@repo/ui/components/switch'
+import { Label } from '@repo/ui/components/label'
 import {
   wingSearchViaExtension,
   openOffscreenWindowExt,
@@ -37,6 +39,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
   const [validationResults, setValidationResults] = useState<ValidationResult[]>([])
   const [validationProgress, setValidationProgress] = useState({ current: 0, total: 0 })
   const [isValidatingAndSaving, setIsValidatingAndSaving] = useState(false)
+  const [isBulkMode, setIsBulkMode] = useState(false)
   const productRefs = useRef<Map<number, HTMLDivElement>>(new Map())
 
   // 상품 생성 mutation
@@ -105,14 +108,41 @@ export default function Client({ extensionId }: { extensionId: string }) {
           ?.filter(p => p.deliveryMethod === 'DOMESTIC' && (p.itemCountOfProduct ?? 0) >= MIN_ITEM_COUNT_OF_PRODUCT)
           .slice(0, 20) ?? []
 
-      setResult({
-        ...envelope,
-        keyword,
-        data: {
-          ...envelope.data,
-          result: filteredResults,
-        },
-      })
+      // 벌크 모드에 따라 결과 처리
+      if (isBulkMode && result?.data?.result) {
+        // 벌크 모드: 기존 결과에 추가 (중복 제거)
+        const existingResults = result.data.result
+        const existingProductIds = new Set(existingResults.map(p => p.productId))
+
+        // 중복되지 않는 상품만 추가
+        const newResults = filteredResults.filter(p => !existingProductIds.has(p.productId))
+        const combinedResults = [...existingResults, ...newResults]
+
+        setResult({
+          ...envelope,
+          keyword: result.keyword ? `${result.keyword}, ${keyword}` : keyword,
+          data: {
+            ...envelope.data,
+            result: combinedResults,
+          },
+        })
+
+        if (newResults.length > 0) {
+          toast.success(`${newResults.length}개 상품이 추가되었습니다. (총 ${combinedResults.length}개)`)
+        } else {
+          toast.info('중복되지 않는 새 상품이 없습니다.')
+        }
+      } else {
+        // 일반 모드: 새 결과로 덮어쓰기
+        setResult({
+          ...envelope,
+          keyword,
+          data: {
+            ...envelope.data,
+            result: filteredResults,
+          },
+        })
+      }
 
       // 검색 완료 후 WING 검색 탭 닫기
       await new Promise(r => setTimeout(r, 1000))
@@ -263,17 +293,44 @@ export default function Client({ extensionId }: { extensionId: string }) {
     <div className="w-full">
       <div className="mx-auto w-full max-w-6xl space-y-8">
         {/* 검색 폼 */}
-        <form className="flex w-full items-center gap-3" onSubmit={onSubmit}>
-          <Input
-            placeholder="키워드를 입력하세요"
-            className="flex-1"
-            value={keyword}
-            onChange={e => setKeyword(e.target.value)}
-          />
-          <Button type="submit" className="shrink-0" disabled={isPending || !keyword.trim()}>
-            {isPending ? '검색 중...' : '검색'}
-          </Button>
-        </form>
+        <div className="flex w-full flex-col gap-3">
+          <form className="flex w-full items-center gap-3" onSubmit={onSubmit}>
+            <Input
+              placeholder="키워드를 입력하세요"
+              className="flex-1"
+              value={keyword}
+              onChange={e => setKeyword(e.target.value)}
+            />
+            <div className="flex items-center gap-2">
+              <Switch id="bulk-mode" checked={isBulkMode} onCheckedChange={setIsBulkMode} />
+              <Label htmlFor="bulk-mode" className="cursor-pointer text-sm font-medium">
+                벌크 모드
+              </Label>
+            </div>
+            {isBulkMode && filtered.length > 0 && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setResult(null)
+                  setValidationResults([])
+                  setSavedProducts(new Set())
+                  toast.info('검색 결과가 초기화되었습니다.')
+                }}>
+                초기화
+              </Button>
+            )}
+            <Button type="submit" className="shrink-0" disabled={isPending || !keyword.trim()}>
+              {isPending ? '검색 중...' : '검색'}
+            </Button>
+          </form>
+          {isBulkMode && (
+            <p className="text-muted-foreground text-sm">
+              ℹ️ 벌크 모드: 검색 결과가 누적됩니다. 다른 키워드로 추가 검색 가능합니다.
+            </p>
+          )}
+        </div>
 
         {error ? <p className="mt-4 text-sm text-red-500">{error}</p> : null}
 
@@ -298,9 +355,15 @@ export default function Client({ extensionId }: { extensionId: string }) {
           <div>
             <div className="border-border bg-background/95 sticky top-0 z-10 mb-4 flex items-center justify-between rounded-lg border p-4 backdrop-blur-sm">
               <div>
-                <h2 className="text-foreground text-xl font-bold">검색 결과 (상위 {filtered.length}개)</h2>
+                <h2 className="text-foreground text-xl font-bold">
+                  검색 결과 ({isBulkMode ? '총' : '상위'} {filtered.length}개)
+                </h2>
                 <p className="text-muted-foreground mt-1 text-sm">
-                  국내배송, 경쟁상품 {MIN_ITEM_COUNT_OF_PRODUCT}개 이상, 최대 20개까지 표시
+                  {isBulkMode ? (
+                    <>🔄 벌크 모드: 검색 결과 누적 중 • 국내배송, 경쟁상품 {MIN_ITEM_COUNT_OF_PRODUCT}개 이상</>
+                  ) : (
+                    <>국내배송, 경쟁상품 {MIN_ITEM_COUNT_OF_PRODUCT}개 이상, 최대 20개까지 표시</>
+                  )}
                 </p>
               </div>
               <div className="flex gap-2">
