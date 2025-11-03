@@ -69,6 +69,8 @@
             vendorItemId,
             optionOrder,
           } = msg.payload || {}
+          // 업로드 시에는 productId를 사용 (productName 대신)
+          const displayValue = String(productId || '')
           const params = new URLSearchParams({
             productId: String(productId),
             itemId: String(itemId),
@@ -91,9 +93,9 @@
           }
           console.log('[wing/inject] WING_PRODUCT_ITEMS response:', { ok: res.ok, status: res.status, data })
 
-          // 응답 성공 시 "노출상품명" input에 상품명 자동 입력
-          if (res.ok && data && productName) {
-            console.log('[wing/inject] Setting product name to display input:', productName)
+          // 응답 성공 시 "노출상품명" input에 productId 자동 입력
+          if (res.ok && data && productId) {
+            console.log('[wing/inject] Setting productId to display input:', displayValue)
 
             // 폴링 방식으로 "노출상품명" input 찾기
             let attempts = 0
@@ -113,7 +115,7 @@
                 return
               }
 
-              console.log('[wing/inject] ✅ Found product name input! Setting value:', productName)
+              console.log('[wing/inject] ✅ Found product name input! Setting value:', displayValue)
               clearInterval(pollInterval)
 
               // Vue의 v-model을 트리거하는 방법
@@ -124,14 +126,14 @@
                 window.HTMLInputElement.prototype,
                 'value',
               ).set
-              nativeInputValueSetter.call(productNameInput, productName)
+              nativeInputValueSetter.call(productNameInput, displayValue)
 
               // InputEvent 생성
               const inputEvent = new InputEvent('input', {
                 bubbles: true,
                 cancelable: true,
                 composed: true,
-                data: productName,
+                data: displayValue,
                 inputType: 'insertText',
               })
               productNameInput.dispatchEvent(inputEvent)
