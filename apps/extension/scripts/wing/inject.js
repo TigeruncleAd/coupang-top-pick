@@ -1277,19 +1277,21 @@
                                         await delay(1000)
                                         console.log('[wing/inject] 🔍 Looking for "판매요청" button...')
 
-                                        // footer.form-footer 내에서 '판매요청' 버튼 찾기
-                                        const formFooter = document.querySelector('footer.form-footer')
+                                        // footer.form-footer 내에서 '판매요청' 버튼 찾기 (legacy 방식)
                                         let saleRequestButton = null
 
+                                        // 방법 1: legacy 방식 - footer.form-footer button.wing-web-component에서 찾기
+                                        const formFooter = document.querySelector('footer.form-footer')
                                         if (formFooter) {
-                                          // 방법 1: 텍스트로 직접 찾기
-                                          const buttons = formFooter.querySelectorAll('button')
-                                          for (const button of buttons) {
+                                          const footerButtons = formFooter.querySelectorAll('button.wing-web-component')
+                                          console.log('[wing/inject] 📋 Found footer buttons:', footerButtons.length)
+                                          for (const button of footerButtons) {
                                             const buttonText = button.textContent?.trim() || ''
+                                            console.log('[wing/inject] 📝 Checking button text:', buttonText)
                                             if (buttonText.includes('판매요청')) {
                                               saleRequestButton = button
                                               console.log(
-                                                '[wing/inject] ✅ Found "판매요청" button by text:',
+                                                '[wing/inject] ✅ Found "판매요청" button in footer by text:',
                                                 buttonText,
                                               )
                                               break
@@ -1297,15 +1299,36 @@
                                           }
                                         }
 
-                                        // 방법 2: 전체 문서에서 찾기
+                                        // 방법 2: 전체 문서에서 button.wing-web-component 찾기
                                         if (!saleRequestButton) {
-                                          const allButtons = document.querySelectorAll('button')
-                                          for (const button of allButtons) {
+                                          const allWingButtons = document.querySelectorAll('button.wing-web-component')
+                                          console.log(
+                                            '[wing/inject] 📋 Found wing-web-component buttons:',
+                                            allWingButtons.length,
+                                          )
+                                          for (const button of allWingButtons) {
                                             const buttonText = button.textContent?.trim() || ''
                                             if (buttonText.includes('판매요청')) {
                                               saleRequestButton = button
                                               console.log(
-                                                '[wing/inject] ✅ Found "판매요청" button in document:',
+                                                '[wing/inject] ✅ Found "판매요청" button by wing-web-component:',
+                                                buttonText,
+                                              )
+                                              break
+                                            }
+                                          }
+                                        }
+
+                                        // 방법 3: 전체 문서에서 텍스트로 찾기
+                                        if (!saleRequestButton) {
+                                          const allButtons = document.querySelectorAll('button')
+                                          console.log('[wing/inject] 📋 Found all buttons:', allButtons.length)
+                                          for (const button of allButtons) {
+                                            const buttonText = button.textContent?.trim().replace(/\s+/g, ' ') || ''
+                                            if (buttonText.includes('판매요청')) {
+                                              saleRequestButton = button
+                                              console.log(
+                                                '[wing/inject] ✅ Found "판매요청" button by text in document:',
                                                 buttonText,
                                               )
                                               break
@@ -1314,11 +1337,241 @@
                                         }
 
                                         if (saleRequestButton) {
+                                          console.log('[wing/inject] 📦 Button element:', saleRequestButton)
+                                          console.log('[wing/inject] 📦 Button type:', saleRequestButton.type)
+                                          console.log('[wing/inject] 📦 Button disabled:', saleRequestButton.disabled)
+                                          console.log(
+                                            '[wing/inject] 📦 Button style:',
+                                            window.getComputedStyle(saleRequestButton).display,
+                                          )
+
+                                          // 버튼이 보이도록 스크롤
                                           saleRequestButton.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                                          await delay(300)
+                                          await delay(500)
+
+                                          // 버튼이 disabled가 아닌지 확인
+                                          if (saleRequestButton.disabled) {
+                                            console.warn('[wing/inject] ⚠️ Button is disabled, waiting...')
+                                            // disabled가 해제될 때까지 대기 (최대 5초)
+                                            for (let i = 0; i < 10; i++) {
+                                              await delay(500)
+                                              if (!saleRequestButton.disabled) {
+                                                console.log('[wing/inject] ✅ Button is now enabled')
+                                                break
+                                              }
+                                            }
+                                          }
+
+                                          // 버튼 클릭 (여러 방법 시도)
                                           console.log('[wing/inject] ✅ Clicking "판매요청" button...')
+
+                                          // 방법 1: 일반 click
                                           saleRequestButton.click()
+
+                                          // 방법 2: MouseEvent로 클릭 시뮬레이션
+                                          const clickEvent = new MouseEvent('click', {
+                                            bubbles: true,
+                                            cancelable: true,
+                                            view: window,
+                                          })
+                                          saleRequestButton.dispatchEvent(clickEvent)
+
+                                          // 방법 3: mousedown/mouseup 이벤트
+                                          const mouseDownEvent = new MouseEvent('mousedown', {
+                                            bubbles: true,
+                                            cancelable: true,
+                                            view: window,
+                                          })
+                                          const mouseUpEvent = new MouseEvent('mouseup', {
+                                            bubbles: true,
+                                            cancelable: true,
+                                            view: window,
+                                          })
+                                          saleRequestButton.dispatchEvent(mouseDownEvent)
+                                          await delay(100)
+                                          saleRequestButton.dispatchEvent(mouseUpEvent)
+
+                                          await delay(200)
                                           console.log('[wing/inject] ✅ "판매요청" button clicked successfully!')
+
+                                          // 확인 모달의 '판매요청' 버튼 클릭 대기
+                                          await delay(1000)
+                                          console.log('[wing/inject] 🔍 Looking for confirmation modal...')
+
+                                          // sweet-alert 모달에서 '판매요청' 확인 버튼 찾기
+                                          let confirmButton = null
+                                          for (let i = 0; i < 20; i++) {
+                                            confirmButton = document.querySelector(
+                                              '.sweet-alert button.confirm.alert-confirm',
+                                            )
+                                            if (confirmButton) {
+                                              console.log('[wing/inject] ✅ Found confirmation modal button!')
+                                              break
+                                            }
+                                            await delay(300)
+                                          }
+
+                                          if (confirmButton) {
+                                            confirmButton.click()
+                                            console.log(
+                                              '[wing/inject] ✅ Confirmation modal "판매요청" button clicked!',
+                                            )
+
+                                            // 성공 모달 반복 체크 (최대 30초)
+                                            console.log('[wing/inject] 🔄 Starting success modal polling...')
+
+                                            let checkCount = 0
+                                            const maxChecks = 30 // 30초 동안 체크
+                                            let modalFound = false
+
+                                            const pollSuccessModal = setInterval(async () => {
+                                              checkCount++
+                                              console.log(
+                                                `[wing/inject] 🔍 Polling for success modal... (${checkCount}/${maxChecks})`,
+                                              )
+
+                                              // 모달이 이미 발견되었으면 폴링 중지되어야 함
+                                              if (modalFound) {
+                                                console.warn(
+                                                  '[wing/inject] ⚠️ Modal already processed but polling still running',
+                                                )
+                                                clearInterval(pollSuccessModal)
+                                                return
+                                              }
+
+                                              // 실제로 표시되는 모달 찾기 (display: block 또는 display가 none이 아닌)
+                                              const modalElements = Array.from(
+                                                document.querySelectorAll('.sweet-alert, .modal'),
+                                              )
+                                              console.log(
+                                                '[wing/inject] 📋 Found modal elements:',
+                                                modalElements.length,
+                                              )
+
+                                              const visibleModal = modalElements.find(modal => {
+                                                const display = window.getComputedStyle(modal).display
+                                                const isVisible = display !== 'none' && display !== ''
+                                                console.log(
+                                                  '[wing/inject] 📊 Modal display:',
+                                                  display,
+                                                  'isVisible:',
+                                                  isVisible,
+                                                )
+                                                return isVisible
+                                              })
+
+                                              if (!visibleModal) {
+                                                console.log('[wing/inject] ℹ️ No visible modal found yet')
+                                                // 최대 체크 횟수 도달 확인
+                                                if (checkCount >= maxChecks) {
+                                                  console.log('[wing/inject] ⏰ Polling timeout reached')
+                                                  clearInterval(pollSuccessModal)
+                                                  if (!modalFound) {
+                                                    console.error(
+                                                      '[wing/inject] ❌ Success modal not found after 30 seconds',
+                                                    )
+                                                  }
+                                                }
+                                                return
+                                              }
+
+                                              console.log('[wing/inject] ✅ Visible modal found!')
+
+                                              // 성공 모달인지 확인
+                                              const successTitle =
+                                                visibleModal.querySelector('.alert-title, h2.alert-title')
+                                              const titleText = successTitle?.textContent || ''
+                                              const isSuccessModal = titleText.includes('상품등록이 완료되었습니다')
+
+                                              console.log('[wing/inject] 📝 Is success modal:', isSuccessModal)
+                                              console.log('[wing/inject] 📝 Title text:', titleText)
+
+                                              if (isSuccessModal) {
+                                                if (!modalFound) {
+                                                  modalFound = true
+                                                  console.log('[wing/inject] ✅ Success modal detected!')
+                                                  console.log('[wing/inject] 📝 Modal text:', titleText)
+
+                                                  // 폴링 중지
+                                                  clearInterval(pollSuccessModal)
+                                                  console.log('[wing/inject] ⏹️ Polling stopped')
+
+                                                  // 등록상품ID 추출 (visible modal 내부에서만 찾기)
+                                                  const allParagraphs = Array.from(visibleModal.querySelectorAll('p'))
+                                                  console.log(
+                                                    '[wing/inject] 📋 Found paragraphs in visible modal:',
+                                                    allParagraphs.length,
+                                                  )
+                                                  allParagraphs.forEach((p, idx) => {
+                                                    console.log(`[wing/inject] 📄 Paragraph ${idx}:`, p.textContent)
+                                                  })
+
+                                                  const alertText = allParagraphs.find(p =>
+                                                    p.textContent?.includes('등록상품ID'),
+                                                  )
+                                                  console.log('[wing/inject] 📝 Alert text element:', alertText)
+                                                  console.log(
+                                                    '[wing/inject] 📝 Alert text content:',
+                                                    alertText?.textContent,
+                                                  )
+
+                                                  const match = alertText?.textContent?.match(/등록상품ID\s*:\s*(\d+)/)
+                                                  const vendorInventoryId = match ? match[1] : null
+
+                                                  console.log('[wing/inject] 🔍 Regex match result:', match)
+                                                  console.log(
+                                                    '[wing/inject] 📝 Extracted Vendor Inventory ID:',
+                                                    vendorInventoryId,
+                                                  )
+
+                                                  console.log('[wing/inject] 🎊 Product registration fully completed!')
+
+                                                  // product-upload 페이지에 알림 전송 및 탭 닫기
+                                                  if (productId) {
+                                                    console.log(
+                                                      '[wing/inject] 📤 Sending PRODUCT_UPLOAD_SUCCESS message...',
+                                                    )
+                                                    console.log('[wing/inject] ProductId to send:', Number(productId))
+                                                    console.log(
+                                                      '[wing/inject] VendorInventoryId to send:',
+                                                      vendorInventoryId,
+                                                    )
+
+                                                    // Background가 sender.tab.id로 탭을 닫을 것
+                                                    chrome.runtime.sendMessage(
+                                                      {
+                                                        type: 'PRODUCT_UPLOAD_SUCCESS',
+                                                        productId: Number(productId),
+                                                        vendorInventoryId: vendorInventoryId,
+                                                      },
+                                                      response => {
+                                                        console.log(
+                                                          '[wing/inject] ✅ Notification sent, response:',
+                                                          response,
+                                                        )
+                                                      },
+                                                    )
+                                                  } else {
+                                                    console.warn('[wing/inject] ⚠️ No productId to send')
+                                                  }
+                                                }
+                                              } else {
+                                                // 성공 모달이 아니면 계속 폴링
+                                                // 최대 체크 횟수 도달 확인
+                                                if (checkCount >= maxChecks) {
+                                                  console.log('[wing/inject] ⏰ Polling timeout reached')
+                                                  clearInterval(pollSuccessModal)
+                                                  if (!modalFound) {
+                                                    console.error(
+                                                      '[wing/inject] ❌ Success modal not found after 30 seconds',
+                                                    )
+                                                  }
+                                                }
+                                              }
+                                            }, 1000) // 1초마다 체크
+                                          } else {
+                                            console.warn('[wing/inject] ⚠️ Confirmation modal button not found')
+                                          }
                                         } else {
                                           console.warn('[wing/inject] ⚠️ "판매요청" button not found')
                                         }
