@@ -9,8 +9,10 @@ import {
   openOffscreenWindowExt,
   pushToExtension,
   checkCoupangOptionPicker,
+  wingProductItemsViaExtension,
+  wingAttributeCheckViaExtension,
 } from '@/lib/utils/extension'
-import type { WingSearchHttpEnvelope, WingProductSummary } from '@/types/wing'
+import type { WingSearchHttpEnvelope, WingProductSummary, WingProductItemsDetail } from '@/types/wing'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createProduct, createProductsBulk } from '@/serverActions/product/product.action'
 import { toast } from 'sonner'
@@ -25,6 +27,7 @@ type ValidationResult = {
   hasOptionPicker: boolean
   optionCount: number
   optionOrder?: string[]
+  attributeValues?: string[]
   error?: string
 }
 
@@ -180,36 +183,132 @@ export default function Client({ extensionId }: { extensionId: string }) {
       }
 
       try {
-        const res = await checkCoupangOptionPicker({
+        // 1단계: 드롭다운 옵션 존재 여부 확인 및 optionOrder 획득
+        const optionPickerRes = await checkCoupangOptionPicker({
           extensionId,
           productId: product.productId,
           itemId: product.itemId,
           vendorItemId: product.vendorItemId,
         })
 
+        // 드롭다운 옵션이 없으면 검증 실패
+        if (!optionPickerRes.hasOptionPicker) {
+          results.push({
+            productId: product.productId,
+            hasOptionPicker: false,
+            optionCount: 0,
+            optionOrder: [],
+            attributeValues: [],
+            error: '드롭다운 옵션이 없습니다',
+          })
+          setValidationResults([...results])
+          await new Promise(r => setTimeout(r, 1000))
+          continue
+        }
+
         // optionOrder의 첫 번째 아이템이 '수량', '용량', '길이'인 경우 검증 실패
-        const optionOrder = res.optionOrder || []
+        const optionOrder = optionPickerRes.optionOrder || []
         const firstOption = optionOrder.length > 0 ? optionOrder[0] : null
         const invalidFirstOptions = ['수량', '용량', '길이']
         const isFirstOptionInvalid = firstOption && invalidFirstOptions.includes(firstOption)
 
-        results.push({
-          productId: product.productId,
-          hasOptionPicker: (res.hasOptionPicker || false) && !isFirstOptionInvalid,
-          optionCount: res.optionCount || 0,
-          optionOrder: optionOrder,
-          error: res.ok ? (isFirstOptionInvalid ? `첫 번째 옵션이 ${firstOption}입니다` : undefined) : res.error,
-        })
+        if (isFirstOptionInvalid) {
+          results.push({
+            productId: product.productId,
+            hasOptionPicker: false,
+            optionCount: optionPickerRes.optionCount || 0,
+            optionOrder: optionOrder,
+            attributeValues: [],
+            error: `첫 번째 옵션이 ${firstOption}입니다`,
+          })
+          setValidationResults([...results])
+          await new Promise(r => setTimeout(r, 1000))
+          continue
+        }
+
+        // 2단계: Wing formV2 탭 열기 및 WING_ATTRIBUTE_CHECK로 attributeValues 추출
+        let attributeValues: string[] = []
+        let apiError: string | null = null
+
+        try {
+          const checkRes = await wingAttributeCheckViaExtension({
+            extensionId,
+            productId: product.productId,
+            itemId: product.itemId,
+            categoryId: product.categoryId,
+            optionOrder: optionOrder,
+          })
+
+          console.log('[validate] ✅ wingAttributeCheckViaExtension response:', checkRes)
+          console.log('[validate] Response status:', checkRes.status)
+          console.log('[validate] Response data:', checkRes.data)
+          console.log('[validate] Response data.ok:', checkRes.data?.ok)
+          console.log('[validate] Response data.attributeValues:', checkRes.data?.attributeValues)
+          console.log('[validate] Response data.attributeValues length:', checkRes.data?.attributeValues?.length)
+
+          // API 호출이 실패했거나 응답이 없는 경우
+          if (checkRes.status !== 'success') {
+            console.error('[validate] ❌ API 호출 실패:', checkRes.status)
+            apiError = `API 호출 실패: ${checkRes.status}`
+          } else if (!checkRes.data?.ok) {
+            console.error('[validate] ❌ API 응답 오류:', checkRes.data?.error)
+            apiError = `API 응답 오류: ${checkRes.data?.error || 'Unknown error'}`
+          } else if (!checkRes.data?.attributeValues) {
+            console.error('[validate] ❌ attributeValues가 없습니다')
+            apiError = 'attributeValues가 없습니다'
+            attributeValues = []
+          } else {
+            attributeValues = checkRes.data.attributeValues || []
+            console.log('[validate] ✅ Extracted attributeValues:', attributeValues)
+            console.log('[validate] ✅ attributeValues length:', attributeValues.length)
+
+            if (attributeValues.length === 0) {
+              console.error('[validate] ❌ attributeValues 길이가 0입니다')
+              apiError = '영어 또는 숫자로 시작하는 옵션 값이 없습니다'
+            } else {
+              console.log('[validate] ✅ attributeValues 검증 통과!')
+            }
+          }
+        } catch (error) {
+          console.error('[validate] Wing attribute check error:', error)
+          apiError = `API 호출 중 오류 발생: ${error instanceof Error ? error.message : String(error)}`
+        }
+
+        // attributeValues 길이가 0일 때만 검증 실패 (apiError가 있으면 이미 에러 메시지 설정됨)
+        if (apiError || attributeValues.length === 0) {
+          console.log('[validate] ❌ 검증 실패:', { apiError, attributeValuesLength: attributeValues.length })
+          console.log('[validate] ❌ 최종 검증 실패 조건:', {
+            hasApiError: !!apiError,
+            isZeroLength: attributeValues.length === 0,
+          })
+          results.push({
+            productId: product.productId,
+            hasOptionPicker: false,
+            optionCount: optionPickerRes.optionCount || 0,
+            optionOrder: optionOrder,
+            attributeValues: [],
+            error: apiError || '영어 또는 숫자로 시작하는 옵션 값이 없습니다',
+          })
+        } else {
+          results.push({
+            productId: product.productId,
+            hasOptionPicker: true,
+            optionCount: optionPickerRes.optionCount || 0,
+            optionOrder: optionOrder,
+            attributeValues: attributeValues,
+          })
+        }
       } catch (error) {
         results.push({
           productId: product.productId,
           hasOptionPicker: false,
           optionCount: 0,
           optionOrder: [],
+          attributeValues: [],
           error: String(error),
         })
       } finally {
-        setValidationResults(results)
+        setValidationResults([...results])
       }
 
       // 요청 간 딜레이 (쿠팡 서버 부하 방지)
@@ -248,43 +347,139 @@ export default function Client({ extensionId }: { extensionId: string }) {
       }
 
       try {
-        const res = await checkCoupangOptionPicker({
+        // 1단계: 드롭다운 옵션 존재 여부 확인 및 optionOrder 획득
+        const optionPickerRes = await checkCoupangOptionPicker({
           extensionId,
           productId: product.productId,
           itemId: product.itemId,
           vendorItemId: product.vendorItemId,
         })
 
+        // 드롭다운 옵션이 없으면 검증 실패
+        if (!optionPickerRes.hasOptionPicker) {
+          results.push({
+            productId: product.productId,
+            hasOptionPicker: false,
+            optionCount: 0,
+            optionOrder: [],
+            attributeValues: [],
+            error: '드롭다운 옵션이 없습니다',
+          })
+          setValidationResults([...results])
+          await new Promise(r => setTimeout(r, 1000))
+          continue
+        }
+
         // optionOrder의 첫 번째 아이템이 '수량', '용량', '길이'인 경우 검증 실패
-        const optionOrder = res.optionOrder || []
+        const optionOrder = optionPickerRes.optionOrder || []
         const firstOption = optionOrder.length > 0 ? optionOrder[0] : null
         const invalidFirstOptions = ['수량', '용량', '길이']
         const isFirstOptionInvalid = firstOption && invalidFirstOptions.includes(firstOption)
 
-        results.push({
-          productId: product.productId,
-          hasOptionPicker: (res.hasOptionPicker || false) && !isFirstOptionInvalid,
-          optionCount: res.optionCount || 0,
-          optionOrder: optionOrder,
-          error: res.ok ? (isFirstOptionInvalid ? `첫 번째 옵션이 ${firstOption}입니다` : undefined) : res.error,
-        })
+        if (isFirstOptionInvalid) {
+          results.push({
+            productId: product.productId,
+            hasOptionPicker: false,
+            optionCount: optionPickerRes.optionCount || 0,
+            optionOrder: optionOrder,
+            attributeValues: [],
+            error: `첫 번째 옵션이 ${firstOption}입니다`,
+          })
+          setValidationResults([...results])
+          await new Promise(r => setTimeout(r, 1000))
+          continue
+        }
+
+        // 2단계: Wing formV2 탭 열기 및 WING_ATTRIBUTE_CHECK로 attributeValues 추출
+        let attributeValues: string[] = []
+        let apiError: string | null = null
+
+        try {
+          const checkRes = await wingAttributeCheckViaExtension({
+            extensionId,
+            productId: product.productId,
+            itemId: product.itemId,
+            categoryId: product.categoryId,
+            optionOrder: optionOrder,
+          })
+
+          console.log('[validate] ✅ wingAttributeCheckViaExtension response:', checkRes)
+          console.log('[validate] Response status:', checkRes.status)
+          console.log('[validate] Response data:', checkRes.data)
+          console.log('[validate] Response data.ok:', checkRes.data?.ok)
+          console.log('[validate] Response data.attributeValues:', checkRes.data?.attributeValues)
+          console.log('[validate] Response data.attributeValues length:', checkRes.data?.attributeValues?.length)
+
+          // API 호출이 실패했거나 응답이 없는 경우
+          if (checkRes.status !== 'success') {
+            console.error('[validate] ❌ API 호출 실패:', checkRes.status)
+            apiError = `API 호출 실패: ${checkRes.status}`
+          } else if (!checkRes.data?.ok) {
+            console.error('[validate] ❌ API 응답 오류:', checkRes.data?.error)
+            apiError = `API 응답 오류: ${checkRes.data?.error || 'Unknown error'}`
+          } else if (!checkRes.data?.attributeValues) {
+            console.error('[validate] ❌ attributeValues가 없습니다')
+            apiError = 'attributeValues가 없습니다'
+            attributeValues = []
+          } else {
+            attributeValues = checkRes.data.attributeValues || []
+            console.log('[validate] ✅ Extracted attributeValues:', attributeValues)
+            console.log('[validate] ✅ attributeValues length:', attributeValues.length)
+
+            if (attributeValues.length === 0) {
+              console.error('[validate] ❌ attributeValues 길이가 0입니다')
+              apiError = '영어 또는 숫자로 시작하는 옵션 값이 없습니다'
+            } else {
+              console.log('[validate] ✅ attributeValues 검증 통과!')
+            }
+          }
+        } catch (error) {
+          console.error('[validate] Wing attribute check error:', error)
+          apiError = `API 호출 중 오류 발생: ${error instanceof Error ? error.message : String(error)}`
+        }
+
+        // attributeValues 길이가 0일 때만 검증 실패 (apiError가 있으면 이미 에러 메시지 설정됨)
+        if (apiError || attributeValues.length === 0) {
+          console.log('[validate] ❌ 검증 실패:', { apiError, attributeValuesLength: attributeValues.length })
+          console.log('[validate] ❌ 최종 검증 실패 조건:', {
+            hasApiError: !!apiError,
+            isZeroLength: attributeValues.length === 0,
+          })
+          results.push({
+            productId: product.productId,
+            hasOptionPicker: false,
+            optionCount: optionPickerRes.optionCount || 0,
+            optionOrder: optionOrder,
+            attributeValues: [],
+            error: apiError || '영어 또는 숫자로 시작하는 옵션 값이 없습니다',
+          })
+        } else {
+          results.push({
+            productId: product.productId,
+            hasOptionPicker: true,
+            optionCount: optionPickerRes.optionCount || 0,
+            optionOrder: optionOrder,
+            attributeValues: attributeValues,
+          })
+        }
       } catch (error) {
         results.push({
           productId: product.productId,
           hasOptionPicker: false,
           optionCount: 0,
           optionOrder: [],
+          attributeValues: [],
           error: String(error),
         })
       } finally {
-        setValidationResults(results)
+        setValidationResults([...results])
       }
 
       // 요청 간 딜레이
       await new Promise(r => setTimeout(r, 1000))
     }
 
-    // 2단계: 옵션이 있는 상품만 필터링하여 저장 (optionOrder 포함)
+    // 2단계: 옵션이 있는 상품만 필터링하여 저장 (optionOrder, attributeValues 포함)
     const productsToSave = filtered
       .filter(product => {
         const validationResult = results.find(r => r.productId === product.productId)
@@ -295,6 +490,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
         return {
           ...product,
           optionOrder: validationResult?.optionOrder || [],
+          attributeValues: validationResult?.attributeValues || [],
         }
       })
 
@@ -444,6 +640,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
                       const productWithOptionOrder = {
                         ...product,
                         optionOrder: validationResult?.optionOrder || [],
+                        attributeValues: validationResult?.attributeValues || [],
                       }
                       createProductMutation.mutate(productWithOptionOrder)
                     }}
@@ -455,6 +652,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
                             hasOptionPicker: validationResult.hasOptionPicker,
                             optionCount: validationResult.optionCount,
                             optionOrder: validationResult.optionOrder,
+                            attributeValues: validationResult.attributeValues,
                             error: validationResult.error,
                           }
                         : undefined

@@ -1335,6 +1335,150 @@
       return true
     }
 
+    if (msg?.type === 'WING_ATTRIBUTE_CHECK') {
+      ;(async () => {
+        try {
+          const { productId, itemId, categoryId, optionOrder } = msg.payload || {}
+          console.log('[wing/inject] 🔍 WING_ATTRIBUTE_CHECK 시작')
+          console.log('[wing/inject] 📦 Payload:', { productId, itemId, categoryId, optionOrder })
+
+          if (!optionOrder || optionOrder.length === 0) {
+            console.error('[wing/inject] ❌ optionOrder가 없습니다')
+            sendResponse({ ok: false, error: 'optionOrder가 없습니다' })
+            return
+          }
+
+          const firstOption = optionOrder[0]
+          console.log('[wing/inject] 🎯 First option:', firstOption)
+          console.log('[wing/inject] 📋 Full optionOrder:', optionOrder)
+
+          // Wing API 호출
+          const params = new URLSearchParams({
+            productId: String(productId),
+            itemId: String(itemId),
+            allowSingleProduct: 'false',
+            categoryId: String(categoryId),
+          })
+          const url = `https://wing.coupang.com/tenants/seller-web/vendor-inventory/productmatch/prematch/product-items?${params.toString()}`
+          console.log('[wing/inject] 🌐 API URL:', url)
+          console.log('[wing/inject] 📤 Fetching API...')
+
+          const res = await fetch(url, {
+            method: 'GET',
+            credentials: 'include',
+          })
+
+          console.log('[wing/inject] 📥 API Response status:', res.ok, res.status)
+
+          const text = await res.text()
+          console.log('[wing/inject] 📄 Response text length:', text.length)
+          console.log('[wing/inject] 📄 Response text (first 500 chars):', text.substring(0, 500))
+
+          let data
+          try {
+            data = text ? JSON.parse(text) : null
+            console.log('[wing/inject] ✅ JSON parsed successfully')
+          } catch (parseError) {
+            console.error('[wing/inject] ❌ JSON parse error:', parseError)
+            data = text
+          }
+
+          console.log('[wing/inject] 📊 Full API response data:', JSON.stringify(data, null, 2))
+
+          if (!res.ok || !data) {
+            console.error('[wing/inject] ❌ API 호출 실패:', { ok: res.ok, status: res.status, hasData: !!data })
+            sendResponse({ ok: false, error: `API 호출 실패: ${res.status}` })
+            return
+          }
+
+          // items에서 attributeValues 추출
+          const items = data.items || []
+          console.log('[wing/inject] 📦 Items count:', items.length)
+          console.log('[wing/inject] 📦 All items:', JSON.stringify(items, null, 2))
+
+          if (items.length === 0) {
+            console.error('[wing/inject] ❌ 상품 아이템이 없습니다')
+            sendResponse({ ok: false, error: '상품 아이템이 없습니다' })
+            return
+          }
+
+          // optionOrder의 첫 번째와 일치하는 attributeName의 모든 attributeValue 수집
+          const allAttributeValues = new Set()
+          console.log('[wing/inject] 🔍 Starting attributeValue collection for firstOption:', firstOption)
+
+          items.forEach((item, itemIndex) => {
+            console.log(`[wing/inject] 📋 Item ${itemIndex + 1}:`, {
+              itemId: item.itemId,
+              attributesCount: item.attributes?.length || 0,
+              attributes: item.attributes,
+            })
+
+            if (item.attributes && Array.isArray(item.attributes)) {
+              item.attributes.forEach((attr, attrIndex) => {
+                console.log(`[wing/inject]   Attribute ${attrIndex + 1}:`, {
+                  attributeTypeId: attr.attributeTypeId,
+                  attributeName: attr.attributeName,
+                  attributeValue: attr.attributeValue,
+                  matchesFirstOption: attr.attributeName === firstOption,
+                })
+
+                if (attr.attributeName === firstOption) {
+                  console.log(`[wing/inject]   ✅ Match found! Adding to Set: "${attr.attributeValue}"`)
+                  allAttributeValues.add(attr.attributeValue)
+                }
+              })
+            } else {
+              console.log(`[wing/inject]   ⚠️ Item ${itemIndex + 1} has no attributes array`)
+            }
+          })
+
+          console.log(
+            '[wing/inject] 📊 All collected attributeValues (before filtering):',
+            Array.from(allAttributeValues),
+          )
+          console.log('[wing/inject] 📊 Total unique values:', allAttributeValues.size)
+
+          // 영어 또는 숫자로 시작하는 것만 필터링
+          const attributeValues = Array.from(allAttributeValues).filter(value => {
+            if (!value || value.length === 0) {
+              console.log(`[wing/inject]   ❌ Filtered out (empty): "${value}"`)
+              return false
+            }
+            const trimmedValue = value.trim()
+            const firstChar = trimmedValue[0]
+            const matches = /[a-zA-Z0-9]/.test(firstChar)
+            console.log(
+              `[wing/inject]   ${matches ? '✅' : '❌'} "${value}" -> firstChar: "${firstChar}", matches: ${matches}`,
+            )
+            return matches
+          })
+
+          console.log('[wing/inject] ✅ Final filtered attributeValues:', attributeValues)
+          console.log('[wing/inject] 📊 Summary:', {
+            totalItems: items.length,
+            totalUniqueValues: allAttributeValues.size,
+            filteredValues: attributeValues.length,
+            firstOption: firstOption,
+          })
+
+          sendResponse({
+            ok: true,
+            attributeValues: attributeValues,
+            firstOption: firstOption,
+            totalValues: allAttributeValues.size,
+            filteredValues: attributeValues.length,
+          })
+        } catch (e) {
+          console.error('[wing/inject] ❌ WING_ATTRIBUTE_CHECK error:', e)
+          console.error('[wing/inject] Error stack:', e instanceof Error ? e.stack : 'No stack')
+          try {
+            sendResponse({ ok: false, error: String(e) })
+          } catch {}
+        }
+      })()
+      return true
+    }
+
     return false
   })
 })()

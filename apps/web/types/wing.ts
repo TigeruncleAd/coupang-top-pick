@@ -31,6 +31,7 @@ export interface WingProductSummary {
   deliveryMethod?: WingDeliveryMethod | null
   attributeTypes?: unknown | null
   optionOrder?: string[]
+  attributeValues?: string[]
 }
 
 export interface WingPreMatchingSearchResult {

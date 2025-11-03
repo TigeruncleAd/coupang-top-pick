@@ -118,6 +118,7 @@ model Product {
   attributeTypes    Json? // 속성 타입
 
   optionOrder       String[] @default([])
+  attributeValues   String[] @default([])
 
   // 사용자 관계
   userId BigInt

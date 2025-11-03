@@ -207,3 +207,28 @@ export async function checkCoupangOptionPicker({
     }
   })
 }
+
+/**
+ * Wing API를 호출하여 attributeValues 추출 (검증 전용)
+ */
+export async function wingAttributeCheckViaExtension({
+  extensionId,
+  productId,
+  itemId,
+  categoryId,
+  optionOrder,
+}: {
+  extensionId: string
+  productId: number
+  itemId: number
+  categoryId: number
+  optionOrder: string[]
+}): Promise<PushToExtensionResult> {
+  return await pushToExtension({
+    extensionId,
+    payload: {
+      type: 'WING_ATTRIBUTE_CHECK',
+      payload: { productId, itemId, categoryId, optionOrder },
+    },
+  })
+}

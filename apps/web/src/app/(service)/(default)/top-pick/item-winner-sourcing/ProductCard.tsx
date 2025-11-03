@@ -14,6 +14,7 @@ interface ProductCardProps {
     hasOptionPicker: boolean
     optionCount: number
     optionOrder?: string[]
+    attributeValues?: string[]
     error?: string
   }
 }
@@ -124,6 +125,19 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(function Produc
                 ))}
               </div>
             )}
+            {validationResult?.attributeValues &&
+              validationResult.attributeValues.length > 0 &&
+              validationResult.optionOrder &&
+              validationResult.optionOrder.length > 0 && (
+                <div className="ml-6 mt-1">
+                  <span className="text-muted-foreground text-xs font-medium">
+                    {validationResult.optionOrder[0]} :{' '}
+                  </span>
+                  <span className="text-xs text-green-400">
+                    {validationResult.attributeValues.join(', ')}
+                  </span>
+                </div>
+              )}
           </div>
         )}
       </div>
