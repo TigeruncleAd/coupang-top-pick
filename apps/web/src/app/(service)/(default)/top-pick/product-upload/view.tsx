@@ -267,6 +267,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
           productName: product.productName,
           vendorItemId: Number(product.vendorItemId),
           optionOrder,
+          attributeValues: product.attributeValues || [],
         })
 
         // 5분 타임아웃으로 성공 메시지 대기

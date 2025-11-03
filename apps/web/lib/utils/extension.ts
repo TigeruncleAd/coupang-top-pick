@@ -82,6 +82,7 @@ export async function wingProductItemsViaExtension({
   productName,
   vendorItemId,
   optionOrder,
+  attributeValues,
 }: {
   extensionId: string
   productId: number
@@ -92,12 +93,13 @@ export async function wingProductItemsViaExtension({
   productName?: string
   vendorItemId?: number
   optionOrder?: string[]
+  attributeValues?: string[]
 }) {
   return await pushToExtension({
     extensionId,
     payload: {
       type: 'WING_PRODUCT_ITEMS',
-      payload: { productId, itemId, categoryId, allowSingleProduct, targetTabUrl, productName, vendorItemId, optionOrder },
+      payload: { productId, itemId, categoryId, allowSingleProduct, targetTabUrl, productName, vendorItemId, optionOrder, attributeValues },
     },
   })
 }
