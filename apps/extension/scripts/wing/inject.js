@@ -356,11 +356,15 @@
                           console.log(`[wing/inject]   Button ${idx + 1}: "${btn.textContent?.trim()}"`)
                         })
 
-                        // attributeValues에 해당하는 버튼들만 클릭 (각각 1초 간격으로, 실제 마우스 클릭 시뮬레이션)
-                        const buttonsToClick = []
-                        buttons.forEach((button, index) => {
+                        // attributeValues 중 가장 앞에 뜨는 버튼 하나만 클릭
+                        // 버튼들은 이미 특수문자 -> 숫자(작은순) -> 영어(앞글자순) 순서로 정렬되어 있음
+                        let firstMatchedButton = null
+                        let firstMatchedButtonText = null
+
+                        for (let i = 0; i < buttons.length; i++) {
+                          const button = buttons[i]
                           const buttonText = button.textContent?.trim()
-                          console.log(`[wing/inject] Checking button ${index + 1}: "${buttonText}"`)
+                          console.log(`[wing/inject] Checking button ${i + 1}: "${buttonText}"`)
 
                           // attributeValues 배열과 비교 (대소문자 무시, 부분 일치도 허용)
                           const shouldClick = attributeValues.some(attrValue => {
@@ -386,137 +390,145 @@
                           })
 
                           if (shouldClick) {
-                            buttonsToClick.push({ button, buttonText })
+                            firstMatchedButton = button
+                            firstMatchedButtonText = buttonText
+                            console.log(
+                              `[wing/inject] ✅ Found first matching button: "${buttonText}" (button ${i + 1})`,
+                            )
+                            break // 첫 번째 매칭 버튼을 찾으면 중단
                           } else {
                             console.log(`[wing/inject]   ⏭️ Skipping button: "${buttonText}" (no match)`)
                           }
-                        })
+                        }
 
-                        // 각 버튼을 1초 간격으로 실제 마우스 클릭처럼 시뮬레이션
-                        let clickedCount = 0
-                        for (let i = 0; i < buttonsToClick.length; i++) {
-                          const { button, buttonText } = buttonsToClick[i]
-
-                          // 1초 간격 (첫 번째 버튼 제외)
-                          if (i > 0) {
-                            await delay(1000)
-                          }
-
-                          console.log(
-                            `[wing/inject] ✅ Clicking button ${i + 1}/${buttonsToClick.length}: "${buttonText}"`,
-                          )
-
+                        // 첫 번째 매칭 버튼 클릭
+                        if (firstMatchedButton) {
                           try {
-                            if (button.disabled) {
-                              console.warn(`[wing/inject] ⚠️ Button is disabled: "${buttonText}"`)
-                              continue
+                            if (firstMatchedButton.disabled) {
+                              console.warn(
+                                `[wing/inject] ⚠️ First matching button is disabled: "${firstMatchedButtonText}"`,
+                              )
+                            } else {
+                              console.log(
+                                `[wing/inject] ✅ Clicking first matching button: "${firstMatchedButtonText}"`,
+                              )
+
+                              // 실제 마우스 클릭을 더 정확하게 시뮬레이션
+                              // 1. 버튼을 viewport에 보이도록 스크롤
+                              firstMatchedButton.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                              await delay(100)
+
+                              // 2. 버튼의 실제 위치 계산
+                              const rect = firstMatchedButton.getBoundingClientRect()
+                              const x = rect.left + rect.width / 2
+                              const y = rect.top + rect.height / 2
+
+                              // 3. MouseEvent를 통한 실제 마우스 클릭 시뮬레이션
+                              const mouseDownEvent = new MouseEvent('mousedown', {
+                                bubbles: true,
+                                cancelable: true,
+                                view: window,
+                                detail: 1,
+                                screenX: x + window.screenX,
+                                screenY: y + window.screenY,
+                                clientX: x,
+                                clientY: y,
+                                button: 0,
+                                buttons: 1,
+                              })
+
+                              const mouseUpEvent = new MouseEvent('mouseup', {
+                                bubbles: true,
+                                cancelable: true,
+                                view: window,
+                                detail: 1,
+                                screenX: x + window.screenX,
+                                screenY: y + window.screenY,
+                                clientX: x,
+                                clientY: y,
+                                button: 0,
+                                buttons: 0,
+                              })
+
+                              const clickEvent = new MouseEvent('click', {
+                                bubbles: true,
+                                cancelable: true,
+                                view: window,
+                                detail: 1,
+                                screenX: x + window.screenX,
+                                screenY: y + window.screenY,
+                                clientX: x,
+                                clientY: y,
+                                button: 0,
+                                buttons: 0,
+                              })
+
+                              // 4. 포인터 이벤트도 시뮬레이션 (최신 프레임워크 지원)
+                              const pointerDownEvent = new PointerEvent('pointerdown', {
+                                bubbles: true,
+                                cancelable: true,
+                                view: window,
+                                detail: 1,
+                                clientX: x,
+                                clientY: y,
+                                pointerId: 1,
+                                pointerType: 'mouse',
+                                button: 0,
+                                buttons: 1,
+                              })
+
+                              const pointerUpEvent = new PointerEvent('pointerup', {
+                                bubbles: true,
+                                cancelable: true,
+                                view: window,
+                                detail: 1,
+                                clientX: x,
+                                clientY: y,
+                                pointerId: 1,
+                                pointerType: 'mouse',
+                                button: 0,
+                                buttons: 0,
+                              })
+
+                              // 5. 이벤트를 순서대로 발생
+                              firstMatchedButton.dispatchEvent(pointerDownEvent)
+                              firstMatchedButton.dispatchEvent(mouseDownEvent)
+                              await delay(50) // 짧은 딜레이로 실제 클릭처럼
+                              firstMatchedButton.dispatchEvent(pointerUpEvent)
+                              firstMatchedButton.dispatchEvent(mouseUpEvent)
+                              firstMatchedButton.dispatchEvent(clickEvent)
+
+                              // 6. fallback: 기본 click 메서드도 호출
+                              firstMatchedButton.click()
+
+                              console.log(
+                                `[wing/inject] ✅ Successfully triggered click on first matching button: "${firstMatchedButtonText}"`,
+                              )
+
+                              // 클릭 후 버튼 상태 확인
+                              await delay(200)
+                              const isSelected =
+                                firstMatchedButton.getAttribute('data-wuic-props')?.includes('type:secondary') ||
+                                firstMatchedButton.classList.contains('selected') ||
+                                firstMatchedButton.getAttribute('aria-pressed') === 'true'
+                              console.log(
+                                `[wing/inject] First matching button "${firstMatchedButtonText}" selected state: ${isSelected}`,
+                              )
                             }
-
-                            // 실제 마우스 클릭을 더 정확하게 시뮬레이션
-                            // 1. 버튼을 viewport에 보이도록 스크롤
-                            button.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                            await delay(100)
-
-                            // 2. 버튼의 실제 위치 계산
-                            const rect = button.getBoundingClientRect()
-                            const x = rect.left + rect.width / 2
-                            const y = rect.top + rect.height / 2
-
-                            // 3. MouseEvent를 통한 실제 마우스 클릭 시뮬레이션
-                            const mouseDownEvent = new MouseEvent('mousedown', {
-                              bubbles: true,
-                              cancelable: true,
-                              view: window,
-                              detail: 1,
-                              screenX: x + window.screenX,
-                              screenY: y + window.screenY,
-                              clientX: x,
-                              clientY: y,
-                              button: 0,
-                              buttons: 1,
-                            })
-
-                            const mouseUpEvent = new MouseEvent('mouseup', {
-                              bubbles: true,
-                              cancelable: true,
-                              view: window,
-                              detail: 1,
-                              screenX: x + window.screenX,
-                              screenY: y + window.screenY,
-                              clientX: x,
-                              clientY: y,
-                              button: 0,
-                              buttons: 0,
-                            })
-
-                            const clickEvent = new MouseEvent('click', {
-                              bubbles: true,
-                              cancelable: true,
-                              view: window,
-                              detail: 1,
-                              screenX: x + window.screenX,
-                              screenY: y + window.screenY,
-                              clientX: x,
-                              clientY: y,
-                              button: 0,
-                              buttons: 0,
-                            })
-
-                            // 4. 포인터 이벤트도 시뮬레이션 (최신 프레임워크 지원)
-                            const pointerDownEvent = new PointerEvent('pointerdown', {
-                              bubbles: true,
-                              cancelable: true,
-                              view: window,
-                              detail: 1,
-                              clientX: x,
-                              clientY: y,
-                              pointerId: 1,
-                              pointerType: 'mouse',
-                              button: 0,
-                              buttons: 1,
-                            })
-
-                            const pointerUpEvent = new PointerEvent('pointerup', {
-                              bubbles: true,
-                              cancelable: true,
-                              view: window,
-                              detail: 1,
-                              clientX: x,
-                              clientY: y,
-                              pointerId: 1,
-                              pointerType: 'mouse',
-                              button: 0,
-                              buttons: 0,
-                            })
-
-                            // 5. 이벤트를 순서대로 발생
-                            button.dispatchEvent(pointerDownEvent)
-                            button.dispatchEvent(mouseDownEvent)
-                            await delay(50) // 짧은 딜레이로 실제 클릭처럼
-                            button.dispatchEvent(pointerUpEvent)
-                            button.dispatchEvent(mouseUpEvent)
-                            button.dispatchEvent(clickEvent)
-
-                            // 6. fallback: 기본 click 메서드도 호출
-                            button.click()
-
-                            clickedCount++
-                            console.log(`[wing/inject] ✅ Successfully triggered click on: "${buttonText}"`)
-
-                            // 클릭 후 버튼 상태 확인
-                            await delay(200)
-                            const isSelected =
-                              button.getAttribute('data-wuic-props')?.includes('type:secondary') ||
-                              button.classList.contains('selected') ||
-                              button.getAttribute('aria-pressed') === 'true'
-                            console.log(`[wing/inject] Button "${buttonText}" selected state: ${isSelected}`)
                           } catch (error) {
-                            console.error(`[wing/inject] ❌ Error clicking button "${buttonText}":`, error)
+                            console.error(
+                              `[wing/inject] ❌ Error clicking first matching button "${firstMatchedButtonText}":`,
+                              error,
+                            )
                           }
+                        } else {
+                          console.warn(
+                            `[wing/inject] ⚠️ No matching button found in attributeValues for attribute "${targetAttributeName}"`,
+                          )
                         }
 
                         console.log(
-                          `[wing/inject] ✅ Clicked ${clickedCount} button(s) for attribute "${targetAttributeName}"`,
+                          `[wing/inject] ✅ ${firstMatchedButton ? 'Clicked' : 'Skipped'} first matching button for attribute "${targetAttributeName}"`,
                         )
 
                         // 클릭 후 버튼 상태 확인
