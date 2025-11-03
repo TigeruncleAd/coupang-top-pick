@@ -64,6 +64,8 @@ enum PRODUCT_STATUS {
   READY         // 준비 (초기 상태)
   UPLOADED_RAW  // 1차 업로드 완료
   ROCKET_MAJORITY        // 로켓 대다수 찬성
+  BAD_OPTION_ORDER       // 옵션 순서 오류
+  NO_ENGLISH_OR_NUMBER_OPTION // 영어 또는 숫자로 시작하는 옵션이 없음
 }
 
 model Product {
