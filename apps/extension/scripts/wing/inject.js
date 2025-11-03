@@ -69,6 +69,7 @@
             vendorItemId,
             optionOrder,
             attributeValues,
+            salePrice,
           } = msg.payload || {}
           // 업로드 시에는 {productId} {productName} 형식으로 검색
           const displayValue =
@@ -611,20 +612,45 @@
                               stockInput = inputs[4]
                             }
 
-                            // 판매가 설정 (아이템위너가격보다 100원 싸게)
+                            // 판매가 설정 (아이템위너가격보다 100원 싸게, 단 최소 가격 검증)
                             if (salePriceInput) {
-                              const salePrice = Math.max(0, itemWinnerPrice - 100) // 최소 0원
+                              // 기본 계산: 아이템위너가격 - 100원
+                              let calculatedPrice = Math.max(0, itemWinnerPrice - 100)
+
+                              // salePrice가 있으면 최소 가격 검증
+                              if (salePrice && salePrice > 0) {
+                                // 최소 가격 1: salePrice + 5000원
+                                const minPrice1 = salePrice + 5000
+                                // 최소 가격 2: salePrice * 1.2 (20% 이상)
+                                const minPrice2 = Math.ceil(salePrice * 1.2)
+                                // 둘 중 높은 가격
+                                const minPrice = Math.max(minPrice1, minPrice2)
+
+                                console.log(
+                                  `[wing/inject] Row ${index + 1}: Price validation - salePrice: ${salePrice}, minPrice1: ${minPrice1}, minPrice2: ${minPrice2}, minPrice: ${minPrice}, calculatedPrice: ${calculatedPrice}`,
+                                )
+
+                                // 계산된 가격이 최소 가격보다 낮으면 최소 가격으로 설정
+                                if (calculatedPrice < minPrice) {
+                                  calculatedPrice = minPrice
+                                  console.log(
+                                    `[wing/inject] Row ${index + 1}: Calculated price (${itemWinnerPrice - 100}) is lower than minPrice (${minPrice}), using minPrice`,
+                                  )
+                                }
+                              }
+
+                              const finalSalePrice = calculatedPrice
                               salePriceInput.focus()
                               const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
                                 window.HTMLInputElement.prototype,
                                 'value',
                               ).set
-                              nativeInputValueSetter.call(salePriceInput, salePrice.toString())
+                              nativeInputValueSetter.call(salePriceInput, finalSalePrice.toString())
                               salePriceInput.dispatchEvent(new Event('input', { bubbles: true }))
                               salePriceInput.dispatchEvent(new Event('change', { bubbles: true }))
                               salePriceInput.blur()
                               console.log(
-                                `[wing/inject] ✅ Row ${index + 1}: Set sale price to ${salePrice} (item winner price: ${itemWinnerPrice} - 100)`,
+                                `[wing/inject] ✅ Row ${index + 1}: Set sale price to ${finalSalePrice} (item winner price: ${itemWinnerPrice} - 100, validated with minPrice)`,
                               )
                             } else {
                               console.warn(`[wing/inject] ⚠️ Row ${index + 1}: Sale price input not found`)

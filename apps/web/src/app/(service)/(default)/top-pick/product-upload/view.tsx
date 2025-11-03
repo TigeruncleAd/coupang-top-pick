@@ -180,6 +180,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
           vendorItemId: Number(product.vendorItemId),
           optionOrder,
           attributeValues: product.attributeValues || [],
+          salePrice: product.salePrice,
         })
 
         // 5분 타임아웃으로 성공 메시지 대기
@@ -419,6 +420,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
                                   vendorItemId: Number(product.vendorItemId),
                                   optionOrder,
                                   attributeValues: product.attributeValues || [],
+                                  salePrice: product.salePrice,
                                 })
                               } catch (error) {
                                 console.error('[upload] Error:', error)
