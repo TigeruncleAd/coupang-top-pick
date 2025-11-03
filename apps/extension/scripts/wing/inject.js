@@ -812,82 +812,67 @@
                               // 업로드할 파일 배열
                               const filesToUpload = []
 
-                              // 1. 썸네일 이미지 (첫 번째 이미지)
+                              // 1. 썸네일 이미지 (첫 번째 이미지) - legacy 방식 사용 (FETCH_IMAGE_BLOBS)
                               if (images.length > 0 && images[0]) {
                                 try {
-                                  console.log('[wing/inject] 📥 Fetching thumbnail image:', images[0])
+                                  const mainImageUrl = images[0]
+                                  console.log('[wing/inject] 📥 Fetching thumbnail image via background:', mainImageUrl)
 
-                                  // CORS 문제를 우회하기 위해 proxy를 사용하거나 직접 fetch 시도
-                                  let thumbnailBlob = null
-                                  try {
-                                    const thumbnailResponse = await fetch(images[0], {
-                                      mode: 'cors',
-                                      credentials: 'omit',
-                                    })
-                                    if (!thumbnailResponse.ok) {
-                                      throw new Error(`HTTP ${thumbnailResponse.status}`)
-                                    }
-                                    thumbnailBlob = await thumbnailResponse.blob()
-                                    console.log(
-                                      '[wing/inject] ✅ Thumbnail fetched successfully, size:',
-                                      thumbnailBlob.size,
+                                  // Background를 통해 이미지 fetch (CORS 우회)
+                                  const blobResponse = await chrome.runtime.sendMessage({
+                                    type: 'FETCH_IMAGE_BLOBS',
+                                    payload: { imageUrls: [mainImageUrl] },
+                                  })
+
+                                  console.log('[wing/inject] 📦 Background response:', blobResponse)
+
+                                  if (!blobResponse || !blobResponse.ok) {
+                                    console.error(
+                                      '[wing/inject] ❌ Failed to fetch image via background:',
+                                      blobResponse?.error || 'No response',
                                     )
-                                  } catch (fetchError) {
-                                    console.warn(
-                                      '[wing/inject] ⚠️ Direct fetch failed, trying alternative method:',
-                                      fetchError,
-                                    )
-
-                                    // CORS 실패 시 이미지 URL을 blob URL로 변환 시도
-                                    try {
-                                      const img = new Image()
-                                      img.crossOrigin = 'anonymous'
-
-                                      thumbnailBlob = await new Promise((resolve, reject) => {
-                                        img.onload = () => {
-                                          const canvas = document.createElement('canvas')
-                                          canvas.width = img.width
-                                          canvas.height = img.height
-                                          const ctx = canvas.getContext('2d')
-                                          ctx.drawImage(img, 0, 0)
-                                          canvas.toBlob(
-                                            blob => {
-                                              if (blob) {
-                                                resolve(blob)
-                                              } else {
-                                                reject(new Error('Failed to convert canvas to blob'))
-                                              }
-                                            },
-                                            'image/jpeg',
-                                            0.9,
-                                          )
-                                        }
-                                        img.onerror = () => reject(new Error('Image load failed'))
-                                        img.src = images[0]
-                                      })
-                                      console.log(
-                                        '[wing/inject] ✅ Thumbnail converted via canvas, size:',
-                                        thumbnailBlob.size,
-                                      )
-                                    } catch (canvasError) {
-                                      console.error('[wing/inject] ❌ Canvas conversion also failed:', canvasError)
-                                      throw canvasError
-                                    }
+                                    throw new Error(blobResponse?.error || 'Failed to fetch image via background')
                                   }
 
-                                  if (thumbnailBlob) {
-                                    const thumbnailFile = new File([thumbnailBlob], 'thumbnail.jpg', {
-                                      type: thumbnailBlob.type || 'image/jpeg',
-                                    })
-                                    filesToUpload.push(thumbnailFile)
-                                    console.log(
-                                      '[wing/inject] ✅ Thumbnail image prepared, file size:',
-                                      thumbnailFile.size,
-                                    )
+                                  if (!blobResponse.blobs || blobResponse.blobs.length === 0) {
+                                    console.error('[wing/inject] ❌ No blobs in response')
+                                    throw new Error('No blobs in response')
                                   }
+
+                                  const blobData = blobResponse.blobs[0]
+                                  if (blobData.error) {
+                                    console.error('[wing/inject] ❌ Blob fetch error:', blobData.error)
+                                    throw new Error(blobData.error)
+                                  }
+
+                                  if (!blobData.base64) {
+                                    console.error('[wing/inject] ❌ No base64 data in blob')
+                                    throw new Error('No base64 data in blob')
+                                  }
+
+                                  console.log('[wing/inject] 📄 Blob data received:', {
+                                    hasBase64: !!blobData.base64,
+                                    type: blobData.type,
+                                    url: blobData.url,
+                                  })
+
+                                  // base64를 File로 변환 (legacy 방식)
+                                  const base64Response = await fetch(blobData.base64)
+                                  const blob = await base64Response.blob()
+                                  const thumbnailFile = new File([blob], 'thumbnail.jpg', {
+                                    type: blobData.type || 'image/jpeg',
+                                  })
+
+                                  filesToUpload.push(thumbnailFile)
+                                  console.log(
+                                    '[wing/inject] ✅ Thumbnail image prepared via background, file size:',
+                                    thumbnailFile.size,
+                                    'bytes',
+                                  )
                                 } catch (error) {
                                   console.error('[wing/inject] ❌ Failed to fetch thumbnail:', error)
                                   console.error('[wing/inject] ❌ Error details:', error.message, error.stack)
+                                  // 에러 발생 시에도 계속 진행 (다음 파일 처리)
                                 }
                               } else {
                                 console.warn(
@@ -1303,35 +1288,61 @@
                                   )
                                   if (dropZone) {
                                     console.log('[wing/inject] ✅ Found dropzone, using drag and drop')
+                                    console.log(
+                                      '[wing/inject] 📤 Uploading',
+                                      filesToUpload.length,
+                                      'file(s) together (legacy mode)',
+                                    )
 
+                                    // DataTransfer 객체 생성 (legacy 방식 - 모든 파일을 한 번에 추가)
                                     const dataTransfer = new DataTransfer()
                                     filesToUpload.forEach(file => {
                                       dataTransfer.items.add(file)
+                                      console.log(
+                                        `[wing/inject] ✅ Added ${file.name} (${file.size} bytes) to DataTransfer`,
+                                      )
                                     })
 
-                                    // 드래그 앤 드롭 이벤트 시뮬레이션
+                                    console.log(
+                                      '[wing/inject] 📋 DataTransfer contains',
+                                      dataTransfer.files.length,
+                                      'file(s)',
+                                    )
+
+                                    // 드래그 앤 드롭 이벤트 시뮬레이션 (legacy 방식)
+                                    console.log('[wing/inject] 🎯 Simulating drag and drop events...')
+
+                                    // dragenter 이벤트
                                     const dragEnterEvent = new DragEvent('dragenter', {
                                       bubbles: true,
                                       cancelable: true,
                                       dataTransfer: dataTransfer,
                                     })
                                     dropZone.dispatchEvent(dragEnterEvent)
+                                    console.log('[wing/inject] 📍 dragenter dispatched')
 
+                                    // dragover 이벤트
                                     const dragOverEvent = new DragEvent('dragover', {
                                       bubbles: true,
                                       cancelable: true,
                                       dataTransfer: dataTransfer,
                                     })
                                     dropZone.dispatchEvent(dragOverEvent)
+                                    console.log('[wing/inject] 📍 dragover dispatched')
 
+                                    // drop 이벤트
                                     const dropEvent = new DragEvent('drop', {
                                       bubbles: true,
                                       cancelable: true,
                                       dataTransfer: dataTransfer,
                                     })
                                     dropZone.dispatchEvent(dropEvent)
-
-                                    console.log('[wing/inject] ✅ Files dropped to dropzone')
+                                    console.log(
+                                      '[wing/inject] ✅ Drop event dispatched with',
+                                      filesToUpload.length,
+                                      'files',
+                                    )
+                                    console.log('[wing/inject] 🎉 All files dropped to dropzone successfully!')
 
                                     // 9. 이미지 업로드 후 3초 대기
                                     await delay(3000)

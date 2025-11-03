@@ -508,34 +508,63 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       try {
         const { imageUrls } = msg.payload || {}
         console.log('[background] 🔍 FETCH_IMAGE_BLOBS:', imageUrls?.length, 'images')
+        console.log('[background] 📋 Image URLs:', imageUrls)
 
         if (!imageUrls || imageUrls.length === 0) {
+          console.error('[background] ❌ No image URLs provided')
           sendResponse({ ok: false, error: 'No image URLs provided' })
           return
         }
 
         const blobs = []
-        for (const imageUrl of imageUrls) {
+        for (let i = 0; i < imageUrls.length; i++) {
+          const imageUrl = imageUrls[i]
           try {
+            console.log(`[background] 📥 Fetching image ${i + 1}/${imageUrls.length}:`, imageUrl)
             const response = await fetch(imageUrl)
+
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+            }
+
             const blob = await response.blob()
+            console.log(`[background] ✅ Blob received:`, {
+              size: blob.size,
+              type: blob.type,
+            })
+
             // Blob을 base64로 변환 (전송을 위해)
-            const base64 = await new Promise(resolve => {
+            const base64 = await new Promise((resolve, reject) => {
               const reader = new FileReader()
-              reader.onloadend = () => resolve(reader.result)
+              reader.onloadend = () => {
+                console.log(`[background] ✅ Base64 conversion complete for image ${i + 1}`)
+                resolve(reader.result)
+              }
+              reader.onerror = () => {
+                console.error(`[background] ❌ FileReader error for image ${i + 1}`)
+                reject(new Error('FileReader error'))
+              }
               reader.readAsDataURL(blob)
             })
+
             blobs.push({ url: imageUrl, base64, type: blob.type })
-            console.log('[background] ✅ Fetched image:', imageUrl)
+            console.log(
+              `[background] ✅ Fetched and converted image ${i + 1}:`,
+              imageUrl,
+              `(base64 length: ${base64.length})`,
+            )
           } catch (error) {
-            console.error('[background] ❌ Error fetching image:', imageUrl, error)
+            console.error(`[background] ❌ Error fetching image ${i + 1}:`, imageUrl, error)
+            console.error('[background] ❌ Error details:', error.message, error.stack)
             blobs.push({ url: imageUrl, error: String(error) })
           }
         }
 
+        console.log('[background] 📤 Sending response with', blobs.length, 'blob(s)')
         sendResponse({ ok: true, blobs })
       } catch (e) {
         console.error('[background] ❌ FETCH_IMAGE_BLOBS error:', e)
+        console.error('[background] ❌ Error stack:', e.stack)
         sendResponse({ ok: false, error: String(e) })
       }
     })()
