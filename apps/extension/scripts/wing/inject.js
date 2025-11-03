@@ -2186,6 +2186,86 @@
       return true
     }
 
+    if (msg?.type === 'WING_OPTION_MODIFY') {
+      ;(async () => {
+        try {
+          console.log('[wing/inject] 🔍 WING_OPTION_MODIFY 시작')
+
+          // 1. option-pane-component로 스크롤
+          const optionPaneComponent = document.querySelector('.option-pane-component')
+          if (!optionPaneComponent) {
+            console.error('[wing/inject] ❌ option-pane-component를 찾을 수 없습니다')
+            sendResponse({ ok: false, error: 'option-pane-component를 찾을 수 없습니다' })
+            return
+          }
+
+          console.log('[wing/inject] ✅ option-pane-component 찾음, 스크롤 중...')
+          optionPaneComponent.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+          // 스크롤 완료 대기
+          await new Promise(resolve => setTimeout(resolve, 500))
+
+          // 2. option-pane-component 내에서 '옵션수정' 버튼 찾기
+          const modifyButtons = optionPaneComponent.querySelectorAll('button')
+          let modifyButton = null
+
+          for (const button of modifyButtons) {
+            const buttonText = button.textContent?.trim() || ''
+            if (buttonText.includes('옵션수정')) {
+              modifyButton = button
+              console.log('[wing/inject] ✅ "옵션수정" 버튼 찾음:', buttonText)
+              break
+            }
+          }
+
+          if (!modifyButton) {
+            console.error('[wing/inject] ❌ "옵션수정" 버튼을 찾을 수 없습니다')
+            sendResponse({ ok: false, error: '"옵션수정" 버튼을 찾을 수 없습니다' })
+            return
+          }
+
+          // 3. 버튼 클릭
+          console.log('[wing/inject] ✅ "옵션수정" 버튼 클릭 중...')
+          modifyButton.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          await new Promise(resolve => setTimeout(resolve, 300))
+
+          // 여러 방법으로 클릭 시뮬레이션
+          modifyButton.click()
+
+          const clickEvent = new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+          })
+          modifyButton.dispatchEvent(clickEvent)
+
+          const mouseDownEvent = new MouseEvent('mousedown', {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+          })
+          const mouseUpEvent = new MouseEvent('mouseup', {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+          })
+          modifyButton.dispatchEvent(mouseDownEvent)
+          await new Promise(resolve => setTimeout(resolve, 100))
+          modifyButton.dispatchEvent(mouseUpEvent)
+
+          console.log('[wing/inject] ✅ "옵션수정" 버튼 클릭 완료!')
+          sendResponse({ ok: true })
+        } catch (e) {
+          console.error('[wing/inject] ❌ WING_OPTION_MODIFY error:', e)
+          console.error('[wing/inject] Error stack:', e instanceof Error ? e.stack : 'No stack')
+          try {
+            sendResponse({ ok: false, error: String(e) })
+          } catch {}
+        }
+      })()
+      return true
+    }
+
     return false
   })
 })()

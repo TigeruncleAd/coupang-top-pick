@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { Button } from '@repo/ui/components/button'
-import { wingProductItemsViaExtension } from '@/lib/utils/extension'
+import { wingProductItemsViaExtension, wingOptionModifyViaExtension } from '@/lib/utils/extension'
 import type { WingProductItemsDetail, WingProductItemsHttpEnvelope } from '@/types/wing'
 import { Star, StarHalf, Trash2 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -367,14 +367,34 @@ export default function Client({ extensionId }: { extensionId: string }) {
                           </a>
                         </Button>
                         {product.status === 'UPLOADED_RAW' && product.vendorInventoryId ? (
-                          <Button size="sm" className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30" asChild>
-                            <a
-                              href={`https://wing.coupang.com/tenants/seller-web/vendor-inventory/modify?vendorInventoryId=${product.vendorInventoryId}`}
-                              target="_blank"
-                              rel="noopener noreferrer">
+                          <>
+                            <Button
+                              size="sm"
+                              className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
+                              onClick={async () => {
+                                try {
+                                  await wingOptionModifyViaExtension({
+                                    extensionId,
+                                    vendorInventoryId: product.vendorInventoryId!,
+                                    targetTabUrl: `https://wing.coupang.com/tenants/seller-web/vendor-inventory/modify?vendorInventoryId=${product.vendorInventoryId}`,
+                                  })
+                                } catch (error) {
+                                  console.error('[option-modify] Error:', error)
+                                  toast.error('옵션수정 중 오류가 발생했습니다.')
+                                }
+                              }}
+                              disabled={isBulkUploading}>
                               옵션수정
-                            </a>
-                          </Button>
+                            </Button>
+                            <Button size="sm" variant="outline" asChild>
+                              <a
+                                href={`https://wing.coupang.com/tenants/seller-web/vendor-inventory/modify?vendorInventoryId=${product.vendorInventoryId}`}
+                                target="_blank"
+                                rel="noopener noreferrer">
+                                옵션직접수정
+                              </a>
+                            </Button>
+                          </>
                         ) : (
                           <Button
                             size="sm"

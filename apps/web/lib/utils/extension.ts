@@ -272,3 +272,24 @@ export async function closeFormV2Tab({
     }
   })
 }
+
+/**
+ * Wing 옵션 수정 버튼 클릭 (옵션수정 모달 열기)
+ */
+export async function wingOptionModifyViaExtension({
+  extensionId,
+  vendorInventoryId,
+  targetTabUrl,
+}: {
+  extensionId: string
+  vendorInventoryId: string
+  targetTabUrl?: string
+}): Promise<PushToExtensionResult> {
+  return await pushToExtension({
+    extensionId,
+    payload: {
+      type: 'WING_OPTION_MODIFY',
+      payload: { vendorInventoryId, targetTabUrl },
+    },
+  })
+}

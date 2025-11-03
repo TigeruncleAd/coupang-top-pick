@@ -359,6 +359,120 @@ chrome.runtime.onMessageExternal.addListener(async (msg, sender, sendResponse) =
     return true
   }
 
+  if (msg?.type === 'WING_OPTION_MODIFY') {
+    console.log('[background] Received message:', msg.type, msg.payload)
+    // wing 탭을 찾아 없으면 비활성 탭으로 생성 후, 콘텐츠 스크립트에 요청 위임
+    const { vendorInventoryId, targetTabUrl } = msg.payload || {}
+    const modifyUrl = `https://wing.coupang.com/tenants/seller-web/vendor-inventory/modify?vendorInventoryId=${vendorInventoryId}`
+    const targetUrl = targetTabUrl || modifyUrl
+
+    async function ensureWingTab() {
+      // targetTabUrl이 있으면 해당 URL의 탭만 찾기 (최근 생성된 탭 우선)
+      const searchUrl = targetTabUrl ? targetTabUrl.split('?')[0] + '*' : '*://wing.coupang.com/*'
+      const tabs = await chrome.tabs.query({ url: searchUrl })
+      console.log(
+        '[background] Found tabs:',
+        tabs.length,
+        tabs.map(t => ({ id: t.id, url: t.url })),
+      )
+      // 최근 생성된 탭 하나만 반환 (id가 큰 순서로 정렬)
+      if (tabs && tabs.length > 0) {
+        tabs.sort((a, b) => (b.id || 0) - (a.id || 0))
+        console.log('[background] Using tab:', tabs[0].id, tabs[0].url)
+        // 탭 활성화
+        await chrome.tabs.update(tabs[0].id, { active: true })
+        return tabs[0]
+      }
+      return new Promise(resolve => {
+        chrome.tabs.create({ url: targetUrl, active: true }, tab => {
+          console.log('[background] Created new tab:', tab.id)
+          const tabId = tab.id
+          const onUpdated = (updatedTabId, info) => {
+            if (updatedTabId === tabId && info.status === 'complete') {
+              chrome.tabs.onUpdated.removeListener(onUpdated)
+              resolve(tab)
+            }
+          }
+          chrome.tabs.onUpdated.addListener(onUpdated)
+        })
+      })
+    }
+
+    const wingTab = await ensureWingTab()
+    console.log('[background] wingTab:', wingTab.id)
+
+    // 콘텐츠 스크립트가 미주입인 경우를 대비해 강제 주입 시도
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: wingTab.id },
+        files: ['dist/scripts/wing/inject.js'],
+      })
+    } catch (e) {
+      // ignore; manifest에 의해 이미 주입되었을 수 있음
+    }
+
+    const response = await new Promise(resolve => {
+      let settled = false
+      const timeout = setTimeout(() => {
+        if (!settled) {
+          settled = true
+          resolve({ ok: false, error: 'no_response' })
+        }
+      }, 10000)
+
+      // 1) 핸드셰이크(PING)로 콘텐츠 스크립트 준비 확인
+      const messageType = msg.type
+      const messagePayload = msg.payload
+      chrome.tabs.sendMessage(wingTab.id, { type: 'PING' }, pong => {
+        const err1 = chrome.runtime.lastError && chrome.runtime.lastError.message
+        if (settled) return
+        if (err1 || !pong?.ok) {
+          // 2) 실패 시 소폭 지연 후 재시도
+          setTimeout(() => {
+            if (settled) return
+            chrome.tabs.sendMessage(wingTab.id, { type: 'PING' }, pong2 => {
+              const err2 = chrome.runtime.lastError && chrome.runtime.lastError.message
+              if (settled) return
+              if (err2 || !pong2?.ok) {
+                settled = true
+                clearTimeout(timeout)
+                resolve({ ok: false, error: err2 || 'no_content_script' })
+                return
+              }
+              // 준비 완료 → 본 요청 전송
+              chrome.tabs.sendMessage(wingTab.id, { type: messageType, payload: messagePayload }, res => {
+                const err3 = chrome.runtime.lastError && chrome.runtime.lastError.message
+                if (settled) return
+                settled = true
+                clearTimeout(timeout)
+                if (err3) {
+                  resolve({ ok: false, error: err3 })
+                  return
+                }
+                resolve(res || { ok: false, error: 'no_response' })
+              })
+            })
+          }, 500)
+          return
+        }
+        // 준비 완료 → 본 요청 전송 (첫 PING 성공)
+        settled = true
+        clearTimeout(timeout)
+        chrome.tabs.sendMessage(wingTab.id, { type: messageType, payload: messagePayload }, res => {
+          const err3 = chrome.runtime.lastError && chrome.runtime.lastError.message
+          if (err3) {
+            resolve({ ok: false, error: err3 })
+            return
+          }
+          resolve(res || { ok: false, error: 'no_response' })
+        })
+      })
+    })
+
+    sendResponse({ status: 'success', data: response })
+    return true
+  }
+
   if (msg?.type === 'WING_SEARCH' || msg?.type === 'WING_PRODUCT_ITEMS') {
     console.log('[background] Received message:', msg.type, msg.payload)
     // wing 탭을 찾아 없으면 비활성 탭으로 생성 후, 콘텐츠 스크립트에 요청 위임
