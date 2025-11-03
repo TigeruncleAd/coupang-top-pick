@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Missing productId or status' }, { status: 400 })
     }
 
-    if (status !== 'READY' && status !== 'UPLOADED_RAW') {
+    if (status !== 'READY' && status !== 'UPLOADED_RAW' && status !== 'ROCKET_MAJORITY') {
       return NextResponse.json({ ok: false, error: 'Invalid status' }, { status: 400 })
     }
 

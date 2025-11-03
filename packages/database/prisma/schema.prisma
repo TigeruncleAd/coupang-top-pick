@@ -63,6 +63,7 @@ enum DELIVERY_METHOD {
 enum PRODUCT_STATUS {
   READY         // 준비 (초기 상태)
   UPLOADED_RAW  // 1차 업로드 완료
+  ROCKET_MAJORITY        // 로켓 대다수 찬성
 }
 
 model Product {

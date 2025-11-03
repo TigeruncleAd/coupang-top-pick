@@ -58,6 +58,10 @@ export interface WingItemControlFlags {
   DO_NOT_MERGE: string
   MAIN_LOCALE: string
   VALID: string
+  HAS_ROD?: string
+  HAS_RETAIL?: string
+  HAS_JIKGU?: string
+  BAD_ATTRIBUTE?: string
 }
 
 export interface WingProductItem {

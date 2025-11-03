@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@repo/ui/components/button'
 import { wingProductItemsViaExtension } from '@/lib/utils/extension'
+import type { WingProductItemsDetail, WingProductItemsHttpEnvelope } from '@/types/wing'
 import { Star, StarHalf, Trash2 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getUserProducts, deleteProduct, updateProductStatus } from '@/serverActions/product/product.action'
@@ -47,12 +48,16 @@ export default function Client({ extensionId }: { extensionId: string }) {
       vendorInventoryId,
     }: {
       productId: bigint
-      status: 'READY' | 'UPLOADED_RAW'
+      status: 'READY' | 'UPLOADED_RAW' | 'ROCKET_MAJORITY'
       vendorInventoryId?: string
     }) => updateProductStatus(productId, status, vendorInventoryId),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['userProducts'] })
-      toast.success('상품이 업로드되었습니다.')
+      if (variables.status === 'ROCKET_MAJORITY') {
+        toast.error('상품 업로드 중단')
+      } else {
+        toast.success('상품이 업로드되었습니다.')
+      }
     },
     onError: (error: Error) => {
       toast.error(error.message || '상태 업데이트에 실패했습니다.')
@@ -133,6 +138,74 @@ export default function Client({ extensionId }: { extensionId: string }) {
     }
   }, [updateProductStatusMutation])
 
+  // 상품 옵션 검증 함수
+  const validateProductOptions = async (product: Product): Promise<boolean> => {
+    try {
+      // 상품 옵션 데이터 가져오기
+      const response = await wingProductItemsViaExtension({
+        extensionId,
+        productId: Number(product.productId),
+        itemId: Number(product.itemId),
+        categoryId: product.categoryId,
+        allowSingleProduct: false,
+      })
+
+      if (response.status !== 'success' || !response.data) {
+        console.log('[validateProductOptions] Failed to get product options:', response)
+        return true // 검증 실패 시 업로드 진행
+      }
+
+      // 확장 프로그램 응답 구조: { status: 'success', data: { ok: boolean, status: number, data: WingProductItemsDetail } }
+      const envelope = response.data as any
+      if (!envelope.ok || !envelope.data) {
+        console.log('[validateProductOptions] Invalid response structure:', envelope)
+        return true // 검증 실패 시 업로드 진행
+      }
+
+      const productItemsDetail = envelope.data as WingProductItemsDetail
+      const items = productItemsDetail.items || []
+
+      if (items.length === 0) {
+        console.log('[validateProductOptions] No items found')
+        return true // 아이템이 없으면 업로드 진행
+      }
+
+      // HAS_ROD, HAS_RETAIL 또는 HAS_JIKGU가 true인 옵션 수 계산
+      const rocketCount = items.filter(item => {
+        const controlFlags = item.controlFlags || {}
+        const hasRod = controlFlags?.['HAS_ROD'] === 'true'
+        const hasRetail = controlFlags?.['HAS_RETAIL'] === 'true'
+        const hasJikgu = controlFlags?.['HAS_JIKGU'] === 'true'
+        return hasRod || hasRetail || hasJikgu
+      }).length
+
+      const rocketRatio = rocketCount / items.length
+
+      console.log(
+        `[validateProductOptions] Total items: ${items.length}, Rocket items: ${rocketCount}, Ratio: ${rocketRatio}`,
+      )
+
+      // 30% 초과 시 업로드 중단
+      if (rocketRatio > 0.3) {
+        console.log(
+          `[validateProductOptions] Rocket majority detected (${(rocketRatio * 100).toFixed(1)}%), updating status to ROCKET_MAJORITY`,
+        )
+
+        // 상태를 ROCKET_MAJORITY로 업데이트
+        updateProductStatusMutation.mutate({
+          productId: product.productId,
+          status: 'ROCKET_MAJORITY',
+        })
+        return false
+      }
+
+      return true
+    } catch (error) {
+      console.error('[validateProductOptions] Error:', error)
+      return true // 에러 발생 시 업로드 진행
+    }
+  }
+
   // 전체 업로드 함수
   const handleBulkUpload = async () => {
     // READY 상태인 상품만 필터링
@@ -155,6 +228,13 @@ export default function Client({ extensionId }: { extensionId: string }) {
       console.log(`[bulk-upload] Product ID: ${product.productId}`)
 
       try {
+        // 상품 옵션 검증
+        const canUpload = await validateProductOptions(product)
+        if (!canUpload) {
+          console.log(`[bulk-upload] Product ${product.productId} skipped due to rocket majority`)
+          continue
+        }
+
         // 업로드 시작
         const uploadUrl = 'https://wing.coupang.com/tenants/seller-web/vendor-inventory/formV2'
         const wingTab = window.open(uploadUrl, '_blank', 'noopener,noreferrer')
@@ -305,6 +385,10 @@ export default function Client({ extensionId }: { extensionId: string }) {
                             <span className="shrink-0 rounded-full bg-blue-500/20 px-3 py-1 text-xs font-medium text-blue-400">
                               1차 업로드 완료
                             </span>
+                          ) : product.status === 'ROCKET_MAJORITY' ? (
+                            <span className="shrink-0 rounded-full bg-orange-500/20 px-3 py-1 text-xs font-medium text-orange-400">
+                              로켓 배송 과다
+                            </span>
                           ) : null}
                         </div>
                         <p className="text-muted-foreground text-sm">가격: {product.salePrice.toLocaleString()}원</p>
@@ -342,18 +426,29 @@ export default function Client({ extensionId }: { extensionId: string }) {
                           <Button
                             size="sm"
                             onClick={async () => {
-                              const uploadUrl = 'https://wing.coupang.com/tenants/seller-web/vendor-inventory/formV2'
-                              window.open(uploadUrl, '_blank', 'noopener,noreferrer')
-                              await new Promise(r => setTimeout(r, 1500))
-                              await wingProductItemsViaExtension({
-                                extensionId,
-                                productId: Number(product.productId),
-                                itemId: Number(product.itemId),
-                                categoryId: product.categoryId,
-                                targetTabUrl: uploadUrl,
-                                productName: product.productName,
-                                vendorItemId: Number(product.vendorItemId),
-                              })
+                              try {
+                                // 상품 옵션 검증
+                                const canUpload = await validateProductOptions(product)
+                                if (!canUpload) {
+                                  return // 업로드 중단 (상태는 이미 업데이트됨)
+                                }
+
+                                const uploadUrl = 'https://wing.coupang.com/tenants/seller-web/vendor-inventory/formV2'
+                                window.open(uploadUrl, '_blank', 'noopener,noreferrer')
+                                await new Promise(r => setTimeout(r, 1500))
+                                await wingProductItemsViaExtension({
+                                  extensionId,
+                                  productId: Number(product.productId),
+                                  itemId: Number(product.itemId),
+                                  categoryId: product.categoryId,
+                                  targetTabUrl: uploadUrl,
+                                  productName: product.productName,
+                                  vendorItemId: Number(product.vendorItemId),
+                                })
+                              } catch (error) {
+                                console.error('[upload] Error:', error)
+                                toast.error('업로드 중 오류가 발생했습니다.')
+                              }
                             }}
                             disabled={isBulkUploading}>
                             업로드하기
