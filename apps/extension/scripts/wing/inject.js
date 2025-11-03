@@ -80,6 +80,37 @@
             attributeValues,
           })
           console.log('[wing/inject] Display value for search:', displayValue)
+
+          // 1. 먼저 상세페이지를 열어서 썸네일과 필수표기정보 캡처
+          console.log('[wing/inject] 📸 Step 1: Getting product images from detail page...')
+          let images = []
+          let itemBriefCapture = null
+          try {
+            const imageResponse = await chrome.runtime.sendMessage({
+              type: 'GET_COUPANG_PRODUCT_IMAGES',
+              payload: { productId, itemId, vendorItemId },
+            })
+
+            console.log('[wing/inject] Image response:', imageResponse)
+
+            if (imageResponse?.ok && imageResponse?.images) {
+              images = imageResponse.images
+              itemBriefCapture = imageResponse.itemBriefCapture
+              console.log('[wing/inject] ✅ Received images from background:', images.length)
+              console.log('[wing/inject] ✅ ItemBrief capture:', itemBriefCapture ? 'Available' : 'Not available')
+            } else {
+              console.warn('[wing/inject] ❌ Failed to get images from background:', imageResponse?.error)
+              images = []
+            }
+
+            window.__COUPANG_PRODUCT_IMAGES__ = images
+            window.__ITEM_BRIEF_CAPTURE__ = itemBriefCapture
+          } catch (error) {
+            console.error('[wing/inject] ❌ Error fetching product images:', error)
+          }
+
+          // 2. 노출상품명 입력
+          console.log('[wing/inject] 📝 Step 2: Setting product name input...')
           const params = new URLSearchParams({
             productId: String(productId),
             itemId: String(itemId),
@@ -155,7 +186,7 @@
               productNameInput.blur()
               console.log('[wing/inject] ✅ Product name set successfully, current value:', productNameInput.value)
 
-              // 노출상품명 입력 후 추천 상품이 나타날 때까지 대기하고 "판매옵션 선택" 버튼 클릭
+              // 3. 노출상품명 입력 후 추천 상품이 나타날 때까지 대기하고 "판매옵션 선택" 버튼 클릭
               setTimeout(() => {
                 console.log('[wing/inject] Waiting for recommended products to appear...')
 
@@ -248,10 +279,28 @@
                         console.log('[wing/inject] First option:', firstOption)
                         console.log('[wing/inject] AttributeValues to click:', attributeValues)
 
-                        await delay(500) // 모달이 뜰 때까지 대기
+                        // 모달이 뜰 때까지 대기 (더 긴 대기 시간)
+                        await delay(1500)
 
-                        // attribute-selectors 테이블 찾기
-                        const attributeSelectorsTable = await waitForElement('.attribute-selectors')
+                        // attribute-selectors 테이블 찾기 (여러 번 재시도)
+                        let attributeSelectorsTable = null
+                        for (let i = 0; i < 30; i++) {
+                          attributeSelectorsTable = document.querySelector('.attribute-selectors')
+                          if (attributeSelectorsTable) {
+                            // 테이블 내에 버튼이 실제로 존재하는지 확인
+                            const testButtons = attributeSelectorsTable.querySelectorAll('button.wuic-button')
+                            if (testButtons.length > 0) {
+                              console.log('[wing/inject] ✅ Found attribute-selectors table with buttons!')
+                              break
+                            }
+                          }
+                          await delay(100)
+                        }
+
+                        if (!attributeSelectorsTable) {
+                          console.warn('[wing/inject] ❌ attribute-selectors table not found')
+                          return
+                        }
 
                         console.log('[wing/inject] ✅ Found attribute-selectors table!')
 
@@ -288,33 +337,106 @@
                           return
                         }
 
+                        // 버튼들이 로드될 때까지 대기
+                        await delay(500)
+
                         // 모든 버튼 찾기
                         const buttons = checkboxGroup.querySelectorAll('button.wuic-button')
                         console.log('[wing/inject] Found buttons:', buttons.length)
 
+                        if (buttons.length === 0) {
+                          console.warn('[wing/inject] ❌ No buttons found in checkbox-group')
+                          return
+                        }
+
+                        // 버튼 텍스트 로깅
+                        console.log('[wing/inject] 🔍 Button texts found:')
+                        buttons.forEach((btn, idx) => {
+                          console.log(`[wing/inject]   Button ${idx + 1}: "${btn.textContent?.trim()}"`)
+                        })
+
                         // attributeValues에 해당하는 버튼들만 클릭
                         let clickedCount = 0
-                        buttons.forEach(button => {
+                        buttons.forEach((button, index) => {
                           const buttonText = button.textContent?.trim()
-                          console.log('[wing/inject] Button text:', buttonText)
+                          console.log(`[wing/inject] Checking button ${index + 1}: "${buttonText}"`)
 
-                          // attributeValues 배열과 비교 (대소문자 무시)
+                          // attributeValues 배열과 비교 (대소문자 무시, 부분 일치도 허용)
                           const shouldClick = attributeValues.some(attrValue => {
-                            const normalizedButtonText = buttonText?.toUpperCase().trim()
-                            const normalizedAttrValue = attrValue.toUpperCase().trim()
-                            return normalizedButtonText === normalizedAttrValue
+                            const normalizedButtonText = buttonText?.toUpperCase().trim().replace(/\s+/g, '')
+                            const normalizedAttrValue = attrValue.toUpperCase().trim().replace(/\s+/g, '')
+
+                            // 정확히 일치하는 경우
+                            if (normalizedButtonText === normalizedAttrValue) {
+                              console.log(`[wing/inject]   ✅ Exact match: "${buttonText}" === "${attrValue}"`)
+                              return true
+                            }
+
+                            // 부분 일치: attributeValue가 buttonText에 포함되는 경우
+                            if (
+                              normalizedButtonText.includes(normalizedAttrValue) ||
+                              normalizedAttrValue.includes(normalizedButtonText)
+                            ) {
+                              console.log(`[wing/inject]   ✅ Partial match: "${buttonText}" contains "${attrValue}"`)
+                              return true
+                            }
+
+                            return false
                           })
 
                           if (shouldClick) {
-                            console.log(`[wing/inject] ✅ Clicking button: "${buttonText}" (matches attributeValue)`)
-                            button.click()
-                            clickedCount++
+                            console.log(`[wing/inject] ✅ Clicking button: "${buttonText}"`)
+                            try {
+                              // 여러 방법으로 클릭 시도
+                              if (button.disabled) {
+                                console.warn(`[wing/inject] ⚠️ Button is disabled: "${buttonText}"`)
+                              } else {
+                                // 먼저 일반 click 이벤트
+                                button.click()
+
+                                // MouseEvent를 통한 클릭도 시도
+                                const clickEvent = new MouseEvent('click', {
+                                  bubbles: true,
+                                  cancelable: true,
+                                  view: window,
+                                })
+                                button.dispatchEvent(clickEvent)
+
+                                // mousedown, mouseup 이벤트도 시도
+                                const mouseDownEvent = new MouseEvent('mousedown', {
+                                  bubbles: true,
+                                  cancelable: true,
+                                  view: window,
+                                })
+                                const mouseUpEvent = new MouseEvent('mouseup', {
+                                  bubbles: true,
+                                  cancelable: true,
+                                  view: window,
+                                })
+                                button.dispatchEvent(mouseDownEvent)
+                                button.dispatchEvent(mouseUpEvent)
+
+                                clickedCount++
+                                console.log(`[wing/inject] ✅ Successfully triggered click on: "${buttonText}"`)
+                              }
+                            } catch (error) {
+                              console.error(`[wing/inject] ❌ Error clicking button "${buttonText}":`, error)
+                            }
+                          } else {
+                            console.log(`[wing/inject]   ⏭️ Skipping button: "${buttonText}" (no match)`)
                           }
                         })
 
                         console.log(
                           `[wing/inject] ✅ Clicked ${clickedCount} button(s) for attribute "${targetAttributeName}"`,
                         )
+
+                        // 클릭 후 버튼 상태 확인
+                        await delay(500)
+                        const clickedButtons = checkboxGroup.querySelectorAll(
+                          'button.wuic-button[data-wuic-props*="type:secondary"]',
+                        )
+                        console.log('[wing/inject] Buttons with secondary type (clicked):', clickedButtons.length)
                       }
 
                       // '선택완료' 버튼 클릭
@@ -337,40 +459,7 @@
                       completeButton.click()
                       console.log('[wing/inject] ✅ "선택완료" button clicked successfully')
 
-                      // 이미지 가져오기
-                      await delay(1000)
-                      console.log('[wing/inject] Requesting product images from background...')
-
-                      try {
-                        const response = await chrome.runtime.sendMessage({
-                          type: 'GET_COUPANG_PRODUCT_IMAGES',
-                          payload: { productId, itemId, vendorItemId },
-                        })
-
-                        console.log('[wing/inject] Background response:', response)
-
-                        let images = []
-                        let itemBriefCapture = null
-                        if (response?.ok && response?.images) {
-                          images = response.images
-                          itemBriefCapture = response.itemBriefCapture
-                          console.log('[wing/inject] ✅ Received images from background:', images.length)
-                          console.log(
-                            '[wing/inject] ✅ ItemBrief capture:',
-                            itemBriefCapture ? 'Available' : 'Not available',
-                          )
-                        } else {
-                          console.warn('[wing/inject] ❌ Failed to get images from background:', response?.error)
-                          images = []
-                        }
-
-                        window.__COUPANG_PRODUCT_IMAGES__ = images
-                        window.__ITEM_BRIEF_CAPTURE__ = itemBriefCapture
-                      } catch (error) {
-                        console.error('[wing/inject] ❌ Error fetching product images:', error)
-                      }
-
-                      // 가격 및 재고 설정
+                      // 4. 가격 및 재고 설정 (이미지는 이미 위에서 가져왔음)
                       await delay(1000)
                       console.log('[wing/inject] Setting price and stock...')
 

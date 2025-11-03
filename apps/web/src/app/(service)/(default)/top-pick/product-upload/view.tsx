@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { Button } from '@repo/ui/components/button'
-import { wingProductItemsViaExtension, checkCoupangOptionPicker } from '@/lib/utils/extension'
+import { wingProductItemsViaExtension } from '@/lib/utils/extension'
 import type { WingProductItemsDetail, WingProductItemsHttpEnvelope } from '@/types/wing'
 import { Star, StarHalf, Trash2 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -160,28 +160,15 @@ export default function Client({ extensionId }: { extensionId: string }) {
       console.log(`[bulk-upload] Product ID: ${product.productId}`)
 
       try {
-        // 업로드 시작
+        // 업로드 시작 (검증 과정 없이 바로 formV2 띄우기)
         const uploadUrl = 'https://wing.coupang.com/tenants/seller-web/vendor-inventory/formV2'
         const wingTab = window.open(uploadUrl, '_blank', 'noopener,noreferrer')
 
         await new Promise(r => setTimeout(r, 1500))
 
-        // 옵션 순서 가져오기
-        let optionOrder: string[] | undefined = undefined
-        try {
-          const optionPickerResult = await checkCoupangOptionPicker({
-            extensionId,
-            productId: Number(product.productId),
-            itemId: Number(product.itemId),
-            vendorItemId: Number(product.vendorItemId),
-          })
-          if (optionPickerResult.ok && optionPickerResult.optionOrder) {
-            optionOrder = optionPickerResult.optionOrder
-            console.log('[bulk-upload] Option order:', optionOrder)
-          }
-        } catch (error) {
-          console.warn('[bulk-upload] Failed to get option order:', error)
-        }
+        // DB에서 저장된 optionOrder 사용 (검증 과정 없이)
+        const optionOrder = product.optionOrder || undefined
+        console.log('[bulk-upload] Using optionOrder from DB:', optionOrder)
 
         await wingProductItemsViaExtension({
           extensionId,
@@ -393,26 +380,14 @@ export default function Client({ extensionId }: { extensionId: string }) {
                             size="sm"
                             onClick={async () => {
                               try {
+                                // 업로드 시작 (검증 과정 없이 바로 formV2 띄우기)
                                 const uploadUrl = 'https://wing.coupang.com/tenants/seller-web/vendor-inventory/formV2'
                                 window.open(uploadUrl, '_blank', 'noopener,noreferrer')
                                 await new Promise(r => setTimeout(r, 1500))
 
-                                // 옵션 순서 가져오기
-                                let optionOrder: string[] | undefined = undefined
-                                try {
-                                  const optionPickerResult = await checkCoupangOptionPicker({
-                                    extensionId,
-                                    productId: Number(product.productId),
-                                    itemId: Number(product.itemId),
-                                    vendorItemId: Number(product.vendorItemId),
-                                  })
-                                  if (optionPickerResult.ok && optionPickerResult.optionOrder) {
-                                    optionOrder = optionPickerResult.optionOrder
-                                    console.log('[upload] Option order:', optionOrder)
-                                  }
-                                } catch (error) {
-                                  console.warn('[upload] Failed to get option order:', error)
-                                }
+                                // DB에서 저장된 optionOrder 사용 (검증 과정 없이)
+                                const optionOrder = product.optionOrder || undefined
+                                console.log('[upload] Using optionOrder from DB:', optionOrder)
 
                                 await wingProductItemsViaExtension({
                                   extensionId,
@@ -423,6 +398,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
                                   productName: product.productName,
                                   vendorItemId: Number(product.vendorItemId),
                                   optionOrder,
+                                  attributeValues: product.attributeValues || [],
                                 })
                               } catch (error) {
                                 console.error('[upload] Error:', error)
