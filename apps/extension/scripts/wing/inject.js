@@ -355,8 +355,8 @@
                           console.log(`[wing/inject]   Button ${idx + 1}: "${btn.textContent?.trim()}"`)
                         })
 
-                        // attributeValues에 해당하는 버튼들만 클릭
-                        let clickedCount = 0
+                        // attributeValues에 해당하는 버튼들만 클릭 (각각 1초 간격으로, 실제 마우스 클릭 시뮬레이션)
+                        const buttonsToClick = []
                         buttons.forEach((button, index) => {
                           const buttonText = button.textContent?.trim()
                           console.log(`[wing/inject] Checking button ${index + 1}: "${buttonText}"`)
@@ -385,47 +385,134 @@
                           })
 
                           if (shouldClick) {
-                            console.log(`[wing/inject] ✅ Clicking button: "${buttonText}"`)
-                            try {
-                              // 여러 방법으로 클릭 시도
-                              if (button.disabled) {
-                                console.warn(`[wing/inject] ⚠️ Button is disabled: "${buttonText}"`)
-                              } else {
-                                // 먼저 일반 click 이벤트
-                                button.click()
-
-                                // MouseEvent를 통한 클릭도 시도
-                                const clickEvent = new MouseEvent('click', {
-                                  bubbles: true,
-                                  cancelable: true,
-                                  view: window,
-                                })
-                                button.dispatchEvent(clickEvent)
-
-                                // mousedown, mouseup 이벤트도 시도
-                                const mouseDownEvent = new MouseEvent('mousedown', {
-                                  bubbles: true,
-                                  cancelable: true,
-                                  view: window,
-                                })
-                                const mouseUpEvent = new MouseEvent('mouseup', {
-                                  bubbles: true,
-                                  cancelable: true,
-                                  view: window,
-                                })
-                                button.dispatchEvent(mouseDownEvent)
-                                button.dispatchEvent(mouseUpEvent)
-
-                                clickedCount++
-                                console.log(`[wing/inject] ✅ Successfully triggered click on: "${buttonText}"`)
-                              }
-                            } catch (error) {
-                              console.error(`[wing/inject] ❌ Error clicking button "${buttonText}":`, error)
-                            }
+                            buttonsToClick.push({ button, buttonText })
                           } else {
                             console.log(`[wing/inject]   ⏭️ Skipping button: "${buttonText}" (no match)`)
                           }
                         })
+
+                        // 각 버튼을 1초 간격으로 실제 마우스 클릭처럼 시뮬레이션
+                        let clickedCount = 0
+                        for (let i = 0; i < buttonsToClick.length; i++) {
+                          const { button, buttonText } = buttonsToClick[i]
+
+                          // 1초 간격 (첫 번째 버튼 제외)
+                          if (i > 0) {
+                            await delay(1000)
+                          }
+
+                          console.log(
+                            `[wing/inject] ✅ Clicking button ${i + 1}/${buttonsToClick.length}: "${buttonText}"`,
+                          )
+
+                          try {
+                            if (button.disabled) {
+                              console.warn(`[wing/inject] ⚠️ Button is disabled: "${buttonText}"`)
+                              continue
+                            }
+
+                            // 실제 마우스 클릭을 더 정확하게 시뮬레이션
+                            // 1. 버튼을 viewport에 보이도록 스크롤
+                            button.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                            await delay(100)
+
+                            // 2. 버튼의 실제 위치 계산
+                            const rect = button.getBoundingClientRect()
+                            const x = rect.left + rect.width / 2
+                            const y = rect.top + rect.height / 2
+
+                            // 3. MouseEvent를 통한 실제 마우스 클릭 시뮬레이션
+                            const mouseDownEvent = new MouseEvent('mousedown', {
+                              bubbles: true,
+                              cancelable: true,
+                              view: window,
+                              detail: 1,
+                              screenX: x + window.screenX,
+                              screenY: y + window.screenY,
+                              clientX: x,
+                              clientY: y,
+                              button: 0,
+                              buttons: 1,
+                            })
+
+                            const mouseUpEvent = new MouseEvent('mouseup', {
+                              bubbles: true,
+                              cancelable: true,
+                              view: window,
+                              detail: 1,
+                              screenX: x + window.screenX,
+                              screenY: y + window.screenY,
+                              clientX: x,
+                              clientY: y,
+                              button: 0,
+                              buttons: 0,
+                            })
+
+                            const clickEvent = new MouseEvent('click', {
+                              bubbles: true,
+                              cancelable: true,
+                              view: window,
+                              detail: 1,
+                              screenX: x + window.screenX,
+                              screenY: y + window.screenY,
+                              clientX: x,
+                              clientY: y,
+                              button: 0,
+                              buttons: 0,
+                            })
+
+                            // 4. 포인터 이벤트도 시뮬레이션 (최신 프레임워크 지원)
+                            const pointerDownEvent = new PointerEvent('pointerdown', {
+                              bubbles: true,
+                              cancelable: true,
+                              view: window,
+                              detail: 1,
+                              clientX: x,
+                              clientY: y,
+                              pointerId: 1,
+                              pointerType: 'mouse',
+                              button: 0,
+                              buttons: 1,
+                            })
+
+                            const pointerUpEvent = new PointerEvent('pointerup', {
+                              bubbles: true,
+                              cancelable: true,
+                              view: window,
+                              detail: 1,
+                              clientX: x,
+                              clientY: y,
+                              pointerId: 1,
+                              pointerType: 'mouse',
+                              button: 0,
+                              buttons: 0,
+                            })
+
+                            // 5. 이벤트를 순서대로 발생
+                            button.dispatchEvent(pointerDownEvent)
+                            button.dispatchEvent(mouseDownEvent)
+                            await delay(50) // 짧은 딜레이로 실제 클릭처럼
+                            button.dispatchEvent(pointerUpEvent)
+                            button.dispatchEvent(mouseUpEvent)
+                            button.dispatchEvent(clickEvent)
+
+                            // 6. fallback: 기본 click 메서드도 호출
+                            button.click()
+
+                            clickedCount++
+                            console.log(`[wing/inject] ✅ Successfully triggered click on: "${buttonText}"`)
+
+                            // 클릭 후 버튼 상태 확인
+                            await delay(200)
+                            const isSelected =
+                              button.getAttribute('data-wuic-props')?.includes('type:secondary') ||
+                              button.classList.contains('selected') ||
+                              button.getAttribute('aria-pressed') === 'true'
+                            console.log(`[wing/inject] Button "${buttonText}" selected state: ${isSelected}`)
+                          } catch (error) {
+                            console.error(`[wing/inject] ❌ Error clicking button "${buttonText}":`, error)
+                          }
+                        }
 
                         console.log(
                           `[wing/inject] ✅ Clicked ${clickedCount} button(s) for attribute "${targetAttributeName}"`,
@@ -459,27 +546,48 @@
                       completeButton.click()
                       console.log('[wing/inject] ✅ "선택완료" button clicked successfully')
 
-                      // 4. 가격 및 재고 설정 (이미지는 이미 위에서 가져왔음)
-                      await delay(1000)
-                      console.log('[wing/inject] Setting price and stock...')
+                      // 4. 3초 대기 후 option-pane-component로 스크롤
+                      await delay(3000)
+                      console.log('[wing/inject] 📜 Scrolling to option-pane-component...')
+                      const optionPaneComponent = document.querySelector('.option-pane-component')
+                      if (optionPaneComponent) {
+                        optionPaneComponent.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                        await delay(500) // 스크롤 완료 대기
+                        console.log('[wing/inject] ✅ Scrolled to option-pane-component')
+                      } else {
+                        console.warn('[wing/inject] ⚠️ option-pane-component not found')
+                      }
 
-                      const itemWinnerPriceElement = document.querySelector('.pre-matching > div:first-child')
-                      if (itemWinnerPriceElement) {
-                        const itemWinnerPriceText = itemWinnerPriceElement.textContent.trim().replace(/,/g, '')
-                        const itemWinnerPrice = parseInt(itemWinnerPriceText)
-                        console.log('[wing/inject] 📊 Item Winner Price:', itemWinnerPrice)
+                      // 5. 가격 및 재고 설정
+                      await delay(500)
+                      console.log('[wing/inject] Setting price and stock for all rows...')
 
-                        if (!isNaN(itemWinnerPrice)) {
-                          // 2배 가격 계산 후 천원 이하 절삭
-                          const doublePrice = itemWinnerPrice * 2
-                          const finalPrice = Math.floor(doublePrice / 1000) * 1000
-                          console.log('[wing/inject] 💰 Calculated Price:', finalPrice)
+                      // 옵션 테이블의 모든 row 찾기
+                      const optionRows = document.querySelectorAll('.option-pane-table-row[data-row-id]')
+                      console.log('[wing/inject] 📦 Found option rows:', optionRows.length)
 
-                          // 옵션 테이블의 모든 row 찾기
-                          const optionRows = document.querySelectorAll('.option-pane-table-row[data-row-id]')
-                          console.log('[wing/inject] 📦 Found option rows:', optionRows.length)
+                      if (optionRows.length === 0) {
+                        console.warn('[wing/inject] ⚠️ No option rows found')
+                      } else {
+                        // 모든 row에 대해 순회
+                        optionRows.forEach((row, index) => {
+                          try {
+                            // 각 row의 아이템위너가격 찾기
+                            const itemWinnerPriceElement = row.querySelector('.pre-matching > div:first-child')
+                            if (!itemWinnerPriceElement) {
+                              console.warn(`[wing/inject] ⚠️ Row ${index + 1}: Item winner price element not found`)
+                              return
+                            }
 
-                          optionRows.forEach((row, index) => {
+                            const itemWinnerPriceText = itemWinnerPriceElement.textContent.trim().replace(/,/g, '')
+                            const itemWinnerPrice = parseInt(itemWinnerPriceText)
+                            console.log(`[wing/inject] Row ${index + 1}: Item Winner Price = ${itemWinnerPrice}`)
+
+                            if (isNaN(itemWinnerPrice)) {
+                              console.warn(`[wing/inject] ⚠️ Row ${index + 1}: Could not parse item winner price`)
+                              return
+                            }
+
                             // 모든 input 찾기
                             const inputs = row.querySelectorAll('input.sc-common-input[type="text"]')
                             console.log(`[wing/inject] Row ${index + 1}: Found ${inputs.length} inputs`)
@@ -503,86 +611,1100 @@
                               stockInput = inputs[4]
                             }
 
-                            // 판매가 설정
+                            // 판매가 설정 (아이템위너가격보다 100원 싸게)
                             if (salePriceInput) {
+                              const salePrice = Math.max(0, itemWinnerPrice - 100) // 최소 0원
                               salePriceInput.focus()
                               const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
                                 window.HTMLInputElement.prototype,
                                 'value',
                               ).set
-                              nativeInputValueSetter.call(salePriceInput, finalPrice.toString())
+                              nativeInputValueSetter.call(salePriceInput, salePrice.toString())
                               salePriceInput.dispatchEvent(new Event('input', { bubbles: true }))
                               salePriceInput.dispatchEvent(new Event('change', { bubbles: true }))
                               salePriceInput.blur()
-                              console.log(`[wing/inject] ✅ Row ${index + 1}: Set sale price to ${finalPrice}`)
+                              console.log(
+                                `[wing/inject] ✅ Row ${index + 1}: Set sale price to ${salePrice} (item winner price: ${itemWinnerPrice} - 100)`,
+                              )
                             } else {
                               console.warn(`[wing/inject] ⚠️ Row ${index + 1}: Sale price input not found`)
                             }
 
-                            // 재고수량 설정
+                            // 재고수량 설정 (1000으로)
                             if (stockInput) {
                               stockInput.focus()
                               const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
                                 window.HTMLInputElement.prototype,
                                 'value',
                               ).set
-                              nativeInputValueSetter.call(stockInput, '500')
+                              nativeInputValueSetter.call(stockInput, '1000')
                               stockInput.dispatchEvent(new Event('input', { bubbles: true }))
                               stockInput.dispatchEvent(new Event('change', { bubbles: true }))
                               stockInput.blur()
-                              console.log(`[wing/inject] ✅ Row ${index + 1}: Set stock to 500`)
+                              console.log(`[wing/inject] ✅ Row ${index + 1}: Set stock to 1000`)
                             } else {
                               console.warn(`[wing/inject] ⚠️ Row ${index + 1}: Stock input not found`)
                             }
-                          })
-                        } else {
-                          console.warn('[wing/inject] ⚠️ Could not parse item winner price')
-                        }
-                      } else {
-                        console.warn('[wing/inject] ⚠️ Item winner price element not found')
-                      }
-
-                      // "기본 등록" 버튼 클릭 처리 (기존 코드 유지)
-                      await delay(2500)
-                      console.log('[wing/inject] Looking for "기본 등록" button...')
-
-                      let basicAttempts = 0
-                      const maxBasicAttempts = 50
-                      const basicRegisterRadio = await new Promise(resolve => {
-                        const basicPollInterval = setInterval(() => {
-                          basicAttempts++
-
-                          const allRadios = document.querySelectorAll(
-                            'input[name="tab-product-image-pane"][type="radio"]',
-                          )
-                          let basicRegisterRadio = null
-                          let basicRegisterLabel = null
-
-                          allRadios.forEach(radio => {
-                            const label = document.querySelector(`label[for="${radio.id}"]`)
-                            if (label && label.textContent?.includes('기본 등록')) {
-                              basicRegisterRadio = radio
-                              basicRegisterLabel = label
-                            }
-                          })
-
-                          if (basicRegisterRadio && basicRegisterLabel) {
-                            clearInterval(basicPollInterval)
-                            resolve({ radio: basicRegisterRadio, label: basicRegisterLabel })
-                          } else if (basicAttempts >= maxBasicAttempts) {
-                            clearInterval(basicPollInterval)
-                            resolve(null)
+                          } catch (error) {
+                            console.error(`[wing/inject] ❌ Error processing row ${index + 1}:`, error)
                           }
-                        }, 200)
-                      })
+                        })
 
-                      if (basicRegisterRadio) {
-                        console.log('[wing/inject] ✅ Found "기본 등록" button! Clicking...')
-                        basicRegisterRadio.radio.click()
-                        basicRegisterRadio.label.click()
-                        console.log('[wing/inject] ✅ "기본 등록" button clicked successfully')
-                      } else {
-                        console.warn('[wing/inject] ❌ Timeout: "기본 등록" button did not appear')
+                        console.log(`[wing/inject] ✅ Finished setting price and stock for ${optionRows.length} rows`)
+
+                        // 6. panel-contents로 스크롤 후 '기본 등록' 버튼 클릭
+                        await delay(1000)
+                        console.log('[wing/inject] 📜 Scrolling to panel-contents...')
+                        const panelContents = document.getElementById('panel-contents')
+                        if (panelContents) {
+                          panelContents.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                          await delay(500) // 스크롤 완료 대기
+                          console.log('[wing/inject] ✅ Scrolled to panel-contents')
+
+                          // '기본 등록' 버튼 찾기 및 클릭
+                          await delay(500)
+                          console.log('[wing/inject] Looking for "기본 등록" button...')
+
+                          // 방법 1: radio input 찾기
+                          const basicRegisterRadio = document.getElementById('tab-content-level-0')
+                          if (basicRegisterRadio) {
+                            console.log('[wing/inject] ✅ Found "기본 등록" radio input!')
+
+                            // radio input 클릭
+                            basicRegisterRadio.click()
+
+                            // label도 클릭 (더 확실한 선택을 위해)
+                            const basicRegisterLabel = document.querySelector('label[for="tab-content-level-0"]')
+                            if (basicRegisterLabel) {
+                              basicRegisterLabel.click()
+                              console.log('[wing/inject] ✅ Clicked "기본 등록" label')
+                            }
+
+                            // checked 속성도 설정
+                            basicRegisterRadio.checked = true
+                            basicRegisterRadio.dispatchEvent(new Event('change', { bubbles: true }))
+
+                            console.log('[wing/inject] ✅ "기본 등록" button clicked successfully')
+                          } else {
+                            // 방법 2: label 텍스트로 찾기
+                            const labels = document.querySelectorAll('label')
+                            let found = false
+                            for (const label of labels) {
+                              if (label.textContent?.trim().includes('기본 등록')) {
+                                console.log('[wing/inject] ✅ Found "기본 등록" label by text!')
+                                label.click()
+
+                                // 연결된 radio input도 클릭
+                                const radioId = label.getAttribute('for')
+                                if (radioId) {
+                                  const radio = document.getElementById(radioId)
+                                  if (radio) {
+                                    radio.click()
+                                    radio.checked = true
+                                    radio.dispatchEvent(new Event('change', { bubbles: true }))
+                                  }
+                                }
+
+                                found = true
+                                console.log('[wing/inject] ✅ "기본 등록" button clicked successfully')
+                                break
+                              }
+                            }
+
+                            if (!found) {
+                              console.warn('[wing/inject] ❌ "기본 등록" button not found')
+                            }
+                          }
+
+                          // 7. '이미지 업로드' 탭 선택 및 '이미지 등록' 버튼 클릭
+                          await delay(1000)
+                          console.log('[wing/inject] Looking for "이미지 업로드" tab...')
+
+                          // '이미지 업로드' 탭 선택 (id="tab-content-0")
+                          const imageUploadRadio = document.getElementById('tab-content-0')
+                          if (imageUploadRadio) {
+                            console.log('[wing/inject] ✅ Found "이미지 업로드" radio input!')
+                            imageUploadRadio.click()
+
+                            const imageUploadLabel = document.querySelector('label[for="tab-content-0"]')
+                            if (imageUploadLabel) {
+                              imageUploadLabel.click()
+                              console.log('[wing/inject] ✅ Clicked "이미지 업로드" label')
+                            }
+
+                            imageUploadRadio.checked = true
+                            imageUploadRadio.dispatchEvent(new Event('change', { bubbles: true }))
+                            console.log('[wing/inject] ✅ "이미지 업로드" tab selected')
+                          } else {
+                            console.warn('[wing/inject] ⚠️ "이미지 업로드" tab not found')
+                          }
+
+                          // '이미지 등록' 버튼 찾기 및 클릭
+                          await delay(1000)
+                          console.log('[wing/inject] Looking for "이미지 등록" button...')
+
+                          let imageRegisterButton = null
+                          // 방법 1: 버튼 텍스트로 찾기
+                          const buttons = document.querySelectorAll('button.sc-common-btn')
+                          for (const btn of buttons) {
+                            if (btn.textContent?.trim().includes('이미지 등록')) {
+                              imageRegisterButton = btn
+                              console.log('[wing/inject] ✅ Found "이미지 등록" button by text!')
+                              break
+                            }
+                          }
+
+                          // 방법 2: class에 button이 포함된 버튼 찾기
+                          if (!imageRegisterButton) {
+                            const buttonElements = document.querySelectorAll('button.button, button.sc-common-btn')
+                            for (const btn of buttonElements) {
+                              if (btn.textContent?.trim().includes('이미지 등록')) {
+                                imageRegisterButton = btn
+                                console.log('[wing/inject] ✅ Found "이미지 등록" button by class!')
+                                break
+                              }
+                            }
+                          }
+
+                          if (imageRegisterButton) {
+                            // 버튼을 viewport에 보이도록 스크롤
+                            imageRegisterButton.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                            await delay(300)
+
+                            console.log('[wing/inject] ✅ Clicking "이미지 등록" button...')
+                            imageRegisterButton.click()
+                            console.log('[wing/inject] ✅ "이미지 등록" button clicked successfully')
+
+                            // 8. 팝업이 뜰 때까지 대기 후 이미지 업로드
+                            await delay(2000) // 팝업이 뜰 때까지 대기
+                            console.log('[wing/inject] 📸 Waiting for image upload modal to appear...')
+
+                            // 이미지 업로드 모달이 나타날 때까지 대기
+                            let modalAppeared = false
+                            for (let i = 0; i < 30; i++) {
+                              const imageModal = document.querySelector('.image-modal, [class*="image-modal"]')
+                              const dropZone = document.querySelector('.image-drop-zone, [class*="image-drop-zone"]')
+                              const fileInput = document.querySelector('input[type="file"][hidden], input[type="file"]')
+
+                              if (imageModal || dropZone || fileInput) {
+                                modalAppeared = true
+                                console.log('[wing/inject] ✅ Image upload modal appeared!')
+                                break
+                              }
+                              await delay(200)
+                            }
+
+                            if (modalAppeared) {
+                              await delay(500)
+                              console.log('[wing/inject] 📤 Uploading images to dropzone...')
+
+                              // 저장된 이미지 가져오기
+                              const images = window.__COUPANG_PRODUCT_IMAGES__ || []
+                              const itemBriefCapture = window.__ITEM_BRIEF_CAPTURE__ || null
+
+                              console.log('[wing/inject] 📦 Images from window:', images)
+                              console.log('[wing/inject] 📦 Images length:', images.length)
+                              console.log('[wing/inject] 📄 ItemBrief capture:', !!itemBriefCapture)
+                              if (images.length > 0) {
+                                console.log('[wing/inject] 📸 First image URL:', images[0])
+                              }
+
+                              // 업로드할 파일 배열
+                              const filesToUpload = []
+
+                              // 1. 썸네일 이미지 (첫 번째 이미지)
+                              if (images.length > 0 && images[0]) {
+                                try {
+                                  console.log('[wing/inject] 📥 Fetching thumbnail image:', images[0])
+
+                                  // CORS 문제를 우회하기 위해 proxy를 사용하거나 직접 fetch 시도
+                                  let thumbnailBlob = null
+                                  try {
+                                    const thumbnailResponse = await fetch(images[0], {
+                                      mode: 'cors',
+                                      credentials: 'omit',
+                                    })
+                                    if (!thumbnailResponse.ok) {
+                                      throw new Error(`HTTP ${thumbnailResponse.status}`)
+                                    }
+                                    thumbnailBlob = await thumbnailResponse.blob()
+                                    console.log(
+                                      '[wing/inject] ✅ Thumbnail fetched successfully, size:',
+                                      thumbnailBlob.size,
+                                    )
+                                  } catch (fetchError) {
+                                    console.warn(
+                                      '[wing/inject] ⚠️ Direct fetch failed, trying alternative method:',
+                                      fetchError,
+                                    )
+
+                                    // CORS 실패 시 이미지 URL을 blob URL로 변환 시도
+                                    try {
+                                      const img = new Image()
+                                      img.crossOrigin = 'anonymous'
+
+                                      thumbnailBlob = await new Promise((resolve, reject) => {
+                                        img.onload = () => {
+                                          const canvas = document.createElement('canvas')
+                                          canvas.width = img.width
+                                          canvas.height = img.height
+                                          const ctx = canvas.getContext('2d')
+                                          ctx.drawImage(img, 0, 0)
+                                          canvas.toBlob(
+                                            blob => {
+                                              if (blob) {
+                                                resolve(blob)
+                                              } else {
+                                                reject(new Error('Failed to convert canvas to blob'))
+                                              }
+                                            },
+                                            'image/jpeg',
+                                            0.9,
+                                          )
+                                        }
+                                        img.onerror = () => reject(new Error('Image load failed'))
+                                        img.src = images[0]
+                                      })
+                                      console.log(
+                                        '[wing/inject] ✅ Thumbnail converted via canvas, size:',
+                                        thumbnailBlob.size,
+                                      )
+                                    } catch (canvasError) {
+                                      console.error('[wing/inject] ❌ Canvas conversion also failed:', canvasError)
+                                      throw canvasError
+                                    }
+                                  }
+
+                                  if (thumbnailBlob) {
+                                    const thumbnailFile = new File([thumbnailBlob], 'thumbnail.jpg', {
+                                      type: thumbnailBlob.type || 'image/jpeg',
+                                    })
+                                    filesToUpload.push(thumbnailFile)
+                                    console.log(
+                                      '[wing/inject] ✅ Thumbnail image prepared, file size:',
+                                      thumbnailFile.size,
+                                    )
+                                  }
+                                } catch (error) {
+                                  console.error('[wing/inject] ❌ Failed to fetch thumbnail:', error)
+                                  console.error('[wing/inject] ❌ Error details:', error.message, error.stack)
+                                }
+                              } else {
+                                console.warn(
+                                  '[wing/inject] ⚠️ No images available in window.__COUPANG_PRODUCT_IMAGES__',
+                                )
+                              }
+
+                              // 2. 필수 표기 정보 (itemBriefCapture)
+                              if (itemBriefCapture) {
+                                try {
+                                  console.log('[wing/inject] 📥 Processing itemBrief capture...')
+                                  // base64 이미지를 Blob으로 변환
+                                  const base64Data = itemBriefCapture.startsWith('data:')
+                                    ? itemBriefCapture
+                                    : `data:image/png;base64,${itemBriefCapture}`
+
+                                  const response = await fetch(base64Data)
+                                  const blob = await response.blob()
+                                  const briefFile = new File([blob], 'itemBrief.png', {
+                                    type: blob.type || 'image/png',
+                                  })
+                                  filesToUpload.push(briefFile)
+                                  console.log('[wing/inject] ✅ ItemBrief capture prepared, file size:', briefFile.size)
+                                } catch (error) {
+                                  console.error('[wing/inject] ❌ Failed to process itemBrief:', error)
+                                  console.error('[wing/inject] ❌ Error details:', error.message, error.stack)
+                                }
+                              } else {
+                                console.warn('[wing/inject] ⚠️ No itemBrief capture available')
+                              }
+
+                              if (filesToUpload.length === 0) {
+                                console.warn('[wing/inject] ⚠️ No files to upload')
+                              } else {
+                                console.log(`[wing/inject] 📤 Preparing to upload ${filesToUpload.length} file(s)...`)
+
+                                // file input 찾기
+                                const fileInput = document.querySelector('input[type="file"]')
+                                if (fileInput) {
+                                  console.log('[wing/inject] ✅ Found file input')
+
+                                  // FileList 생성 (DOM API 제한으로 DataTransfer 사용)
+                                  const dataTransfer = new DataTransfer()
+                                  filesToUpload.forEach(file => {
+                                    dataTransfer.items.add(file)
+                                  })
+                                  fileInput.files = dataTransfer.files
+
+                                  // change 이벤트 발생
+                                  const changeEvent = new Event('change', { bubbles: true })
+                                  fileInput.dispatchEvent(changeEvent)
+
+                                  // input 이벤트도 발생
+                                  const inputEvent = new Event('input', { bubbles: true })
+                                  fileInput.dispatchEvent(inputEvent)
+
+                                  console.log('[wing/inject] ✅ Files uploaded to file input')
+
+                                  // 9. 이미지 업로드 후 3초 대기
+                                  await delay(3000)
+                                  console.log('[wing/inject] ⏳ Waited 3 seconds after image upload...')
+
+                                  // 10. '저장' 버튼 찾기 및 클릭
+                                  console.log('[wing/inject] 🔍 Looking for "저장" button...')
+                                  let saveButton = null
+                                  for (let i = 0; i < 30; i++) {
+                                    saveButton = findButtonByText('저장')
+                                    if (saveButton) {
+                                      console.log('[wing/inject] ✅ Found "저장" button!')
+                                      break
+                                    }
+                                    await delay(200)
+                                  }
+
+                                  if (saveButton) {
+                                    saveButton.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                                    await delay(300)
+                                    console.log('[wing/inject] ✅ Clicking "저장" button...')
+                                    saveButton.click()
+                                    console.log('[wing/inject] ✅ "저장" button clicked successfully')
+
+                                    // 11. 저장 버튼 클릭 후 panel-product-meta-info로 스크롤
+                                    await delay(1000)
+                                    console.log('[wing/inject] 📜 Scrolling to panel-product-meta-info...')
+                                    const panelProductMetaInfo = document.getElementById('panel-product-meta-info')
+                                    if (panelProductMetaInfo) {
+                                      panelProductMetaInfo.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                                      await delay(500) // 스크롤 완료 대기
+                                      console.log('[wing/inject] ✅ Scrolled to panel-product-meta-info')
+
+                                      // 12. 인증정보 > 상세페이지 별도표기 클릭
+                                      await delay(500)
+                                      console.log('[wing/inject] 🔍 Looking for "상세페이지 별도표기" radio button...')
+                                      let certificationRadio = document.getElementById(
+                                        'certificationType_PRESENTED_IN_DETAIL_PAGE_1',
+                                      )
+                                      if (!certificationRadio) {
+                                        // label로 찾기
+                                        const labels = document.querySelectorAll(
+                                          'label[for="certificationType_PRESENTED_IN_DETAIL_PAGE_1"]',
+                                        )
+                                        if (labels.length > 0) {
+                                          console.log('[wing/inject] ✅ Found "상세페이지 별도표기" label, clicking...')
+                                          labels[0].click()
+                                        } else {
+                                          // 텍스트로 찾기
+                                          const radioButtons = document.querySelectorAll(
+                                            'input[type="radio"][name="certificationType"]',
+                                          )
+                                          for (const radio of radioButtons) {
+                                            const label = document.querySelector(`label[for="${radio.id}"]`)
+                                            if (label && label.textContent?.trim().includes('상세페이지 별도표기')) {
+                                              certificationRadio = radio
+                                              console.log('[wing/inject] ✅ Found "상세페이지 별도표기" radio by text')
+                                              break
+                                            }
+                                          }
+                                        }
+                                      }
+
+                                      if (certificationRadio) {
+                                        certificationRadio.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                                        await delay(200)
+                                        certificationRadio.checked = true
+                                        certificationRadio.click()
+                                        certificationRadio.dispatchEvent(new Event('change', { bubbles: true }))
+                                        console.log('[wing/inject] ✅ "상세페이지 별도표기" clicked successfully')
+                                      } else {
+                                        console.warn('[wing/inject] ⚠️ "상세페이지 별도표기" radio button not found')
+                                      }
+
+                                      // 13. 판매기간 > 설정안함 클릭
+                                      await delay(500)
+                                      console.log(
+                                        '[wing/inject] 🔍 Looking for "설정안함" radio button for 판매기간...',
+                                      )
+                                      let salePeriodRadio = document.getElementById('salePeriod_N_1')
+                                      if (!salePeriodRadio) {
+                                        // label로 찾기
+                                        const labels = document.querySelectorAll('label[for="salePeriod_N_1"]')
+                                        if (labels.length > 0) {
+                                          console.log(
+                                            '[wing/inject] ✅ Found "설정안함" label for 판매기간, clicking...',
+                                          )
+                                          labels[0].click()
+                                        } else {
+                                          // 판매기간 섹션 내에서 찾기
+                                          const salePeriodSection = panelProductMetaInfo.querySelector(
+                                            '[data-v-242f2d92=""] .wrapper',
+                                          )
+                                          if (salePeriodSection) {
+                                            const radioButtons = salePeriodSection.querySelectorAll(
+                                              'input[type="radio"][name="salePeriod"]',
+                                            )
+                                            for (const radio of radioButtons) {
+                                              const label = document.querySelector(`label[for="${radio.id}"]`)
+                                              if (label && label.textContent?.trim().includes('설정안함')) {
+                                                salePeriodRadio = radio
+                                                console.log(
+                                                  '[wing/inject] ✅ Found "설정안함" radio for 판매기간 by text',
+                                                )
+                                                break
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+
+                                      if (salePeriodRadio) {
+                                        salePeriodRadio.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                                        await delay(200)
+                                        salePeriodRadio.checked = true
+                                        salePeriodRadio.click()
+                                        salePeriodRadio.dispatchEvent(new Event('change', { bubbles: true }))
+                                        console.log('[wing/inject] ✅ "설정안함" for 판매기간 clicked successfully')
+                                      } else {
+                                        console.warn('[wing/inject] ⚠️ "설정안함" radio button for 판매기간 not found')
+                                      }
+
+                                      // 14. panel-notice-category로 스크롤
+                                      await delay(500)
+                                      console.log('[wing/inject] 📜 Scrolling to panel-notice-category...')
+                                      const panelNoticeCategory = document.getElementById('panel-notice-category')
+                                      if (panelNoticeCategory) {
+                                        panelNoticeCategory.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                                        await delay(500) // 스크롤 완료 대기
+                                        console.log('[wing/inject] ✅ Scrolled to panel-notice-category')
+
+                                        // 15. '전체 상품 상세페이지 참조' 체크박스 클릭
+                                        await delay(500)
+                                        console.log(
+                                          '[wing/inject] 🔍 Looking for "전체 상품 상세페이지 참조" checkbox...',
+                                        )
+
+                                        // 체크박스 찾기 (여러 방법 시도)
+                                        let allPageCheckbox = null
+                                        let allPageSpan = null
+
+                                        // 방법 1: panel-notice-category 내에서 span.sc-common-check 찾기
+                                        if (panelNoticeCategory) {
+                                          const spans = panelNoticeCategory.querySelectorAll('span.sc-common-check')
+                                          for (const span of spans) {
+                                            const labelText = span.textContent?.trim().replace(/\s+/g, ' ')
+                                            console.log('[wing/inject] 📝 Checking span text:', labelText)
+                                            if (labelText && labelText.includes('전체 상품 상세페이지 참조')) {
+                                              const checkbox = span.querySelector('input[type="checkbox"]')
+                                              if (checkbox) {
+                                                allPageCheckbox = checkbox
+                                                allPageSpan = span
+                                                console.log(
+                                                  '[wing/inject] ✅ Found "전체 상품 상세페이지 참조" checkbox in panel-notice-category',
+                                                )
+                                                break
+                                              }
+                                            }
+                                          }
+                                        }
+
+                                        // 방법 2: 전체 문서에서 span.sc-common-check 찾기
+                                        if (!allPageCheckbox) {
+                                          const spans = document.querySelectorAll('span.sc-common-check')
+                                          for (const span of spans) {
+                                            const labelText = span.textContent?.trim().replace(/\s+/g, ' ')
+                                            if (labelText && labelText.includes('전체 상품 상세페이지 참조')) {
+                                              const checkbox = span.querySelector('input[type="checkbox"]')
+                                              if (checkbox) {
+                                                allPageCheckbox = checkbox
+                                                allPageSpan = span
+                                                console.log(
+                                                  '[wing/inject] ✅ Found "전체 상품 상세페이지 참조" checkbox by text in span',
+                                                )
+                                                break
+                                              }
+                                            }
+                                          }
+                                        }
+
+                                        if (allPageCheckbox && allPageSpan) {
+                                          console.log('[wing/inject] 📦 Found elements:', {
+                                            checkbox: !!allPageCheckbox,
+                                            span: !!allPageSpan,
+                                            currentChecked: allPageCheckbox.checked,
+                                          })
+
+                                          // span을 먼저 스크롤
+                                          allPageSpan.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                                          await delay(500)
+
+                                          // 체크박스가 이미 체크되어 있지 않은 경우에만 클릭
+                                          if (!allPageCheckbox.checked) {
+                                            // 방법 1: span의 중앙 좌표 계산하여 클릭
+                                            const spanRect = allPageSpan.getBoundingClientRect()
+                                            const spanX = spanRect.left + spanRect.width / 2
+                                            const spanY = spanRect.top + spanRect.height / 2
+
+                                            console.log('[wing/inject] 📍 Attempting click at coordinates:', {
+                                              spanX,
+                                              spanY,
+                                            })
+
+                                            // 마우스 이벤트 생성 (실제 좌표와 함께)
+                                            const mouseDownEvent = new MouseEvent('mousedown', {
+                                              bubbles: true,
+                                              cancelable: true,
+                                              view: window,
+                                              clientX: spanX,
+                                              clientY: spanY,
+                                              button: 0,
+                                            })
+
+                                            const mouseUpEvent = new MouseEvent('mouseup', {
+                                              bubbles: true,
+                                              cancelable: true,
+                                              view: window,
+                                              clientX: spanX,
+                                              clientY: spanY,
+                                              button: 0,
+                                            })
+
+                                            const clickEvent = new MouseEvent('click', {
+                                              bubbles: true,
+                                              cancelable: true,
+                                              view: window,
+                                              clientX: spanX,
+                                              clientY: spanY,
+                                              button: 0,
+                                            })
+
+                                            // span에 마우스 이벤트 발생
+                                            allPageSpan.dispatchEvent(mouseDownEvent)
+                                            await delay(50)
+                                            allPageSpan.dispatchEvent(mouseUpEvent)
+                                            await delay(50)
+                                            allPageSpan.dispatchEvent(clickEvent)
+                                            allPageSpan.click()
+
+                                            await delay(200)
+
+                                            // 체크박스 좌표 계산하여 클릭
+                                            const checkboxRect = allPageCheckbox.getBoundingClientRect()
+                                            const checkboxX = checkboxRect.left + checkboxRect.width / 2
+                                            const checkboxY = checkboxRect.top + checkboxRect.height / 2
+
+                                            console.log('[wing/inject] 📍 Clicking checkbox at coordinates:', {
+                                              checkboxX,
+                                              checkboxY,
+                                            })
+
+                                            const checkboxMouseDown = new MouseEvent('mousedown', {
+                                              bubbles: true,
+                                              cancelable: true,
+                                              view: window,
+                                              clientX: checkboxX,
+                                              clientY: checkboxY,
+                                              button: 0,
+                                            })
+
+                                            const checkboxMouseUp = new MouseEvent('mouseup', {
+                                              bubbles: true,
+                                              cancelable: true,
+                                              view: window,
+                                              clientX: checkboxX,
+                                              clientY: checkboxY,
+                                              button: 0,
+                                            })
+
+                                            const checkboxClick = new MouseEvent('click', {
+                                              bubbles: true,
+                                              cancelable: true,
+                                              view: window,
+                                              clientX: checkboxX,
+                                              clientY: checkboxY,
+                                              button: 0,
+                                            })
+
+                                            // 체크박스에 직접 마우스 이벤트 발생
+                                            allPageCheckbox.dispatchEvent(checkboxMouseDown)
+                                            await delay(50)
+                                            allPageCheckbox.checked = true
+                                            allPageCheckbox.dispatchEvent(checkboxMouseUp)
+                                            await delay(50)
+                                            allPageCheckbox.dispatchEvent(checkboxClick)
+                                            allPageCheckbox.click()
+
+                                            // 추가 이벤트 발생
+                                            allPageCheckbox.dispatchEvent(new Event('change', { bubbles: true }))
+                                            allPageCheckbox.dispatchEvent(new Event('input', { bubbles: true }))
+                                            allPageCheckbox.dispatchEvent(
+                                              new Event('change', { bubbles: true, cancelable: true }),
+                                            )
+
+                                            await delay(300)
+
+                                            // 상태 확인 및 재시도
+                                            if (!allPageCheckbox.checked) {
+                                              console.log(
+                                                '[wing/inject] ⚠️ Still not checked, trying direct manipulation...',
+                                              )
+
+                                              // 직접 속성 설정
+                                              Object.defineProperty(allPageCheckbox, 'checked', {
+                                                writable: true,
+                                                value: true,
+                                              })
+                                              allPageCheckbox.setAttribute('checked', 'checked')
+
+                                              // 다시 클릭 시도
+                                              allPageSpan.click()
+                                              allPageCheckbox.click()
+
+                                              // 이벤트 재발생
+                                              allPageCheckbox.dispatchEvent(new Event('change', { bubbles: true }))
+                                              allPageCheckbox.dispatchEvent(new Event('input', { bubbles: true }))
+
+                                              await delay(200)
+                                            }
+
+                                            console.log(
+                                              '[wing/inject] ✅ Final state - Checked:',
+                                              allPageCheckbox.checked,
+                                              'Attribute:',
+                                              allPageCheckbox.getAttribute('checked'),
+                                            )
+                                          } else {
+                                            console.log(
+                                              '[wing/inject] ℹ️ "전체 상품 상세페이지 참조" checkbox is already checked',
+                                            )
+                                          }
+                                        } else {
+                                          console.warn(
+                                            '[wing/inject] ⚠️ "전체 상품 상세페이지 참조" checkbox not found',
+                                          )
+                                          if (!allPageCheckbox) {
+                                            console.warn('[wing/inject] ⚠️ Checkbox element not found')
+                                          }
+                                          if (!allPageSpan) {
+                                            console.warn('[wing/inject] ⚠️ Span element not found')
+                                          }
+                                        }
+                                      } else {
+                                        console.warn('[wing/inject] ⚠️ panel-notice-category element not found')
+                                      }
+                                    } else {
+                                      console.warn('[wing/inject] ⚠️ panel-product-meta-info element not found')
+                                    }
+                                  } else {
+                                    console.warn('[wing/inject] ⚠️ "저장" button not found')
+                                  }
+                                } else {
+                                  // dropzone에 드래그 앤 드롭
+                                  const dropZone = document.querySelector(
+                                    '.image-drop-zone, [class*="image-drop-zone"]',
+                                  )
+                                  if (dropZone) {
+                                    console.log('[wing/inject] ✅ Found dropzone, using drag and drop')
+
+                                    const dataTransfer = new DataTransfer()
+                                    filesToUpload.forEach(file => {
+                                      dataTransfer.items.add(file)
+                                    })
+
+                                    // 드래그 앤 드롭 이벤트 시뮬레이션
+                                    const dragEnterEvent = new DragEvent('dragenter', {
+                                      bubbles: true,
+                                      cancelable: true,
+                                      dataTransfer: dataTransfer,
+                                    })
+                                    dropZone.dispatchEvent(dragEnterEvent)
+
+                                    const dragOverEvent = new DragEvent('dragover', {
+                                      bubbles: true,
+                                      cancelable: true,
+                                      dataTransfer: dataTransfer,
+                                    })
+                                    dropZone.dispatchEvent(dragOverEvent)
+
+                                    const dropEvent = new DragEvent('drop', {
+                                      bubbles: true,
+                                      cancelable: true,
+                                      dataTransfer: dataTransfer,
+                                    })
+                                    dropZone.dispatchEvent(dropEvent)
+
+                                    console.log('[wing/inject] ✅ Files dropped to dropzone')
+
+                                    // 9. 이미지 업로드 후 3초 대기
+                                    await delay(3000)
+                                    console.log('[wing/inject] ⏳ Waited 3 seconds after image upload...')
+
+                                    // 10. '저장' 버튼 찾기 및 클릭
+                                    console.log('[wing/inject] 🔍 Looking for "저장" button...')
+                                    let saveButton = null
+                                    for (let i = 0; i < 30; i++) {
+                                      saveButton = findButtonByText('저장')
+                                      if (saveButton) {
+                                        console.log('[wing/inject] ✅ Found "저장" button!')
+                                        break
+                                      }
+                                      await delay(200)
+                                    }
+
+                                    if (saveButton) {
+                                      saveButton.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                                      await delay(300)
+                                      console.log('[wing/inject] ✅ Clicking "저장" button...')
+                                      saveButton.click()
+                                      console.log('[wing/inject] ✅ "저장" button clicked successfully')
+
+                                      // 11. 저장 버튼 클릭 후 panel-product-meta-info로 스크롤
+                                      await delay(1000)
+                                      console.log('[wing/inject] 📜 Scrolling to panel-product-meta-info...')
+                                      const panelProductMetaInfo = document.getElementById('panel-product-meta-info')
+                                      if (panelProductMetaInfo) {
+                                        panelProductMetaInfo.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                                        await delay(500) // 스크롤 완료 대기
+                                        console.log('[wing/inject] ✅ Scrolled to panel-product-meta-info')
+
+                                        // 12. 인증정보 > 상세페이지 별도표기 클릭
+                                        await delay(500)
+                                        console.log(
+                                          '[wing/inject] 🔍 Looking for "상세페이지 별도표기" radio button...',
+                                        )
+                                        let certificationRadio = document.getElementById(
+                                          'certificationType_PRESENTED_IN_DETAIL_PAGE_1',
+                                        )
+                                        if (!certificationRadio) {
+                                          // label로 찾기
+                                          const labels = document.querySelectorAll(
+                                            'label[for="certificationType_PRESENTED_IN_DETAIL_PAGE_1"]',
+                                          )
+                                          if (labels.length > 0) {
+                                            console.log(
+                                              '[wing/inject] ✅ Found "상세페이지 별도표기" label, clicking...',
+                                            )
+                                            labels[0].click()
+                                          } else {
+                                            // 텍스트로 찾기
+                                            const radioButtons = document.querySelectorAll(
+                                              'input[type="radio"][name="certificationType"]',
+                                            )
+                                            for (const radio of radioButtons) {
+                                              const label = document.querySelector(`label[for="${radio.id}"]`)
+                                              if (label && label.textContent?.trim().includes('상세페이지 별도표기')) {
+                                                certificationRadio = radio
+                                                console.log(
+                                                  '[wing/inject] ✅ Found "상세페이지 별도표기" radio by text',
+                                                )
+                                                break
+                                              }
+                                            }
+                                          }
+                                        }
+
+                                        if (certificationRadio) {
+                                          certificationRadio.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                                          await delay(200)
+                                          certificationRadio.checked = true
+                                          certificationRadio.click()
+                                          certificationRadio.dispatchEvent(new Event('change', { bubbles: true }))
+                                          console.log('[wing/inject] ✅ "상세페이지 별도표기" clicked successfully')
+                                        } else {
+                                          console.warn('[wing/inject] ⚠️ "상세페이지 별도표기" radio button not found')
+                                        }
+
+                                        // 13. 판매기간 > 설정안함 클릭
+                                        await delay(500)
+                                        console.log(
+                                          '[wing/inject] 🔍 Looking for "설정안함" radio button for 판매기간...',
+                                        )
+                                        let salePeriodRadio = document.getElementById('salePeriod_N_1')
+                                        if (!salePeriodRadio) {
+                                          // label로 찾기
+                                          const labels = document.querySelectorAll('label[for="salePeriod_N_1"]')
+                                          if (labels.length > 0) {
+                                            console.log(
+                                              '[wing/inject] ✅ Found "설정안함" label for 판매기간, clicking...',
+                                            )
+                                            labels[0].click()
+                                          } else {
+                                            // 판매기간 섹션 내에서 찾기
+                                            const salePeriodSection = panelProductMetaInfo.querySelector(
+                                              '[data-v-242f2d92=""] .wrapper',
+                                            )
+                                            if (salePeriodSection) {
+                                              const radioButtons = salePeriodSection.querySelectorAll(
+                                                'input[type="radio"][name="salePeriod"]',
+                                              )
+                                              for (const radio of radioButtons) {
+                                                const label = document.querySelector(`label[for="${radio.id}"]`)
+                                                if (label && label.textContent?.trim().includes('설정안함')) {
+                                                  salePeriodRadio = radio
+                                                  console.log(
+                                                    '[wing/inject] ✅ Found "설정안함" radio for 판매기간 by text',
+                                                  )
+                                                  break
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+
+                                        if (salePeriodRadio) {
+                                          salePeriodRadio.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                                          await delay(200)
+                                          salePeriodRadio.checked = true
+                                          salePeriodRadio.click()
+                                          salePeriodRadio.dispatchEvent(new Event('change', { bubbles: true }))
+                                          console.log('[wing/inject] ✅ "설정안함" for 판매기간 clicked successfully')
+                                        } else {
+                                          console.warn(
+                                            '[wing/inject] ⚠️ "설정안함" radio button for 판매기간 not found',
+                                          )
+                                        }
+
+                                        // 14. panel-notice-category로 스크롤
+                                        await delay(500)
+                                        console.log('[wing/inject] 📜 Scrolling to panel-notice-category...')
+                                        const panelNoticeCategory = document.getElementById('panel-notice-category')
+                                        if (panelNoticeCategory) {
+                                          panelNoticeCategory.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                                          await delay(500) // 스크롤 완료 대기
+                                          console.log('[wing/inject] ✅ Scrolled to panel-notice-category')
+
+                                          // 15. '전체 상품 상세페이지 참조' 체크박스 클릭
+                                          await delay(500)
+                                          console.log(
+                                            '[wing/inject] 🔍 Looking for "전체 상품 상세페이지 참조" checkbox...',
+                                          )
+
+                                          // 체크박스 찾기 (여러 방법 시도)
+                                          let allPageCheckbox = null
+                                          let allPageSpan = null
+
+                                          // 방법 1: panel-notice-category 내에서 span.sc-common-check 찾기
+                                          if (panelNoticeCategory) {
+                                            const spans = panelNoticeCategory.querySelectorAll('span.sc-common-check')
+                                            for (const span of spans) {
+                                              const labelText = span.textContent?.trim().replace(/\s+/g, ' ')
+                                              console.log('[wing/inject] 📝 Checking span text:', labelText)
+                                              if (labelText && labelText.includes('전체 상품 상세페이지 참조')) {
+                                                const checkbox = span.querySelector('input[type="checkbox"]')
+                                                if (checkbox) {
+                                                  allPageCheckbox = checkbox
+                                                  allPageSpan = span
+                                                  console.log(
+                                                    '[wing/inject] ✅ Found "전체 상품 상세페이지 참조" checkbox in panel-notice-category',
+                                                  )
+                                                  break
+                                                }
+                                              }
+                                            }
+                                          }
+
+                                          // 방법 2: 전체 문서에서 span.sc-common-check 찾기
+                                          if (!allPageCheckbox) {
+                                            const spans = document.querySelectorAll('span.sc-common-check')
+                                            for (const span of spans) {
+                                              const labelText = span.textContent?.trim().replace(/\s+/g, ' ')
+                                              if (labelText && labelText.includes('전체 상품 상세페이지 참조')) {
+                                                const checkbox = span.querySelector('input[type="checkbox"]')
+                                                if (checkbox) {
+                                                  allPageCheckbox = checkbox
+                                                  allPageSpan = span
+                                                  console.log(
+                                                    '[wing/inject] ✅ Found "전체 상품 상세페이지 참조" checkbox by text in span',
+                                                  )
+                                                  break
+                                                }
+                                              }
+                                            }
+                                          }
+
+                                          if (allPageCheckbox && allPageSpan) {
+                                            console.log('[wing/inject] 📦 Found elements:', {
+                                              checkbox: !!allPageCheckbox,
+                                              span: !!allPageSpan,
+                                              currentChecked: allPageCheckbox.checked,
+                                            })
+
+                                            // span을 먼저 스크롤
+                                            allPageSpan.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                                            await delay(500)
+
+                                            // 체크박스가 이미 체크되어 있지 않은 경우에만 클릭
+                                            if (!allPageCheckbox.checked) {
+                                              // 방법 1: span의 중앙 좌표 계산하여 클릭
+                                              const spanRect = allPageSpan.getBoundingClientRect()
+                                              const spanX = spanRect.left + spanRect.width / 2
+                                              const spanY = spanRect.top + spanRect.height / 2
+
+                                              console.log('[wing/inject] 📍 Attempting click at coordinates:', {
+                                                spanX,
+                                                spanY,
+                                              })
+
+                                              // 마우스 이벤트 생성 (실제 좌표와 함께)
+                                              const mouseDownEvent = new MouseEvent('mousedown', {
+                                                bubbles: true,
+                                                cancelable: true,
+                                                view: window,
+                                                clientX: spanX,
+                                                clientY: spanY,
+                                                button: 0,
+                                              })
+
+                                              const mouseUpEvent = new MouseEvent('mouseup', {
+                                                bubbles: true,
+                                                cancelable: true,
+                                                view: window,
+                                                clientX: spanX,
+                                                clientY: spanY,
+                                                button: 0,
+                                              })
+
+                                              const clickEvent = new MouseEvent('click', {
+                                                bubbles: true,
+                                                cancelable: true,
+                                                view: window,
+                                                clientX: spanX,
+                                                clientY: spanY,
+                                                button: 0,
+                                              })
+
+                                              // span에 마우스 이벤트 발생
+                                              allPageSpan.dispatchEvent(mouseDownEvent)
+                                              await delay(50)
+                                              allPageSpan.dispatchEvent(mouseUpEvent)
+                                              await delay(50)
+                                              allPageSpan.dispatchEvent(clickEvent)
+                                              allPageSpan.click()
+
+                                              await delay(200)
+
+                                              // 체크박스 좌표 계산하여 클릭
+                                              const checkboxRect = allPageCheckbox.getBoundingClientRect()
+                                              const checkboxX = checkboxRect.left + checkboxRect.width / 2
+                                              const checkboxY = checkboxRect.top + checkboxRect.height / 2
+
+                                              console.log('[wing/inject] 📍 Clicking checkbox at coordinates:', {
+                                                checkboxX,
+                                                checkboxY,
+                                              })
+
+                                              const checkboxMouseDown = new MouseEvent('mousedown', {
+                                                bubbles: true,
+                                                cancelable: true,
+                                                view: window,
+                                                clientX: checkboxX,
+                                                clientY: checkboxY,
+                                                button: 0,
+                                              })
+
+                                              const checkboxMouseUp = new MouseEvent('mouseup', {
+                                                bubbles: true,
+                                                cancelable: true,
+                                                view: window,
+                                                clientX: checkboxX,
+                                                clientY: checkboxY,
+                                                button: 0,
+                                              })
+
+                                              const checkboxClick = new MouseEvent('click', {
+                                                bubbles: true,
+                                                cancelable: true,
+                                                view: window,
+                                                clientX: checkboxX,
+                                                clientY: checkboxY,
+                                                button: 0,
+                                              })
+
+                                              // 체크박스에 직접 마우스 이벤트 발생
+                                              allPageCheckbox.dispatchEvent(checkboxMouseDown)
+                                              await delay(50)
+                                              allPageCheckbox.checked = true
+                                              allPageCheckbox.dispatchEvent(checkboxMouseUp)
+                                              await delay(50)
+                                              allPageCheckbox.dispatchEvent(checkboxClick)
+                                              allPageCheckbox.click()
+
+                                              // 추가 이벤트 발생
+                                              allPageCheckbox.dispatchEvent(new Event('change', { bubbles: true }))
+                                              allPageCheckbox.dispatchEvent(new Event('input', { bubbles: true }))
+                                              allPageCheckbox.dispatchEvent(
+                                                new Event('change', { bubbles: true, cancelable: true }),
+                                              )
+
+                                              await delay(300)
+
+                                              // 상태 확인 및 재시도
+                                              if (!allPageCheckbox.checked) {
+                                                console.log(
+                                                  '[wing/inject] ⚠️ Still not checked, trying direct manipulation...',
+                                                )
+
+                                                // 직접 속성 설정
+                                                Object.defineProperty(allPageCheckbox, 'checked', {
+                                                  writable: true,
+                                                  value: true,
+                                                })
+                                                allPageCheckbox.setAttribute('checked', 'checked')
+
+                                                // 다시 클릭 시도
+                                                allPageSpan.click()
+                                                allPageCheckbox.click()
+
+                                                // 이벤트 재발생
+                                                allPageCheckbox.dispatchEvent(new Event('change', { bubbles: true }))
+                                                allPageCheckbox.dispatchEvent(new Event('input', { bubbles: true }))
+
+                                                await delay(200)
+                                              }
+
+                                              console.log(
+                                                '[wing/inject] ✅ Final state - Checked:',
+                                                allPageCheckbox.checked,
+                                                'Attribute:',
+                                                allPageCheckbox.getAttribute('checked'),
+                                              )
+                                            } else {
+                                              console.log(
+                                                '[wing/inject] ℹ️ "전체 상품 상세페이지 참조" checkbox is already checked',
+                                              )
+                                            }
+                                          } else {
+                                            console.warn(
+                                              '[wing/inject] ⚠️ "전체 상품 상세페이지 참조" checkbox not found',
+                                            )
+                                            if (!allPageCheckbox) {
+                                              console.warn('[wing/inject] ⚠️ Checkbox element not found')
+                                            }
+                                            if (!allPageSpan) {
+                                              console.warn('[wing/inject] ⚠️ Span element not found')
+                                            }
+                                          }
+                                        } else {
+                                          console.warn('[wing/inject] ⚠️ panel-notice-category element not found')
+                                        }
+                                      } else {
+                                        console.warn('[wing/inject] ⚠️ panel-product-meta-info element not found')
+                                      }
+                                    } else {
+                                      console.warn('[wing/inject] ⚠️ "저장" button not found')
+                                    }
+                                  } else {
+                                    console.warn('[wing/inject] ⚠️ Neither file input nor dropzone found')
+                                  }
+                                }
+                              }
+                            } else {
+                              console.warn('[wing/inject] ⚠️ Image upload modal did not appear')
+                            }
+                          } else {
+                            console.warn('[wing/inject] ❌ "이미지 등록" button not found')
+                          }
+                        } else {
+                          console.warn('[wing/inject] ⚠️ panel-contents element not found')
+                        }
                       }
                     } catch (error) {
                       console.error('[wing/inject] ❌ Error in main upload flow:', error)
