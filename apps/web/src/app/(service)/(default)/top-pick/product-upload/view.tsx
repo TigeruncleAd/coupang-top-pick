@@ -434,6 +434,19 @@ export default function Client({ extensionId }: { extensionId: string }) {
                             ))}
                           </div>
                         )}
+                        {product.attributeValues &&
+                          product.attributeValues.length > 0 &&
+                          product.optionOrder &&
+                          product.optionOrder.length > 0 && (
+                            <div className="mt-1">
+                              <span className="text-muted-foreground text-xs font-medium">
+                                {product.optionOrder[0]} :{' '}
+                              </span>
+                              <span className="text-xs text-green-400">
+                                {product.attributeValues.join(', ')}
+                              </span>
+                            </div>
+                          )}
                       </div>
                       <div className="flex flex-col gap-2">
                         <Button size="sm" variant="outline" asChild>
