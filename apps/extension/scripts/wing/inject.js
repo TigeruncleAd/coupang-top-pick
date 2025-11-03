@@ -71,9 +71,9 @@
             attributeValues,
             salePrice,
           } = msg.payload || {}
-          // 업로드 시에는 {productId} {productName} 형식으로 검색
+          // 업로드 시에는 {productName} {productId} 형식으로 검색
           const displayValue =
-            productId && productName ? `${productId} ${productName}` : productId ? String(productId) : ''
+            productId && productName ? `${productName} ${productId}` : productId ? String(productId) : ''
           console.log('[wing/inject] Payload received:', {
             productId,
             productName,
@@ -134,7 +134,7 @@
           }
           console.log('[wing/inject] WING_PRODUCT_ITEMS response:', { ok: res.ok, status: res.status, data })
 
-          // 응답 성공 시 "노출상품명" input에 {productId} {productName} 자동 입력
+          // 응답 성공 시 "노출상품명" input에 {productName} {productId} 자동 입력
           if (res.ok && data && productId) {
             console.log('[wing/inject] Setting search value to display input:', displayValue)
 
@@ -2171,7 +2171,7 @@
           )
           console.log('[wing/inject] 📊 Total unique values:', allAttributeValues.size)
 
-          // 영어 또는 숫자로 시작하는 것만 필터링
+          // 영어, 숫자, "(", "["로 시작하는 것만 필터링
           const attributeValues = Array.from(allAttributeValues).filter(value => {
             if (!value || value.length === 0) {
               console.log(`[wing/inject]   ❌ Filtered out (empty): "${value}"`)
@@ -2179,7 +2179,8 @@
             }
             const trimmedValue = value.trim()
             const firstChar = trimmedValue[0]
-            const matches = /[a-zA-Z0-9]/.test(firstChar)
+            // 영어, 숫자, "(", "["로 시작하는 것 허용
+            const matches = /[a-zA-Z0-9]/.test(firstChar) || firstChar === '(' || firstChar === '['
             console.log(
               `[wing/inject]   ${matches ? '✅' : '❌'} "${value}" -> firstChar: "${firstChar}", matches: ${matches}`,
             )
