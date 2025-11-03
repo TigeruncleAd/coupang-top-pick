@@ -97,6 +97,34 @@ chrome.runtime.onMessageExternal.addListener(async (msg, sender, sendResponse) =
     return true
   }
 
+  if (msg?.type === 'CLOSE_FORMV2_TAB') {
+    ;(async () => {
+      try {
+        console.log('[background] CLOSE_FORMV2_TAB requested')
+        // formV2 탭 찾기
+        const tabs = await chrome.tabs.query({
+          url: '*://wing.coupang.com/*/vendor-inventory/formV2*',
+        })
+        console.log('[background] Found formV2 tabs:', tabs.length)
+
+        if (tabs.length > 0) {
+          // 모든 formV2 탭 닫기
+          for (const tab of tabs) {
+            await chrome.tabs.remove(tab.id)
+            console.log('[background] Closed formV2 tab:', tab.id)
+          }
+          sendResponse({ ok: true, closed: tabs.length })
+        } else {
+          sendResponse({ ok: true, closed: 0 })
+        }
+      } catch (e) {
+        console.error('[background] CLOSE_FORMV2_TAB error:', e)
+        sendResponse({ ok: false, error: String(e) })
+      }
+    })()
+    return true
+  }
+
   if (msg?.type === 'CHECK_COUPANG_OPTION_PICKER') {
     ;(async () => {
       try {
@@ -173,15 +201,53 @@ chrome.runtime.onMessageExternal.addListener(async (msg, sender, sendResponse) =
       console.log(
         '[background] Found tabs:',
         tabs.length,
-        tabs.map(t => ({ id: t.id, url: t.url })),
+        tabs.map(t => ({ id: t.id, url: t.url, status: t.status })),
       )
       // 최근 생성된 탭 하나만 반환 (id가 큰 순서로 정렬)
       if (tabs && tabs.length > 0) {
         tabs.sort((a, b) => (b.id || 0) - (a.id || 0))
-        console.log('[background] Using tab:', tabs[0].id, tabs[0].url)
-        return tabs[0]
+        const existingTab = tabs[0]
+        console.log('[background] Using existing tab:', existingTab.id, existingTab.url, existingTab.status)
+
+        // 기존 탭이 이미 완전히 로드되었는지 확인
+        const tabInfo = await chrome.tabs.get(existingTab.id)
+        if (tabInfo.status === 'complete') {
+          console.log('[background] ✅ Existing tab is already loaded')
+          // 콘텐츠 스크립트가 준비될 시간을 주기 위해 약간 대기
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          return existingTab
+        } else {
+          console.log('[background] ⏳ Existing tab is still loading, waiting...')
+          // 탭이 로드될 때까지 대기
+          return new Promise(resolve => {
+            const tabId = existingTab.id
+            const onUpdated = (updatedTabId, info) => {
+              if (updatedTabId === tabId && info.status === 'complete') {
+                chrome.tabs.onUpdated.removeListener(onUpdated)
+                console.log('[background] ✅ Existing tab finished loading')
+                // 콘텐츠 스크립트가 준비될 시간을 주기 위해 약간 대기
+                setTimeout(() => {
+                  resolve(existingTab)
+                }, 1000)
+              }
+            }
+            chrome.tabs.onUpdated.addListener(onUpdated)
+
+            // 탭이 이미 완료되었을 수도 있으므로 다시 확인
+            chrome.tabs.get(tabId, tab => {
+              if (tab.status === 'complete') {
+                chrome.tabs.onUpdated.removeListener(onUpdated)
+                console.log('[background] ✅ Existing tab is already complete')
+                setTimeout(() => {
+                  resolve(existingTab)
+                }, 1000)
+              }
+            })
+          })
+        }
       }
       // 탭이 없으면 새로 생성
+      console.log('[background] No existing tab found, creating new one...')
       return new Promise(resolve => {
         chrome.tabs.create({ url: targetUrl, active: false }, tab => {
           console.log('[background] Created new tab:', tab.id)
@@ -189,7 +255,11 @@ chrome.runtime.onMessageExternal.addListener(async (msg, sender, sendResponse) =
           const onUpdated = (updatedTabId, info) => {
             if (updatedTabId === tabId && info.status === 'complete') {
               chrome.tabs.onUpdated.removeListener(onUpdated)
-              resolve(tab)
+              console.log('[background] ✅ New tab finished loading')
+              // 콘텐츠 스크립트가 준비될 시간을 주기 위해 약간 대기
+              setTimeout(() => {
+                resolve(tab)
+              }, 1000)
             }
           }
           chrome.tabs.onUpdated.addListener(onUpdated)
@@ -198,7 +268,7 @@ chrome.runtime.onMessageExternal.addListener(async (msg, sender, sendResponse) =
     }
 
     const wingTab = await ensureWingTab()
-    console.log('[background] wingTab:', wingTab.id)
+    console.log('[background] ✅ wingTab ready:', wingTab.id, wingTab.url)
 
     // 콘텐츠 스크립트가 미주입인 경우를 대비해 강제 주입 시도
     try {

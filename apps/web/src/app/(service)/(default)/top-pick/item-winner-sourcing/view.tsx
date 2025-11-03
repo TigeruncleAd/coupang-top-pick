@@ -11,6 +11,7 @@ import {
   checkCoupangOptionPicker,
   wingProductItemsViaExtension,
   wingAttributeCheckViaExtension,
+  closeFormV2Tab,
 } from '@/lib/utils/extension'
 import type { WingSearchHttpEnvelope, WingProductSummary, WingProductItemsDetail } from '@/types/wing'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -206,10 +207,10 @@ export default function Client({ extensionId }: { extensionId: string }) {
           continue
         }
 
-        // optionOrder의 첫 번째 아이템이 '수량', '용량', '길이'인 경우 검증 실패
+        // optionOrder의 첫 번째 아이템이 '수량', '용량', '길이', '개당 용량'인 경우 검증 실패
         const optionOrder = optionPickerRes.optionOrder || []
         const firstOption = optionOrder.length > 0 ? optionOrder[0] : null
-        const invalidFirstOptions = ['수량', '용량', '길이']
+        const invalidFirstOptions = ['수량', '용량', '길이', '개당 용량']
         const isFirstOptionInvalid = firstOption && invalidFirstOptions.includes(firstOption)
 
         if (isFirstOptionInvalid) {
@@ -272,6 +273,14 @@ export default function Client({ extensionId }: { extensionId: string }) {
         } catch (error) {
           console.error('[validate] Wing attribute check error:', error)
           apiError = `API 호출 중 오류 발생: ${error instanceof Error ? error.message : String(error)}`
+        }
+
+        // formV2 탭 닫기 (검증 완료 후 정리)
+        try {
+          await closeFormV2Tab({ extensionId })
+          console.log('[validate] ✅ Closed formV2 tab')
+        } catch (error) {
+          console.warn('[validate] ⚠️ Failed to close formV2 tab:', error)
         }
 
         // attributeValues 길이가 0일 때 검증 실패
@@ -440,10 +449,10 @@ export default function Client({ extensionId }: { extensionId: string }) {
           continue
         }
 
-        // optionOrder의 첫 번째 아이템이 '수량', '용량', '길이'인 경우 검증 실패
+        // optionOrder의 첫 번째 아이템이 '수량', '용량', '길이', '개당 용량'인 경우 검증 실패
         const optionOrder = optionPickerRes.optionOrder || []
         const firstOption = optionOrder.length > 0 ? optionOrder[0] : null
-        const invalidFirstOptions = ['수량', '용량', '길이']
+        const invalidFirstOptions = ['수량', '용량', '길이', '개당 용량']
         const isFirstOptionInvalid = firstOption && invalidFirstOptions.includes(firstOption)
 
         if (isFirstOptionInvalid) {
@@ -506,6 +515,14 @@ export default function Client({ extensionId }: { extensionId: string }) {
         } catch (error) {
           console.error('[validate] Wing attribute check error:', error)
           apiError = `API 호출 중 오류 발생: ${error instanceof Error ? error.message : String(error)}`
+        }
+
+        // formV2 탭 닫기 (검증 완료 후 정리)
+        try {
+          await closeFormV2Tab({ extensionId })
+          console.log('[validate] ✅ Closed formV2 tab')
+        } catch (error) {
+          console.warn('[validate] ⚠️ Failed to close formV2 tab:', error)
         }
 
         // attributeValues 길이가 0일 때 검증 실패

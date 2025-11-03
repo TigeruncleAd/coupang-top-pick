@@ -99,7 +99,17 @@ export async function wingProductItemsViaExtension({
     extensionId,
     payload: {
       type: 'WING_PRODUCT_ITEMS',
-      payload: { productId, itemId, categoryId, allowSingleProduct, targetTabUrl, productName, vendorItemId, optionOrder, attributeValues },
+      payload: {
+        productId,
+        itemId,
+        categoryId,
+        allowSingleProduct,
+        targetTabUrl,
+        productName,
+        vendorItemId,
+        optionOrder,
+        attributeValues,
+      },
     },
   })
 }
@@ -232,5 +242,33 @@ export async function wingAttributeCheckViaExtension({
       type: 'WING_ATTRIBUTE_CHECK',
       payload: { productId, itemId, categoryId, optionOrder },
     },
+  })
+}
+
+/**
+ * formV2 탭을 닫습니다 (검증 후 정리용)
+ */
+export async function closeFormV2Tab({
+  extensionId,
+}: {
+  extensionId: string
+}): Promise<{ ok: boolean; closed?: number; error?: string }> {
+  return new Promise((resolve, reject) => {
+    try {
+      if (typeof chrome === 'undefined' || !chrome.runtime?.sendMessage) {
+        resolve({ ok: false, error: 'Chrome runtime not available' })
+        return
+      }
+
+      chrome.runtime.sendMessage(extensionId, { type: 'CLOSE_FORMV2_TAB' }, (res: any) => {
+        if (chrome.runtime.lastError) {
+          resolve({ ok: false, error: chrome.runtime.lastError.message })
+          return
+        }
+        resolve(res || { ok: false, error: 'no_response' })
+      })
+    } catch (error) {
+      resolve({ ok: false, error: String(error) })
+    }
   })
 }

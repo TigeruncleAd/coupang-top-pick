@@ -115,6 +115,12 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(function Produc
               {validationStatus.icon}
               <span className="text-sm font-medium">{validationStatus.text}</span>
             </div>
+            {/* 에러 메시지 표시 */}
+            {validationResult?.error && (
+              <div className="ml-6 rounded-md bg-red-500/20 px-2 py-1">
+                <span className="text-xs font-medium text-red-400">{validationResult.error}</span>
+              </div>
+            )}
             {validationResult?.optionOrder && validationResult.optionOrder.length > 0 && (
               <div className="ml-6 flex flex-wrap gap-1">
                 <span className="text-muted-foreground text-xs">옵션 순서:</span>
