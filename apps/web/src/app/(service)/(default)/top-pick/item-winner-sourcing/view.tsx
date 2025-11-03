@@ -274,13 +274,9 @@ export default function Client({ extensionId }: { extensionId: string }) {
           apiError = `API 호출 중 오류 발생: ${error instanceof Error ? error.message : String(error)}`
         }
 
-        // attributeValues 길이가 0일 때만 검증 실패 (apiError가 있으면 이미 에러 메시지 설정됨)
+        // attributeValues 길이가 0일 때 검증 실패
         if (apiError || attributeValues.length === 0) {
           console.log('[validate] ❌ 검증 실패:', { apiError, attributeValuesLength: attributeValues.length })
-          console.log('[validate] ❌ 최종 검증 실패 조건:', {
-            hasApiError: !!apiError,
-            isZeroLength: attributeValues.length === 0,
-          })
           results.push({
             productId: product.productId,
             hasOptionPicker: false,
@@ -289,7 +285,81 @@ export default function Client({ extensionId }: { extensionId: string }) {
             attributeValues: [],
             error: apiError || '영어 또는 숫자로 시작하는 옵션 값이 없습니다',
           })
+          setValidationResults([...results])
+          await new Promise(r => setTimeout(r, 1000))
+          continue
+        }
+
+        // 3단계: 로켓 배송 옵션 검증 (HAS_ROD, HAS_RETAIL, HAS_JIKGU)
+        let rocketValidationError: string | null = null
+        try {
+          const itemsResponse = await wingProductItemsViaExtension({
+            extensionId,
+            productId: product.productId,
+            itemId: product.itemId,
+            categoryId: product.categoryId,
+            allowSingleProduct: false,
+          })
+
+          console.log('[validate] ✅ wingProductItemsViaExtension response:', itemsResponse)
+
+          if (itemsResponse.status === 'success' && itemsResponse.data) {
+            const envelope = itemsResponse.data as any
+            if (envelope.ok && envelope.data) {
+              const productItemsDetail = envelope.data as WingProductItemsDetail
+              const items = productItemsDetail.items || []
+
+              console.log('[validate] 📦 Items count:', items.length)
+
+              if (items.length === 0) {
+                rocketValidationError = '옵션 데이터를 가져올 수 없습니다'
+              } else {
+                // HAS_ROD, HAS_RETAIL 또는 HAS_JIKGU가 true인 옵션 수 계산
+                const rocketCount = items.filter(item => {
+                  const controlFlags = item.controlFlags || {}
+                  const hasRod = controlFlags?.['HAS_ROD'] === 'true'
+                  const hasRetail = controlFlags?.['HAS_RETAIL'] === 'true'
+                  const hasJikgu = controlFlags?.['HAS_JIKGU'] === 'true'
+                  return hasRod || hasRetail || hasJikgu
+                }).length
+
+                console.log('[validate] 🚀 Rocket items count:', rocketCount, 'out of', items.length)
+
+                // 로켓 배송 옵션이 하나도 없으면 검증 실패
+                if (rocketCount === 0) {
+                  rocketValidationError = '로켓 배송 옵션이 없습니다'
+                } else {
+                  // 30% 초과 시 검증 실패
+                  const rocketRatio = rocketCount / items.length
+                  if (rocketRatio > 0.3) {
+                    rocketValidationError = `로켓 배송 옵션이 너무 많습니다 (${(rocketRatio * 100).toFixed(1)}%)`
+                  }
+                }
+              }
+            } else {
+              rocketValidationError = '옵션 데이터 응답이 올바르지 않습니다'
+            }
+          } else {
+            rocketValidationError = '옵션 데이터를 가져오지 못했습니다'
+          }
+        } catch (error) {
+          console.error('[validate] Rocket validation error:', error)
+          rocketValidationError = `옵션 검증 중 오류 발생: ${error instanceof Error ? error.message : String(error)}`
+        }
+
+        // 로켓 배송 검증 실패 시
+        if (rocketValidationError) {
+          console.log('[validate] ❌ 로켓 배송 검증 실패:', rocketValidationError)
+          results.push({
+            productId: product.productId,
+            hasOptionPicker: false,
+            optionCount: optionPickerRes.optionCount || 0,
+            optionOrder: optionOrder,
+            attributeValues: attributeValues,
+            error: rocketValidationError,
+          })
         } else {
+          // 모든 검증 통과
           results.push({
             productId: product.productId,
             hasOptionPicker: true,
@@ -438,13 +508,9 @@ export default function Client({ extensionId }: { extensionId: string }) {
           apiError = `API 호출 중 오류 발생: ${error instanceof Error ? error.message : String(error)}`
         }
 
-        // attributeValues 길이가 0일 때만 검증 실패 (apiError가 있으면 이미 에러 메시지 설정됨)
+        // attributeValues 길이가 0일 때 검증 실패
         if (apiError || attributeValues.length === 0) {
           console.log('[validate] ❌ 검증 실패:', { apiError, attributeValuesLength: attributeValues.length })
-          console.log('[validate] ❌ 최종 검증 실패 조건:', {
-            hasApiError: !!apiError,
-            isZeroLength: attributeValues.length === 0,
-          })
           results.push({
             productId: product.productId,
             hasOptionPicker: false,
@@ -453,7 +519,81 @@ export default function Client({ extensionId }: { extensionId: string }) {
             attributeValues: [],
             error: apiError || '영어 또는 숫자로 시작하는 옵션 값이 없습니다',
           })
+          setValidationResults([...results])
+          await new Promise(r => setTimeout(r, 1000))
+          continue
+        }
+
+        // 3단계: 로켓 배송 옵션 검증 (HAS_ROD, HAS_RETAIL, HAS_JIKGU)
+        let rocketValidationError: string | null = null
+        try {
+          const itemsResponse = await wingProductItemsViaExtension({
+            extensionId,
+            productId: product.productId,
+            itemId: product.itemId,
+            categoryId: product.categoryId,
+            allowSingleProduct: false,
+          })
+
+          console.log('[validate] ✅ wingProductItemsViaExtension response:', itemsResponse)
+
+          if (itemsResponse.status === 'success' && itemsResponse.data) {
+            const envelope = itemsResponse.data as any
+            if (envelope.ok && envelope.data) {
+              const productItemsDetail = envelope.data as WingProductItemsDetail
+              const items = productItemsDetail.items || []
+
+              console.log('[validate] 📦 Items count:', items.length)
+
+              if (items.length === 0) {
+                rocketValidationError = '옵션 데이터를 가져올 수 없습니다'
+              } else {
+                // HAS_ROD, HAS_RETAIL 또는 HAS_JIKGU가 true인 옵션 수 계산
+                const rocketCount = items.filter(item => {
+                  const controlFlags = item.controlFlags || {}
+                  const hasRod = controlFlags?.['HAS_ROD'] === 'true'
+                  const hasRetail = controlFlags?.['HAS_RETAIL'] === 'true'
+                  const hasJikgu = controlFlags?.['HAS_JIKGU'] === 'true'
+                  return hasRod || hasRetail || hasJikgu
+                }).length
+
+                console.log('[validate] 🚀 Rocket items count:', rocketCount, 'out of', items.length)
+
+                // 로켓 배송 옵션이 하나도 없으면 검증 실패
+                if (rocketCount === 0) {
+                  rocketValidationError = '로켓 배송 옵션이 없습니다'
+                } else {
+                  // 30% 초과 시 검증 실패
+                  const rocketRatio = rocketCount / items.length
+                  if (rocketRatio > 0.3) {
+                    rocketValidationError = `로켓 배송 옵션이 너무 많습니다 (${(rocketRatio * 100).toFixed(1)}%)`
+                  }
+                }
+              }
+            } else {
+              rocketValidationError = '옵션 데이터 응답이 올바르지 않습니다'
+            }
+          } else {
+            rocketValidationError = '옵션 데이터를 가져오지 못했습니다'
+          }
+        } catch (error) {
+          console.error('[validate] Rocket validation error:', error)
+          rocketValidationError = `옵션 검증 중 오류 발생: ${error instanceof Error ? error.message : String(error)}`
+        }
+
+        // 로켓 배송 검증 실패 시
+        if (rocketValidationError) {
+          console.log('[validate] ❌ 로켓 배송 검증 실패:', rocketValidationError)
+          results.push({
+            productId: product.productId,
+            hasOptionPicker: false,
+            optionCount: optionPickerRes.optionCount || 0,
+            optionOrder: optionOrder,
+            attributeValues: attributeValues,
+            error: rocketValidationError,
+          })
         } else {
+          // 모든 검증 통과
           results.push({
             productId: product.productId,
             hasOptionPicker: true,

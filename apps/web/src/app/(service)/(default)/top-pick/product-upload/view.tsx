@@ -138,74 +138,6 @@ export default function Client({ extensionId }: { extensionId: string }) {
     }
   }, [updateProductStatusMutation])
 
-  // 상품 옵션 검증 함수
-  const validateProductOptions = async (product: Product): Promise<boolean> => {
-    try {
-      // 상품 옵션 데이터 가져오기
-      const response = await wingProductItemsViaExtension({
-        extensionId,
-        productId: Number(product.productId),
-        itemId: Number(product.itemId),
-        categoryId: product.categoryId,
-        allowSingleProduct: false,
-      })
-
-      if (response.status !== 'success' || !response.data) {
-        console.log('[validateProductOptions] Failed to get product options:', response)
-        return true // 검증 실패 시 업로드 진행
-      }
-
-      // 확장 프로그램 응답 구조: { status: 'success', data: { ok: boolean, status: number, data: WingProductItemsDetail } }
-      const envelope = response.data as any
-      if (!envelope.ok || !envelope.data) {
-        console.log('[validateProductOptions] Invalid response structure:', envelope)
-        return true // 검증 실패 시 업로드 진행
-      }
-
-      const productItemsDetail = envelope.data as WingProductItemsDetail
-      const items = productItemsDetail.items || []
-
-      if (items.length === 0) {
-        console.log('[validateProductOptions] No items found')
-        return true // 아이템이 없으면 업로드 진행
-      }
-
-      // HAS_ROD, HAS_RETAIL 또는 HAS_JIKGU가 true인 옵션 수 계산
-      const rocketCount = items.filter(item => {
-        const controlFlags = item.controlFlags || {}
-        const hasRod = controlFlags?.['HAS_ROD'] === 'true'
-        const hasRetail = controlFlags?.['HAS_RETAIL'] === 'true'
-        const hasJikgu = controlFlags?.['HAS_JIKGU'] === 'true'
-        return hasRod || hasRetail || hasJikgu
-      }).length
-
-      const rocketRatio = rocketCount / items.length
-
-      console.log(
-        `[validateProductOptions] Total items: ${items.length}, Rocket items: ${rocketCount}, Ratio: ${rocketRatio}`,
-      )
-
-      // 30% 초과 시 업로드 중단
-      if (rocketRatio > 0.3) {
-        console.log(
-          `[validateProductOptions] Rocket majority detected (${(rocketRatio * 100).toFixed(1)}%), updating status to ROCKET_MAJORITY`,
-        )
-
-        // 상태를 ROCKET_MAJORITY로 업데이트
-        updateProductStatusMutation.mutate({
-          productId: product.productId,
-          status: 'ROCKET_MAJORITY',
-        })
-        return false
-      }
-
-      return true
-    } catch (error) {
-      console.error('[validateProductOptions] Error:', error)
-      return true // 에러 발생 시 업로드 진행
-    }
-  }
-
   // 전체 업로드 함수
   const handleBulkUpload = async () => {
     // READY 상태인 상품만 필터링
@@ -228,13 +160,6 @@ export default function Client({ extensionId }: { extensionId: string }) {
       console.log(`[bulk-upload] Product ID: ${product.productId}`)
 
       try {
-        // 상품 옵션 검증
-        const canUpload = await validateProductOptions(product)
-        if (!canUpload) {
-          console.log(`[bulk-upload] Product ${product.productId} skipped due to rocket majority`)
-          continue
-        }
-
         // 업로드 시작
         const uploadUrl = 'https://wing.coupang.com/tenants/seller-web/vendor-inventory/formV2'
         const wingTab = window.open(uploadUrl, '_blank', 'noopener,noreferrer')
@@ -411,6 +336,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
                           ) : null}
                         </div>
                         <p className="text-muted-foreground text-sm">가격: {product.salePrice.toLocaleString()}원</p>
+                        <p className="text-muted-foreground text-xs">상품ID: {product.productId.toString()}</p>
                         {product.vendorInventoryId && (
                           <p className="text-xs text-blue-400">등록상품ID: {product.vendorInventoryId}</p>
                         )}
@@ -443,9 +369,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
                               <span className="text-muted-foreground text-xs font-medium">
                                 {product.optionOrder[0]} :{' '}
                               </span>
-                              <span className="text-xs text-green-400">
-                                {product.attributeValues.join(', ')}
-                              </span>
+                              <span className="text-xs text-green-400">{product.attributeValues.join(', ')}</span>
                             </div>
                           )}
                       </div>
@@ -469,12 +393,6 @@ export default function Client({ extensionId }: { extensionId: string }) {
                             size="sm"
                             onClick={async () => {
                               try {
-                                // 상품 옵션 검증
-                                const canUpload = await validateProductOptions(product)
-                                if (!canUpload) {
-                                  return // 업로드 중단 (상태는 이미 업데이트됨)
-                                }
-
                                 const uploadUrl = 'https://wing.coupang.com/tenants/seller-web/vendor-inventory/formV2'
                                 window.open(uploadUrl, '_blank', 'noopener,noreferrer')
                                 await new Promise(r => setTimeout(r, 1500))

@@ -70,13 +70,16 @@
             optionOrder,
             attributeValues,
           } = msg.payload || {}
-          // 업로드 시에는 productId를 사용 (productName 대신)
-          const displayValue = String(productId || '')
+          // 업로드 시에는 {productId} {productName} 형식으로 검색
+          const displayValue =
+            productId && productName ? `${productId} ${productName}` : productId ? String(productId) : ''
           console.log('[wing/inject] Payload received:', {
             productId,
+            productName,
             optionOrder,
             attributeValues,
           })
+          console.log('[wing/inject] Display value for search:', displayValue)
           const params = new URLSearchParams({
             productId: String(productId),
             itemId: String(itemId),
@@ -99,9 +102,9 @@
           }
           console.log('[wing/inject] WING_PRODUCT_ITEMS response:', { ok: res.ok, status: res.status, data })
 
-          // 응답 성공 시 "노출상품명" input에 productId 자동 입력
+          // 응답 성공 시 "노출상품명" input에 {productId} {productName} 자동 입력
           if (res.ok && data && productId) {
-            console.log('[wing/inject] Setting productId to display input:', displayValue)
+            console.log('[wing/inject] Setting search value to display input:', displayValue)
 
             // 폴링 방식으로 "노출상품명" input 찾기
             let attempts = 0
