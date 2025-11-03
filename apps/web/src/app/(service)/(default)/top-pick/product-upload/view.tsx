@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { Button } from '@repo/ui/components/button'
-import { wingProductItemsViaExtension } from '@/lib/utils/extension'
+import { wingProductItemsViaExtension, checkCoupangOptionPicker } from '@/lib/utils/extension'
 import type { WingProductItemsDetail, WingProductItemsHttpEnvelope } from '@/types/wing'
 import { Star, StarHalf, Trash2 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -241,6 +241,23 @@ export default function Client({ extensionId }: { extensionId: string }) {
 
         await new Promise(r => setTimeout(r, 1500))
 
+        // 옵션 순서 가져오기
+        let optionOrder: string[] | undefined = undefined
+        try {
+          const optionPickerResult = await checkCoupangOptionPicker({
+            extensionId,
+            productId: Number(product.productId),
+            itemId: Number(product.itemId),
+            vendorItemId: Number(product.vendorItemId),
+          })
+          if (optionPickerResult.ok && optionPickerResult.optionOrder) {
+            optionOrder = optionPickerResult.optionOrder
+            console.log('[bulk-upload] Option order:', optionOrder)
+          }
+        } catch (error) {
+          console.warn('[bulk-upload] Failed to get option order:', error)
+        }
+
         await wingProductItemsViaExtension({
           extensionId,
           productId: Number(product.productId),
@@ -249,6 +266,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
           targetTabUrl: uploadUrl,
           productName: product.productName,
           vendorItemId: Number(product.vendorItemId),
+          optionOrder,
         })
 
         // 5분 타임아웃으로 성공 메시지 대기
@@ -406,6 +424,16 @@ export default function Client({ extensionId }: { extensionId: string }) {
                           최근 28일: 조회 {product.pvLast28Day.toLocaleString()} / 판매{' '}
                           {product.salesLast28d.toLocaleString()}
                         </p>
+                        {product.optionOrder && product.optionOrder.length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            <span className="text-muted-foreground text-xs">옵션 순서:</span>
+                            {product.optionOrder.map((option, index) => (
+                              <span key={index} className="rounded-md bg-blue-500/20 px-2 py-0.5 text-xs text-blue-400">
+                                {option}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <div className="flex flex-col gap-2">
                         <Button size="sm" variant="outline" asChild>
@@ -436,6 +464,24 @@ export default function Client({ extensionId }: { extensionId: string }) {
                                 const uploadUrl = 'https://wing.coupang.com/tenants/seller-web/vendor-inventory/formV2'
                                 window.open(uploadUrl, '_blank', 'noopener,noreferrer')
                                 await new Promise(r => setTimeout(r, 1500))
+
+                                // 옵션 순서 가져오기
+                                let optionOrder: string[] | undefined = undefined
+                                try {
+                                  const optionPickerResult = await checkCoupangOptionPicker({
+                                    extensionId,
+                                    productId: Number(product.productId),
+                                    itemId: Number(product.itemId),
+                                    vendorItemId: Number(product.vendorItemId),
+                                  })
+                                  if (optionPickerResult.ok && optionPickerResult.optionOrder) {
+                                    optionOrder = optionPickerResult.optionOrder
+                                    console.log('[upload] Option order:', optionOrder)
+                                  }
+                                } catch (error) {
+                                  console.warn('[upload] Failed to get option order:', error)
+                                }
+
                                 await wingProductItemsViaExtension({
                                   extensionId,
                                   productId: Number(product.productId),
@@ -444,6 +490,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
                                   targetTabUrl: uploadUrl,
                                   productName: product.productName,
                                   vendorItemId: Number(product.vendorItemId),
+                                  optionOrder,
                                 })
                               } catch (error) {
                                 console.error('[upload] Error:', error)

@@ -115,6 +115,8 @@ model Product {
   matchingResultId  String? // 매칭 결과 ID
   attributeTypes    Json? // 속성 타입
 
+  optionOrder       String[] @default([])
+
   // 사용자 관계
   userId BigInt
   user   User   @relation(fields: [userId], references: [id])

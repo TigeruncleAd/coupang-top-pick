@@ -139,12 +139,19 @@ chrome.runtime.onMessageExternal.addListener(async (msg, sender, sendResponse) =
         await chrome.tabs.remove(tab.id)
 
         if (result?.ok) {
+          console.log('[background] ✅ Option picker check result:', {
+            hasOptionPicker: result.hasOptionPicker,
+            optionCount: result.optionCount,
+            optionOrder: result.optionOrder || [],
+          })
           sendResponse({
             ok: true,
             hasOptionPicker: result.hasOptionPicker,
             optionCount: result.optionCount,
+            optionOrder: result.optionOrder || [],
           })
         } else {
+          console.log('[background] ❌ Option picker check failed:', result?.error)
           sendResponse({ ok: false, error: result?.error || 'Failed to check option picker' })
         }
       } catch (e) {

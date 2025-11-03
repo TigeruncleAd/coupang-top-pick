@@ -46,6 +46,7 @@ export async function createProduct(productData: WingProductSummary): Promise<Pr
       sponsored: productData.sponsored ? String(productData.sponsored) : null,
       matchingResultId: productData.matchingResultId ? String(productData.matchingResultId) : null,
       attributeTypes: productData.attributeTypes ? JSON.parse(JSON.stringify(productData.attributeTypes)) : null,
+      optionOrder: productData.optionOrder || [],
     },
   })
 
@@ -146,6 +147,7 @@ export async function createProductsBulk(
           sponsored: productData.sponsored ? String(productData.sponsored) : null,
           matchingResultId: productData.matchingResultId ? String(productData.matchingResultId) : null,
           attributeTypes: productData.attributeTypes ? JSON.parse(JSON.stringify(productData.attributeTypes)) : null,
+          optionOrder: productData.optionOrder || [],
         },
       })
 

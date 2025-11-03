@@ -184,10 +184,32 @@ import html2canvas from 'html2canvas'
           const options = optionPickerContainer.querySelectorAll('.option-item, .prod-option__item')
           console.log('[coupang/inject] 🎯 Number of options:', options.length)
 
+          // option-picker-select 내부의 첫 번째 .twc-text-[12px] 텍스트 읽기
+          let optionOrder = null
+          const optionPickerSelect = optionPickerContainer.querySelector('.option-picker-select')
+          if (optionPickerSelect) {
+            // CSS 클래스에 대괄호가 있어서 속성 선택자 사용
+            const allTextElements = optionPickerSelect.querySelectorAll('[class*="twc-text"]')
+            for (const el of allTextElements) {
+              // 클래스에 twc-text-[12px]가 포함되어 있는지 확인
+              if (el.className.includes('twc-text-[12px]')) {
+                const optionText = el.textContent?.trim()
+                if (optionText) {
+                  console.log('[coupang/inject] 📝 Option text:', optionText)
+                  // "×" 또는 "x"로 split하여 배열 생성
+                  optionOrder = optionText.split(/[×x]/).map(s => s.trim()).filter(s => s.length > 0)
+                  console.log('[coupang/inject] 📋 Option order:', optionOrder)
+                  break
+                }
+              }
+            }
+          }
+
           sendResponse({
             ok: true,
             hasOptionPicker: true,
             optionCount: options.length,
+            optionOrder: optionOrder || [],
           })
         } else {
           console.log('[coupang/inject] ⚠️ No option-picker-container found')
@@ -195,6 +217,7 @@ import html2canvas from 'html2canvas'
             ok: true,
             hasOptionPicker: false,
             optionCount: 0,
+            optionOrder: [],
           })
         }
       } catch (e) {

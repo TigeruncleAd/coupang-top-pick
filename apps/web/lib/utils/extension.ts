@@ -81,6 +81,7 @@ export async function wingProductItemsViaExtension({
   targetTabUrl,
   productName,
   vendorItemId,
+  optionOrder,
 }: {
   extensionId: string
   productId: number
@@ -90,12 +91,13 @@ export async function wingProductItemsViaExtension({
   targetTabUrl?: string
   productName?: string
   vendorItemId?: number
+  optionOrder?: string[]
 }) {
   return await pushToExtension({
     extensionId,
     payload: {
       type: 'WING_PRODUCT_ITEMS',
-      payload: { productId, itemId, categoryId, allowSingleProduct, targetTabUrl, productName, vendorItemId },
+      payload: { productId, itemId, categoryId, allowSingleProduct, targetTabUrl, productName, vendorItemId, optionOrder },
     },
   })
 }
@@ -182,7 +184,7 @@ export async function checkCoupangOptionPicker({
   productId: number
   itemId: number
   vendorItemId: number
-}): Promise<{ ok: boolean; hasOptionPicker?: boolean; optionCount?: number; error?: string }> {
+}): Promise<{ ok: boolean; hasOptionPicker?: boolean; optionCount?: number; optionOrder?: string[]; error?: string }> {
   return new Promise(resolve => {
     try {
       if (typeof chrome === 'undefined' || !chrome.runtime?.sendMessage) {

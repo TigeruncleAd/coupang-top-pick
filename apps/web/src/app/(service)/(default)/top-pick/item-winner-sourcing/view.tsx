@@ -24,6 +24,7 @@ type ValidationResult = {
   productId: number
   hasOptionPicker: boolean
   optionCount: number
+  optionOrder?: string[]
   error?: string
 }
 
@@ -190,6 +191,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
           productId: product.productId,
           hasOptionPicker: res.hasOptionPicker || false,
           optionCount: res.optionCount || 0,
+          optionOrder: res.optionOrder || [],
           error: res.ok ? undefined : res.error,
         })
       } catch (error) {
@@ -197,6 +199,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
           productId: product.productId,
           hasOptionPicker: false,
           optionCount: 0,
+          optionOrder: [],
           error: String(error),
         })
       } finally {
@@ -250,6 +253,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
           productId: product.productId,
           hasOptionPicker: res.hasOptionPicker || false,
           optionCount: res.optionCount || 0,
+          optionOrder: res.optionOrder || [],
           error: res.ok ? undefined : res.error,
         })
       } catch (error) {
@@ -257,6 +261,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
           productId: product.productId,
           hasOptionPicker: false,
           optionCount: 0,
+          optionOrder: [],
           error: String(error),
         })
       } finally {
@@ -267,11 +272,19 @@ export default function Client({ extensionId }: { extensionId: string }) {
       await new Promise(r => setTimeout(r, 1000))
     }
 
-    // 2단계: 옵션이 있는 상품만 필터링하여 저장
-    const productsToSave = filtered.filter(product => {
-      const validationResult = results.find(r => r.productId === product.productId)
-      return validationResult?.hasOptionPicker && !validationResult?.error
-    })
+    // 2단계: 옵션이 있는 상품만 필터링하여 저장 (optionOrder 포함)
+    const productsToSave = filtered
+      .filter(product => {
+        const validationResult = results.find(r => r.productId === product.productId)
+        return validationResult?.hasOptionPicker && !validationResult?.error
+      })
+      .map(product => {
+        const validationResult = results.find(r => r.productId === product.productId)
+        return {
+          ...product,
+          optionOrder: validationResult?.optionOrder || [],
+        }
+      })
 
     if (productsToSave.length === 0) {
       toast.warning('저장할 상품이 없습니다. (옵션이 있는 상품이 없음)')
@@ -415,7 +428,13 @@ export default function Client({ extensionId }: { extensionId: string }) {
                     }}
                     product={product}
                     extensionId={extensionId}
-                    onSave={product => createProductMutation.mutate(product)}
+                    onSave={product => {
+                      const productWithOptionOrder = {
+                        ...product,
+                        optionOrder: validationResult?.optionOrder || [],
+                      }
+                      createProductMutation.mutate(productWithOptionOrder)
+                    }}
                     isSaving={createProductMutation.isPending}
                     isSaved={savedProducts.has(product.productId.toString())}
                     validationResult={
@@ -423,6 +442,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
                         ? {
                             hasOptionPicker: validationResult.hasOptionPicker,
                             optionCount: validationResult.optionCount,
+                            optionOrder: validationResult.optionOrder,
                             error: validationResult.error,
                           }
                         : undefined

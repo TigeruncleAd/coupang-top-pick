@@ -13,6 +13,7 @@ interface ProductCardProps {
   validationResult?: {
     hasOptionPicker: boolean
     optionCount: number
+    optionOrder?: string[]
     error?: string
   }
 }
@@ -57,6 +58,10 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(function Produc
     }
 
     if (validationResult.hasOptionPicker) {
+      const optionOrderText =
+        validationResult.optionOrder && validationResult.optionOrder.length > 0
+          ? ` (${validationResult.optionOrder.join(', ')})`
+          : ''
       return {
         icon: <CheckCircle2 className="h-4 w-4 text-green-400" />,
         text: `검증 완료 - 드롭다운 옵션 존재`,
@@ -72,6 +77,8 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(function Produc
   }
 
   const validationStatus = getValidationStatus()
+
+  console.log({ validationResult })
 
   return (
     <div
@@ -102,9 +109,21 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(function Produc
 
         {/* 검증 상태 표시 */}
         {validationStatus && (
-          <div className="mt-2 flex items-center gap-2 rounded-md border px-3 py-2">
-            {validationStatus.icon}
-            <span className="text-sm font-medium">{validationStatus.text}</span>
+          <div className="mt-2 flex flex-col gap-2 rounded-md border px-3 py-2">
+            <div className="flex items-center gap-2">
+              {validationStatus.icon}
+              <span className="text-sm font-medium">{validationStatus.text}</span>
+            </div>
+            {validationResult?.optionOrder && validationResult.optionOrder.length > 0 && (
+              <div className="ml-6 flex flex-wrap gap-1">
+                <span className="text-muted-foreground text-xs">옵션 순서:</span>
+                {validationResult.optionOrder.map((option, index) => (
+                  <span key={index} className="rounded-md bg-blue-500/20 px-2 py-0.5 text-xs text-blue-400">
+                    {option}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -114,7 +133,7 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(function Produc
             size="sm"
             variant={isSaved ? 'outline' : 'default'}
             onClick={() => onSave(product)}
-            disabled={isSaving || isSaved}
+            disabled={isSaving || isSaved || !validationResult?.hasOptionPicker}
             className={isSaved ? 'border-green-500 bg-green-50 text-green-700 hover:bg-green-100' : ''}>
             {isSaved ? (
               <>

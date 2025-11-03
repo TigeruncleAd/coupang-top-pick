@@ -67,6 +67,7 @@
             categoryId,
             productName,
             vendorItemId,
+            optionOrder,
           } = msg.payload || {}
           const params = new URLSearchParams({
             productId: String(productId),
