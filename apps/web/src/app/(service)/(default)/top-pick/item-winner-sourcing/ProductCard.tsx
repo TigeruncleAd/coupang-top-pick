@@ -15,6 +15,7 @@ interface ProductCardProps {
     optionCount: number
     optionOrder?: string[]
     attributeValues?: string[]
+    rocketAttributeValues?: string[]
     error?: string
   }
   onValidate?: () => void
@@ -143,6 +144,19 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(function Produc
                   </span>
                   <span className="text-xs text-green-400">
                     {validationResult.attributeValues.join(', ')}
+                  </span>
+                </div>
+              )}
+            {validationResult?.rocketAttributeValues &&
+              validationResult.rocketAttributeValues.length > 0 &&
+              validationResult.optionOrder &&
+              validationResult.optionOrder.length > 0 && (
+                <div className="ml-6 mt-1">
+                  <span className="text-muted-foreground text-xs font-medium">
+                    로켓 {validationResult.optionOrder[0]} :{' '}
+                  </span>
+                  <span className="text-xs text-orange-400">
+                    {validationResult.rocketAttributeValues.join(', ')}
                   </span>
                 </div>
               )}

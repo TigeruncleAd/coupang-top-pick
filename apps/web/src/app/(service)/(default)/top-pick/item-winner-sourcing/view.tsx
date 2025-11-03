@@ -29,6 +29,8 @@ type ValidationResult = {
   optionCount: number
   optionOrder?: string[]
   attributeValues?: string[]
+  rocketAttributeValues?: string[]
+  rocketAttributeMaps?: Array<Array<{ attributeTypeId: number; attributeName: string; attributeValue: string }>>
   error?: string
 }
 
@@ -302,6 +304,9 @@ export default function Client({ extensionId }: { extensionId: string }) {
 
         // 3단계: 로켓 배송 옵션 검증 (HAS_ROD, HAS_RETAIL, HAS_JIKGU)
         let rocketValidationError: string | null = null
+        let rocketAttributeMaps: Array<
+          Array<{ attributeTypeId: number; attributeName: string; attributeValue: string }>
+        > = []
         try {
           const itemsResponse = await wingProductItemsViaExtension({
             extensionId,
@@ -324,17 +329,22 @@ export default function Client({ extensionId }: { extensionId: string }) {
               if (items.length === 0) {
                 rocketValidationError = '옵션 데이터를 가져올 수 없습니다'
               } else {
-                // HAS_ROD, HAS_RETAIL 또는 HAS_JIKGU가 true인 옵션 수 계산
-                const rocketCount = items.filter(item => {
+                // HAS_ROD, HAS_RETAIL 또는 HAS_JIKGU가 true인 아이템 필터링
+                const rocketItems = items.filter(item => {
                   const controlFlags = item.controlFlags || {}
                   // 'true' 문자열 또는 boolean true 모두 체크
                   const hasRod = controlFlags?.['HAS_ROD'] === 'true' || controlFlags?.['HAS_ROD'] === true
                   const hasRetail = controlFlags?.['HAS_RETAIL'] === 'true' || controlFlags?.['HAS_RETAIL'] === true
                   const hasJikgu = controlFlags?.['HAS_JIKGU'] === 'true' || controlFlags?.['HAS_JIKGU'] === true
                   return hasRod || hasRetail || hasJikgu
-                }).length
+                })
 
+                const rocketCount = rocketItems.length
                 console.log('[validate] 🚀 Rocket items count:', rocketCount, 'out of', items.length)
+
+                // rocketAttributeMaps: 로켓 상품들의 모든 attributes를 수집 (중첩된 배열 형태)
+                rocketAttributeMaps = rocketItems.map(item => item.attributes || [])
+                console.log('[validate] 🚀 Rocket attribute maps:', rocketAttributeMaps)
 
                 // 로켓 배송 옵션이 하나도 없으면 검증 실패 (필수 조건)
                 if (rocketCount === 0) {
@@ -371,6 +381,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
             attributeValues: attributeValues,
+            rocketAttributeMaps: rocketAttributeMaps,
             error: rocketValidationError,
           })
         } else {
@@ -381,6 +392,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
             attributeValues: attributeValues,
+            rocketAttributeMaps: rocketAttributeMaps,
           })
         }
       } catch (error) {
@@ -525,6 +537,10 @@ export default function Client({ extensionId }: { extensionId: string }) {
 
         // 3단계: 로켓 배송 옵션 검증 (HAS_ROD, HAS_RETAIL, HAS_JIKGU)
         let rocketValidationError: string | null = null
+        let rocketAttributeValues: string[] = []
+        let rocketAttributeMaps: Array<
+          Array<{ attributeTypeId: number; attributeName: string; attributeValue: string }>
+        > = []
         try {
           const itemsResponse = await wingProductItemsViaExtension({
             extensionId,
@@ -543,17 +559,40 @@ export default function Client({ extensionId }: { extensionId: string }) {
               if (items.length === 0) {
                 rocketValidationError = '옵션 데이터를 가져올 수 없습니다'
               } else {
-                // HAS_ROD, HAS_RETAIL 또는 HAS_JIKGU가 true인 옵션 수 계산
-                const rocketCount = items.filter(item => {
+                // HAS_ROD, HAS_RETAIL 또는 HAS_JIKGU가 true인 아이템 필터링
+                const rocketItems = items.filter(item => {
                   const controlFlags = item.controlFlags || {}
                   // 'true' 문자열 또는 boolean true 모두 체크
                   const hasRod = controlFlags?.['HAS_ROD'] === 'true' || controlFlags?.['HAS_ROD'] === true
                   const hasRetail = controlFlags?.['HAS_RETAIL'] === 'true' || controlFlags?.['HAS_RETAIL'] === true
                   const hasJikgu = controlFlags?.['HAS_JIKGU'] === 'true' || controlFlags?.['HAS_JIKGU'] === true
                   return hasRod || hasRetail || hasJikgu
-                }).length
+                })
 
+                const rocketCount = rocketItems.length
                 console.log('[validate] 🚀 Rocket items count:', rocketCount, 'out of', items.length)
+
+                // rocketAttributeMaps: 로켓 상품들의 모든 attributes를 수집 (중첩된 배열 형태)
+                rocketAttributeMaps = rocketItems.map(item => item.attributes || [])
+                console.log('[validate] 🚀 Rocket attribute maps:', rocketAttributeMaps)
+
+                // rocketAttributeValues 추출: HAS_ROD, HAS_RETAIL 또는 HAS_JIKGU가 true인 아이템의
+                // attributeValue 중 attributeName이 optionOrder[0]과 일치하는 것
+                const firstOptionName = optionOrder.length > 0 ? optionOrder[0] : null
+                const rocketAttributeValuesSet = new Set<string>()
+
+                // rocketAttributeValues 추출
+                if (firstOptionName) {
+                  rocketItems.forEach(item => {
+                    const matchingAttribute = item.attributes?.find(attr => attr.attributeName === firstOptionName)
+                    if (matchingAttribute?.attributeValue) {
+                      rocketAttributeValuesSet.add(matchingAttribute.attributeValue)
+                    }
+                  })
+                }
+
+                rocketAttributeValues = Array.from(rocketAttributeValuesSet)
+                console.log('[validate] 🚀 Rocket attribute values:', rocketAttributeValues)
 
                 // 로켓 배송 옵션이 하나도 없으면 검증 실패 (필수 조건)
                 if (rocketCount === 0) {
@@ -588,6 +627,8 @@ export default function Client({ extensionId }: { extensionId: string }) {
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
             attributeValues: attributeValues,
+            rocketAttributeValues: rocketAttributeValues,
+            rocketAttributeMaps: rocketAttributeMaps,
             error: rocketValidationError,
           }
         } else {
@@ -598,6 +639,8 @@ export default function Client({ extensionId }: { extensionId: string }) {
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
             attributeValues: attributeValues,
+            rocketAttributeValues: rocketAttributeValues,
+            rocketAttributeMaps: rocketAttributeMaps,
           }
         }
       } catch (error) {
@@ -767,6 +810,10 @@ export default function Client({ extensionId }: { extensionId: string }) {
 
         // 3단계: 로켓 배송 옵션 검증 (HAS_ROD, HAS_RETAIL, HAS_JIKGU)
         let rocketValidationError: string | null = null
+        let rocketAttributeValues: string[] = []
+        let rocketAttributeMaps: Array<
+          Array<{ attributeTypeId: number; attributeName: string; attributeValue: string }>
+        > = []
         try {
           const itemsResponse = await wingProductItemsViaExtension({
             extensionId,
@@ -789,17 +836,40 @@ export default function Client({ extensionId }: { extensionId: string }) {
               if (items.length === 0) {
                 rocketValidationError = '옵션 데이터를 가져올 수 없습니다'
               } else {
-                // HAS_ROD, HAS_RETAIL 또는 HAS_JIKGU가 true인 옵션 수 계산
-                const rocketCount = items.filter(item => {
+                // HAS_ROD, HAS_RETAIL 또는 HAS_JIKGU가 true인 아이템 필터링
+                const rocketItems = items.filter(item => {
                   const controlFlags = item.controlFlags || {}
                   // 'true' 문자열 또는 boolean true 모두 체크
                   const hasRod = controlFlags?.['HAS_ROD'] === 'true' || controlFlags?.['HAS_ROD'] === true
                   const hasRetail = controlFlags?.['HAS_RETAIL'] === 'true' || controlFlags?.['HAS_RETAIL'] === true
                   const hasJikgu = controlFlags?.['HAS_JIKGU'] === 'true' || controlFlags?.['HAS_JIKGU'] === true
                   return hasRod || hasRetail || hasJikgu
-                }).length
+                })
 
+                const rocketCount = rocketItems.length
                 console.log('[validate] 🚀 Rocket items count:', rocketCount, 'out of', items.length)
+
+                // rocketAttributeMaps: 로켓 상품들의 모든 attributes를 수집 (중첩된 배열 형태)
+                rocketAttributeMaps = rocketItems.map(item => item.attributes || [])
+                console.log('[validate] 🚀 Rocket attribute maps:', rocketAttributeMaps)
+
+                // rocketAttributeValues 추출: HAS_ROD, HAS_RETAIL 또는 HAS_JIKGU가 true인 아이템의
+                // attributeValue 중 attributeName이 optionOrder[0]과 일치하는 것
+                const firstOptionName = optionOrder.length > 0 ? optionOrder[0] : null
+                const rocketAttributeValuesSet = new Set<string>()
+
+                // rocketAttributeValues 추출
+                if (firstOptionName) {
+                  rocketItems.forEach(item => {
+                    const matchingAttribute = item.attributes?.find(attr => attr.attributeName === firstOptionName)
+                    if (matchingAttribute?.attributeValue) {
+                      rocketAttributeValuesSet.add(matchingAttribute.attributeValue)
+                    }
+                  })
+                }
+
+                rocketAttributeValues = Array.from(rocketAttributeValuesSet)
+                console.log('[validate] 🚀 Rocket attribute values:', rocketAttributeValues)
 
                 // 로켓 배송 옵션이 하나도 없으면 검증 실패 (필수 조건)
                 if (rocketCount === 0) {
@@ -836,6 +906,8 @@ export default function Client({ extensionId }: { extensionId: string }) {
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
             attributeValues: attributeValues,
+            rocketAttributeValues: rocketAttributeValues,
+            rocketAttributeMaps: rocketAttributeMaps,
             error: rocketValidationError,
           })
         } else {
@@ -846,6 +918,8 @@ export default function Client({ extensionId }: { extensionId: string }) {
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
             attributeValues: attributeValues,
+            rocketAttributeValues: rocketAttributeValues,
+            rocketAttributeMaps: rocketAttributeMaps,
           })
         }
       } catch (error) {
@@ -855,6 +929,8 @@ export default function Client({ extensionId }: { extensionId: string }) {
           optionCount: 0,
           optionOrder: [],
           attributeValues: [],
+          rocketAttributeValues: [],
+          rocketAttributeMaps: [],
           error: String(error),
         })
       } finally {
@@ -865,7 +941,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
       await new Promise(r => setTimeout(r, 1000))
     }
 
-    // 2단계: 옵션이 있는 상품만 필터링하여 저장 (optionOrder, attributeValues 포함)
+    // 2단계: 옵션이 있는 상품만 필터링하여 저장 (optionOrder, attributeValues, rocketAttributeValues, rocketAttributeMaps 포함)
     const productsToSave = filtered
       .filter(product => {
         const validationResult = results.find(r => r.productId === product.productId)
@@ -873,10 +949,16 @@ export default function Client({ extensionId }: { extensionId: string }) {
       })
       .map(product => {
         const validationResult = results.find(r => r.productId === product.productId)
+        // attributeValues에서 rocketAttributeValues에 해당하는 것들을 제외
+        const attributeValues = validationResult?.attributeValues || []
+        const rocketAttributeValues = validationResult?.rocketAttributeValues || []
+        const filteredAttributeValues = attributeValues.filter(val => !rocketAttributeValues.includes(val))
         return {
           ...product,
           optionOrder: validationResult?.optionOrder || [],
-          attributeValues: validationResult?.attributeValues || [],
+          attributeValues: filteredAttributeValues,
+          rocketAttributeValues: rocketAttributeValues,
+          rocketAttributeMaps: validationResult?.rocketAttributeMaps || [],
         }
       })
 
@@ -1023,10 +1105,18 @@ export default function Client({ extensionId }: { extensionId: string }) {
                     product={product}
                     extensionId={extensionId}
                     onSave={product => {
+                      // attributeValues에서 rocketAttributeValues에 해당하는 것들을 제외
+                      const attributeValues = validationResult?.attributeValues || []
+                      const rocketAttributeValues = validationResult?.rocketAttributeValues || []
+                      const filteredAttributeValues = attributeValues.filter(
+                        val => !rocketAttributeValues.includes(val),
+                      )
                       const productWithOptionOrder = {
                         ...product,
                         optionOrder: validationResult?.optionOrder || [],
-                        attributeValues: validationResult?.attributeValues || [],
+                        attributeValues: filteredAttributeValues,
+                        rocketAttributeValues: rocketAttributeValues,
+                        rocketAttributeMaps: validationResult?.rocketAttributeMaps || [],
                       }
                       createProductMutation.mutate(productWithOptionOrder)
                     }}
@@ -1039,6 +1129,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
                             optionCount: validationResult.optionCount,
                             optionOrder: validationResult.optionOrder,
                             attributeValues: validationResult.attributeValues,
+                            rocketAttributeValues: validationResult.rocketAttributeValues,
                             error: validationResult.error,
                           }
                         : undefined

@@ -119,6 +119,9 @@ model Product {
 
   optionOrder       String[] @default([])
   attributeValues   String[] @default([])
+  rocketAttributeValues String[] @default([])
+
+  rocketAttributeMaps Json[] @default([])
 
   // 사용자 관계
   userId BigInt
