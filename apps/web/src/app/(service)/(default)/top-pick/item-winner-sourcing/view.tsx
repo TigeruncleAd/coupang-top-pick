@@ -187,12 +187,18 @@ export default function Client({ extensionId }: { extensionId: string }) {
           vendorItemId: product.vendorItemId,
         })
 
+        // optionOrder의 첫 번째 아이템이 '수량', '용량', '길이'인 경우 검증 실패
+        const optionOrder = res.optionOrder || []
+        const firstOption = optionOrder.length > 0 ? optionOrder[0] : null
+        const invalidFirstOptions = ['수량', '용량', '길이']
+        const isFirstOptionInvalid = firstOption && invalidFirstOptions.includes(firstOption)
+
         results.push({
           productId: product.productId,
-          hasOptionPicker: res.hasOptionPicker || false,
+          hasOptionPicker: (res.hasOptionPicker || false) && !isFirstOptionInvalid,
           optionCount: res.optionCount || 0,
-          optionOrder: res.optionOrder || [],
-          error: res.ok ? undefined : res.error,
+          optionOrder: optionOrder,
+          error: res.ok ? (isFirstOptionInvalid ? `첫 번째 옵션이 ${firstOption}입니다` : undefined) : res.error,
         })
       } catch (error) {
         results.push({
@@ -249,12 +255,18 @@ export default function Client({ extensionId }: { extensionId: string }) {
           vendorItemId: product.vendorItemId,
         })
 
+        // optionOrder의 첫 번째 아이템이 '수량', '용량', '길이'인 경우 검증 실패
+        const optionOrder = res.optionOrder || []
+        const firstOption = optionOrder.length > 0 ? optionOrder[0] : null
+        const invalidFirstOptions = ['수량', '용량', '길이']
+        const isFirstOptionInvalid = firstOption && invalidFirstOptions.includes(firstOption)
+
         results.push({
           productId: product.productId,
-          hasOptionPicker: res.hasOptionPicker || false,
+          hasOptionPicker: (res.hasOptionPicker || false) && !isFirstOptionInvalid,
           optionCount: res.optionCount || 0,
-          optionOrder: res.optionOrder || [],
-          error: res.ok ? undefined : res.error,
+          optionOrder: optionOrder,
+          error: res.ok ? (isFirstOptionInvalid ? `첫 번째 옵션이 ${firstOption}입니다` : undefined) : res.error,
         })
       } catch (error) {
         results.push({
