@@ -1272,6 +1272,56 @@
                                             console.warn('[wing/inject] ⚠️ Span element not found')
                                           }
                                         }
+
+                                        // 16. '판매요청' 버튼 클릭 (1초 후)
+                                        await delay(1000)
+                                        console.log('[wing/inject] 🔍 Looking for "판매요청" button...')
+
+                                        // footer.form-footer 내에서 '판매요청' 버튼 찾기
+                                        const formFooter = document.querySelector('footer.form-footer')
+                                        let saleRequestButton = null
+
+                                        if (formFooter) {
+                                          // 방법 1: 텍스트로 직접 찾기
+                                          const buttons = formFooter.querySelectorAll('button')
+                                          for (const button of buttons) {
+                                            const buttonText = button.textContent?.trim() || ''
+                                            if (buttonText.includes('판매요청')) {
+                                              saleRequestButton = button
+                                              console.log(
+                                                '[wing/inject] ✅ Found "판매요청" button by text:',
+                                                buttonText,
+                                              )
+                                              break
+                                            }
+                                          }
+                                        }
+
+                                        // 방법 2: 전체 문서에서 찾기
+                                        if (!saleRequestButton) {
+                                          const allButtons = document.querySelectorAll('button')
+                                          for (const button of allButtons) {
+                                            const buttonText = button.textContent?.trim() || ''
+                                            if (buttonText.includes('판매요청')) {
+                                              saleRequestButton = button
+                                              console.log(
+                                                '[wing/inject] ✅ Found "판매요청" button in document:',
+                                                buttonText,
+                                              )
+                                              break
+                                            }
+                                          }
+                                        }
+
+                                        if (saleRequestButton) {
+                                          saleRequestButton.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                                          await delay(300)
+                                          console.log('[wing/inject] ✅ Clicking "판매요청" button...')
+                                          saleRequestButton.click()
+                                          console.log('[wing/inject] ✅ "판매요청" button clicked successfully!')
+                                        } else {
+                                          console.warn('[wing/inject] ⚠️ "판매요청" button not found')
+                                        }
                                       } else {
                                         console.warn('[wing/inject] ⚠️ panel-notice-category element not found')
                                       }
