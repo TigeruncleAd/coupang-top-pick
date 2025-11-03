@@ -1,5 +1,5 @@
 import { Button } from '@repo/ui/components/button'
-import { Star, StarHalf, Plus, Check, CheckCircle2, XCircle } from 'lucide-react'
+import { Star, StarHalf, Plus, Check, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 import { wingProductItemsViaExtension } from '@/lib/utils/extension'
 import type { WingProductSummary } from '@/types/wing'
 import { forwardRef } from 'react'
@@ -17,6 +17,8 @@ interface ProductCardProps {
     attributeValues?: string[]
     error?: string
   }
+  onValidate?: () => void
+  isValidating?: boolean
 }
 
 function renderStars(rating: number | null | undefined, ratingCount: number | null | undefined) {
@@ -38,7 +40,7 @@ function renderStars(rating: number | null | undefined, ratingCount: number | nu
 }
 
 const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(function ProductCard(
-  { product, extensionId, onSave, isSaving, isSaved, validationResult },
+  { product, extensionId, onSave, isSaving, isSaved, validationResult, onValidate, isValidating },
   ref,
 ) {
   const imgUrl = product.imagePath.startsWith('http')
@@ -148,6 +150,22 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(function Produc
         )}
       </div>
       <div className="flex flex-col gap-2">
+        {onValidate && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onValidate}
+            disabled={isValidating || isSaving}>
+            {isValidating ? (
+              <>
+                <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                검증 중...
+              </>
+            ) : (
+              '상품검증'
+            )}
+          </Button>
+        )}
         {onSave && (
           <Button
             size="sm"

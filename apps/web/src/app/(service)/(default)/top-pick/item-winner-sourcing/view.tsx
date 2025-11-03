@@ -44,6 +44,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
   const [validationResults, setValidationResults] = useState<ValidationResult[]>([])
   const [validationProgress, setValidationProgress] = useState({ current: 0, total: 0 })
   const [isValidatingAndSaving, setIsValidatingAndSaving] = useState(false)
+  const [validatingProductIds, setValidatingProductIds] = useState<Set<number>>(new Set())
   const [isBulkMode, setIsBulkMode] = useState(false)
   const productRefs = useRef<Map<number, HTMLDivElement>>(new Map())
 
@@ -207,10 +208,10 @@ export default function Client({ extensionId }: { extensionId: string }) {
           continue
         }
 
-        // optionOrder의 첫 번째 아이템이 '수량', '용량', '길이', '개당 용량'인 경우 검증 실패
+        // optionOrder의 첫 번째 아이템이 '수량', '용량', '길이', '개당 용량', '구성품'인 경우 검증 실패
         const optionOrder = optionPickerRes.optionOrder || []
         const firstOption = optionOrder.length > 0 ? optionOrder[0] : null
-        const invalidFirstOptions = ['수량', '용량', '길이', '개당 용량']
+        const invalidFirstOptions = ['수량', '용량', '길이', '개당 용량', '구성품']
         const isFirstOptionInvalid = firstOption && invalidFirstOptions.includes(firstOption)
 
         if (isFirstOptionInvalid) {
@@ -326,22 +327,27 @@ export default function Client({ extensionId }: { extensionId: string }) {
                 // HAS_ROD, HAS_RETAIL 또는 HAS_JIKGU가 true인 옵션 수 계산
                 const rocketCount = items.filter(item => {
                   const controlFlags = item.controlFlags || {}
-                  const hasRod = controlFlags?.['HAS_ROD'] === 'true'
-                  const hasRetail = controlFlags?.['HAS_RETAIL'] === 'true'
-                  const hasJikgu = controlFlags?.['HAS_JIKGU'] === 'true'
+                  // 'true' 문자열 또는 boolean true 모두 체크
+                  const hasRod = controlFlags?.['HAS_ROD'] === 'true' || controlFlags?.['HAS_ROD'] === true
+                  const hasRetail = controlFlags?.['HAS_RETAIL'] === 'true' || controlFlags?.['HAS_RETAIL'] === true
+                  const hasJikgu = controlFlags?.['HAS_JIKGU'] === 'true' || controlFlags?.['HAS_JIKGU'] === true
                   return hasRod || hasRetail || hasJikgu
                 }).length
 
                 console.log('[validate] 🚀 Rocket items count:', rocketCount, 'out of', items.length)
 
-                // 로켓 배송 옵션이 하나도 없으면 검증 실패
+                // 로켓 배송 옵션이 하나도 없으면 검증 실패 (필수 조건)
                 if (rocketCount === 0) {
+                  console.log('[validate] ❌ 로켓 배송 옵션이 전혀 없습니다 - 검증 실패')
                   rocketValidationError = '로켓 배송 옵션이 없습니다'
                 } else {
                   // 30% 초과 시 검증 실패
                   const rocketRatio = rocketCount / items.length
                   if (rocketRatio > 0.3) {
+                    console.log('[validate] ❌ 로켓 배송 옵션이 너무 많습니다:', (rocketRatio * 100).toFixed(1) + '%')
                     rocketValidationError = `로켓 배송 옵션이 너무 많습니다 (${(rocketRatio * 100).toFixed(1)}%)`
+                  } else {
+                    console.log('[validate] ✅ 로켓 배송 옵션 비율 정상:', (rocketRatio * 100).toFixed(1) + '%')
                   }
                 }
               }
@@ -401,6 +407,224 @@ export default function Client({ extensionId }: { extensionId: string }) {
     toast.success(`검증 완료: 옵션 있음 ${withOptions}개 / 없음 ${results.length - withOptions}개`)
   }
 
+  // 개별 상품 검증 함수
+  const handleValidateProduct = async (product: WingProductSummary) => {
+    // 이미 검증 중인 상품이면 중단
+    if (validatingProductIds.has(product.productId)) {
+      return
+    }
+
+    setValidatingProductIds(prev => new Set(prev).add(product.productId))
+
+    try {
+      // 현재 검증 중인 상품으로 스크롤
+      const productElement = productRefs.current.get(product.productId)
+      if (productElement) {
+        productElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+
+      // 기존 검증 결과 제거 (해당 상품만)
+      setValidationResults(prev => prev.filter(r => r.productId !== product.productId))
+
+      let validationResult: ValidationResult | null = null
+
+      try {
+        // 1단계: 드롭다운 옵션 존재 여부 확인 및 optionOrder 획득
+        const optionPickerRes = await checkCoupangOptionPicker({
+          extensionId,
+          productId: product.productId,
+          itemId: product.itemId,
+          vendorItemId: product.vendorItemId,
+        })
+
+        // 드롭다운 옵션이 없으면 검증 실패
+        if (!optionPickerRes.hasOptionPicker) {
+          validationResult = {
+            productId: product.productId,
+            hasOptionPicker: false,
+            optionCount: 0,
+            optionOrder: [],
+            attributeValues: [],
+            error: '드롭다운 옵션이 없습니다',
+          }
+          setValidationResults(prev => [...prev.filter(r => r.productId !== product.productId), validationResult!])
+          return
+        }
+
+        // optionOrder의 첫 번째 아이템이 '수량', '용량', '길이', '개당 용량', '구성품'인 경우 검증 실패
+        const optionOrder = optionPickerRes.optionOrder || []
+        const firstOption = optionOrder.length > 0 ? optionOrder[0] : null
+        const invalidFirstOptions = ['수량', '용량', '길이', '개당 용량', '구성품']
+        const isFirstOptionInvalid = firstOption && invalidFirstOptions.includes(firstOption)
+
+        if (isFirstOptionInvalid) {
+          validationResult = {
+            productId: product.productId,
+            hasOptionPicker: false,
+            optionCount: optionPickerRes.optionCount || 0,
+            optionOrder: optionOrder,
+            attributeValues: [],
+            error: `첫 번째 옵션이 ${firstOption}입니다`,
+          }
+          setValidationResults(prev => [...prev.filter(r => r.productId !== product.productId), validationResult!])
+          return
+        }
+
+        // 2단계: Wing formV2 탭 열기 및 WING_ATTRIBUTE_CHECK로 attributeValues 추출
+        let attributeValues: string[] = []
+        let apiError: string | null = null
+
+        try {
+          const checkRes = await wingAttributeCheckViaExtension({
+            extensionId,
+            productId: product.productId,
+            itemId: product.itemId,
+            categoryId: product.categoryId,
+            optionOrder: optionOrder,
+          })
+
+          // API 호출이 실패했거나 응답이 없는 경우
+          if (checkRes.status !== 'success') {
+            apiError = `API 호출 실패: ${checkRes.status}`
+          } else if (!checkRes.data?.ok) {
+            apiError = `API 응답 오류: ${checkRes.data?.error || 'Unknown error'}`
+          } else if (!checkRes.data?.attributeValues) {
+            apiError = 'attributeValues가 없습니다'
+            attributeValues = []
+          } else {
+            attributeValues = checkRes.data.attributeValues || []
+
+            if (attributeValues.length === 0) {
+              apiError = '영어 또는 숫자로 시작하는 옵션 값이 없습니다'
+            }
+          }
+        } catch (error) {
+          apiError = `API 호출 중 오류 발생: ${error instanceof Error ? error.message : String(error)}`
+        }
+
+        // formV2 탭 닫기 (검증 완료 후 정리)
+        try {
+          await closeFormV2Tab({ extensionId })
+        } catch (error) {
+          console.warn('[validate] ⚠️ Failed to close formV2 tab:', error)
+        }
+
+        // attributeValues 길이가 0일 때 검증 실패
+        if (apiError || attributeValues.length === 0) {
+          validationResult = {
+            productId: product.productId,
+            hasOptionPicker: false,
+            optionCount: optionPickerRes.optionCount || 0,
+            optionOrder: optionOrder,
+            attributeValues: [],
+            error: apiError || '영어 또는 숫자로 시작하는 옵션 값이 없습니다',
+          }
+          setValidationResults(prev => [...prev.filter(r => r.productId !== product.productId), validationResult!])
+          return
+        }
+
+        // 3단계: 로켓 배송 옵션 검증 (HAS_ROD, HAS_RETAIL, HAS_JIKGU)
+        let rocketValidationError: string | null = null
+        try {
+          const itemsResponse = await wingProductItemsViaExtension({
+            extensionId,
+            productId: product.productId,
+            itemId: product.itemId,
+            categoryId: product.categoryId,
+            allowSingleProduct: false,
+          })
+
+          if (itemsResponse.status === 'success' && itemsResponse.data) {
+            const envelope = itemsResponse.data as any
+            if (envelope.ok && envelope.data) {
+              const productItemsDetail = envelope.data as WingProductItemsDetail
+              const items = productItemsDetail.items || []
+
+              if (items.length === 0) {
+                rocketValidationError = '옵션 데이터를 가져올 수 없습니다'
+              } else {
+                // HAS_ROD, HAS_RETAIL 또는 HAS_JIKGU가 true인 옵션 수 계산
+                const rocketCount = items.filter(item => {
+                  const controlFlags = item.controlFlags || {}
+                  // 'true' 문자열 또는 boolean true 모두 체크
+                  const hasRod = controlFlags?.['HAS_ROD'] === 'true' || controlFlags?.['HAS_ROD'] === true
+                  const hasRetail = controlFlags?.['HAS_RETAIL'] === 'true' || controlFlags?.['HAS_RETAIL'] === true
+                  const hasJikgu = controlFlags?.['HAS_JIKGU'] === 'true' || controlFlags?.['HAS_JIKGU'] === true
+                  return hasRod || hasRetail || hasJikgu
+                }).length
+
+                console.log('[validate] 🚀 Rocket items count:', rocketCount, 'out of', items.length)
+
+                // 로켓 배송 옵션이 하나도 없으면 검증 실패 (필수 조건)
+                if (rocketCount === 0) {
+                  console.log('[validate] ❌ 로켓 배송 옵션이 전혀 없습니다 - 검증 실패')
+                  rocketValidationError = '로켓 배송 옵션이 없습니다'
+                } else {
+                  // 30% 초과 시 검증 실패
+                  const rocketRatio = rocketCount / items.length
+                  if (rocketRatio > 0.3) {
+                    console.log('[validate] ❌ 로켓 배송 옵션이 너무 많습니다:', (rocketRatio * 100).toFixed(1) + '%')
+                    rocketValidationError = `로켓 배송 옵션이 너무 많습니다 (${(rocketRatio * 100).toFixed(1)}%)`
+                  } else {
+                    console.log('[validate] ✅ 로켓 배송 옵션 비율 정상:', (rocketRatio * 100).toFixed(1) + '%')
+                  }
+                }
+              }
+            } else {
+              rocketValidationError = '옵션 데이터 응답이 올바르지 않습니다'
+            }
+          } else {
+            rocketValidationError = '옵션 데이터를 가져오지 못했습니다'
+          }
+        } catch (error) {
+          rocketValidationError = `옵션 검증 중 오류 발생: ${error instanceof Error ? error.message : String(error)}`
+        }
+
+        // 로켓 배송 검증 실패 시
+        if (rocketValidationError) {
+          validationResult = {
+            productId: product.productId,
+            hasOptionPicker: false,
+            optionCount: optionPickerRes.optionCount || 0,
+            optionOrder: optionOrder,
+            attributeValues: attributeValues,
+            error: rocketValidationError,
+          }
+        } else {
+          // 모든 검증 통과
+          validationResult = {
+            productId: product.productId,
+            hasOptionPicker: true,
+            optionCount: optionPickerRes.optionCount || 0,
+            optionOrder: optionOrder,
+            attributeValues: attributeValues,
+          }
+        }
+      } catch (error) {
+        validationResult = {
+          productId: product.productId,
+          hasOptionPicker: false,
+          optionCount: 0,
+          optionOrder: [],
+          attributeValues: [],
+          error: String(error),
+        }
+      }
+
+      // 검증 결과 업데이트
+      if (validationResult) {
+        setValidationResults(prev => [...prev.filter(r => r.productId !== product.productId), validationResult!])
+        toast.success(`${product.productName} 검증 완료`)
+      }
+    } finally {
+      setValidatingProductIds(prev => {
+        const next = new Set(prev)
+        next.delete(product.productId)
+        return next
+      })
+    }
+  }
+
   // 전체 검증 후 저장 함수
   const handleValidateAndSave = async () => {
     if (filtered.length === 0) {
@@ -449,10 +673,10 @@ export default function Client({ extensionId }: { extensionId: string }) {
           continue
         }
 
-        // optionOrder의 첫 번째 아이템이 '수량', '용량', '길이', '개당 용량'인 경우 검증 실패
+        // optionOrder의 첫 번째 아이템이 '수량', '용량', '길이', '개당 용량', '구성품'인 경우 검증 실패
         const optionOrder = optionPickerRes.optionOrder || []
         const firstOption = optionOrder.length > 0 ? optionOrder[0] : null
-        const invalidFirstOptions = ['수량', '용량', '길이', '개당 용량']
+        const invalidFirstOptions = ['수량', '용량', '길이', '개당 용량', '구성품']
         const isFirstOptionInvalid = firstOption && invalidFirstOptions.includes(firstOption)
 
         if (isFirstOptionInvalid) {
@@ -568,22 +792,27 @@ export default function Client({ extensionId }: { extensionId: string }) {
                 // HAS_ROD, HAS_RETAIL 또는 HAS_JIKGU가 true인 옵션 수 계산
                 const rocketCount = items.filter(item => {
                   const controlFlags = item.controlFlags || {}
-                  const hasRod = controlFlags?.['HAS_ROD'] === 'true'
-                  const hasRetail = controlFlags?.['HAS_RETAIL'] === 'true'
-                  const hasJikgu = controlFlags?.['HAS_JIKGU'] === 'true'
+                  // 'true' 문자열 또는 boolean true 모두 체크
+                  const hasRod = controlFlags?.['HAS_ROD'] === 'true' || controlFlags?.['HAS_ROD'] === true
+                  const hasRetail = controlFlags?.['HAS_RETAIL'] === 'true' || controlFlags?.['HAS_RETAIL'] === true
+                  const hasJikgu = controlFlags?.['HAS_JIKGU'] === 'true' || controlFlags?.['HAS_JIKGU'] === true
                   return hasRod || hasRetail || hasJikgu
                 }).length
 
                 console.log('[validate] 🚀 Rocket items count:', rocketCount, 'out of', items.length)
 
-                // 로켓 배송 옵션이 하나도 없으면 검증 실패
+                // 로켓 배송 옵션이 하나도 없으면 검증 실패 (필수 조건)
                 if (rocketCount === 0) {
+                  console.log('[validate] ❌ 로켓 배송 옵션이 전혀 없습니다 - 검증 실패')
                   rocketValidationError = '로켓 배송 옵션이 없습니다'
                 } else {
                   // 30% 초과 시 검증 실패
                   const rocketRatio = rocketCount / items.length
                   if (rocketRatio > 0.3) {
+                    console.log('[validate] ❌ 로켓 배송 옵션이 너무 많습니다:', (rocketRatio * 100).toFixed(1) + '%')
                     rocketValidationError = `로켓 배송 옵션이 너무 많습니다 (${(rocketRatio * 100).toFixed(1)}%)`
+                  } else {
+                    console.log('[validate] ✅ 로켓 배송 옵션 비율 정상:', (rocketRatio * 100).toFixed(1) + '%')
                   }
                 }
               }
@@ -814,6 +1043,8 @@ export default function Client({ extensionId }: { extensionId: string }) {
                           }
                         : undefined
                     }
+                    onValidate={() => handleValidateProduct(product)}
+                    isValidating={validatingProductIds.has(product.productId)}
                   />
                 )
               })}
