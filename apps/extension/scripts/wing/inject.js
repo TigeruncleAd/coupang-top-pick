@@ -2197,7 +2197,9 @@
           }
 
           // optionOrder의 첫 번째와 일치하는 attributeName의 모든 attributeValue 수집
-          const allAttributeValues = new Set()
+          // items 배열의 순서를 유지하면서 수집 (첫 등장 순서)
+          const allAttributeValues = []
+          const seenValues = new Set()
           console.log('[wing/inject] 🔍 Starting attributeValue collection for firstOption:', firstOption)
 
           items.forEach((item, itemIndex) => {
@@ -2217,8 +2219,13 @@
                 })
 
                 if (attr.attributeName === firstOption) {
-                  console.log(`[wing/inject]   ✅ Match found! Adding to Set: "${attr.attributeValue}"`)
-                  allAttributeValues.add(attr.attributeValue)
+                  const attrValue = attr.attributeValue
+                  // 중복 제거하면서 첫 등장 순서 유지
+                  if (!seenValues.has(attrValue)) {
+                    console.log(`[wing/inject]   ✅ Match found! Adding to array: "${attrValue}"`)
+                    allAttributeValues.push(attrValue)
+                    seenValues.add(attrValue)
+                  }
                 }
               })
             } else {
@@ -2228,12 +2235,12 @@
 
           console.log(
             '[wing/inject] 📊 All collected attributeValues (before filtering):',
-            Array.from(allAttributeValues),
+            allAttributeValues,
           )
-          console.log('[wing/inject] 📊 Total unique values:', allAttributeValues.size)
+          console.log('[wing/inject] 📊 Total unique values:', allAttributeValues.length)
 
           // 영어, 숫자, "(", "["로 시작하는 것만 필터링
-          const attributeValues = Array.from(allAttributeValues).filter(value => {
+          const filteredAttributeValues = allAttributeValues.filter(value => {
             if (!value || value.length === 0) {
               console.log(`[wing/inject]   ❌ Filtered out (empty): "${value}"`)
               return false
@@ -2248,10 +2255,24 @@
             return matches
           })
 
-          console.log('[wing/inject] ✅ Final filtered attributeValues:', attributeValues)
+          // 알파벳 순서로 정렬 (대소문자 구분 없이, 괄호나 추가 텍스트 고려)
+          const attributeValues = filteredAttributeValues.sort((a, b) => {
+            // 기본 문자열 비교 (대소문자 구분 없이)
+            const aUpper = a.trim().toUpperCase()
+            const bUpper = b.trim().toUpperCase()
+            
+            // 알파벳 순서로 정렬
+            if (aUpper < bUpper) return -1
+            if (aUpper > bUpper) return 1
+            
+            // 대소문자 차이만 있으면 원본 순서 유지
+            return 0
+          })
+
+          console.log('[wing/inject] ✅ Final filtered and sorted attributeValues:', attributeValues)
           console.log('[wing/inject] 📊 Summary:', {
             totalItems: items.length,
-            totalUniqueValues: allAttributeValues.size,
+            totalUniqueValues: allAttributeValues.length,
             filteredValues: attributeValues.length,
             firstOption: firstOption,
           })
@@ -2260,7 +2281,7 @@
             ok: true,
             attributeValues: attributeValues,
             firstOption: firstOption,
-            totalValues: allAttributeValues.size,
+            totalValues: allAttributeValues.length,
             filteredValues: attributeValues.length,
           })
         } catch (e) {
