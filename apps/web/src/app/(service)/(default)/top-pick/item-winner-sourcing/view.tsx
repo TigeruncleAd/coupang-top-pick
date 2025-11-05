@@ -19,6 +19,7 @@ import { createProduct, createProductsBulk } from '@/serverActions/product/produ
 import { toast } from 'sonner'
 import ProductCard from './ProductCard'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@repo/ui/components/collapsible'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui/components/select'
 import { ChevronDown, ChevronRight, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 
 const MIN_ITEM_COUNT_OF_PRODUCT = 3
@@ -48,6 +49,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
   const [isValidatingAndSaving, setIsValidatingAndSaving] = useState(false)
   const [validatingProductIds, setValidatingProductIds] = useState<Set<number>>(new Set())
   const [isBulkMode, setIsBulkMode] = useState(false)
+  const [maxItems, setMaxItems] = useState<number>(20)
   const productRefs = useRef<Map<number, HTMLDivElement>>(new Map())
 
   // 상품 생성 mutation
@@ -114,7 +116,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
       const filteredResults =
         envelope.data?.result
           ?.filter(p => p.deliveryMethod === 'DOMESTIC' && (p.itemCountOfProduct ?? 0) >= MIN_ITEM_COUNT_OF_PRODUCT)
-          .slice(0, 20) ?? []
+          .slice(0, maxItems) ?? []
 
       // 벌크 모드에 따라 결과 처리
       if (isBulkMode && result?.data?.result) {
@@ -995,6 +997,17 @@ export default function Client({ extensionId }: { extensionId: string }) {
               <Label htmlFor="bulk-mode" className="cursor-pointer text-sm font-medium">
                 벌크 모드
               </Label>
+              <Select value={maxItems.toString()} onValueChange={value => setMaxItems(Number(value))}>
+                <SelectTrigger className="w-20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="20">20개</SelectItem>
+                  <SelectItem value="30">30개</SelectItem>
+                  <SelectItem value="40">40개</SelectItem>
+                  <SelectItem value="50">50개</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             {isBulkMode && filtered.length > 0 && (
               <Button
@@ -1051,7 +1064,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
                   {isBulkMode ? (
                     <>🔄 벌크 모드: 검색 결과 누적 중 • 국내배송, 경쟁상품 {MIN_ITEM_COUNT_OF_PRODUCT}개 이상</>
                   ) : (
-                    <>국내배송, 경쟁상품 {MIN_ITEM_COUNT_OF_PRODUCT}개 이상, 최대 20개까지 표시</>
+                    <>국내배송, 경쟁상품 {MIN_ITEM_COUNT_OF_PRODUCT}개 이상, 최대 {maxItems}개까지 표시</>
                   )}
                 </p>
               </div>
