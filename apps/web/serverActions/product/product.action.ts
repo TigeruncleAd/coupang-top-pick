@@ -199,7 +199,7 @@ export async function deleteProduct(productId: bigint) {
 
 export async function updateProductStatus(
   productId: bigint,
-  status: 'READY' | 'UPLOADED_RAW' | 'ROCKET_MAJORITY',
+  status: 'READY' | 'UPLOADED_RAW' | 'ROCKET_MAJORITY' | 'BAD_OPTION_VALUE',
   vendorInventoryId?: string,
 ) {
   console.log('[updateProductStatus] 📝 Starting status update')

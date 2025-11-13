@@ -48,13 +48,15 @@ export default function Client({ extensionId }: { extensionId: string }) {
       vendorInventoryId,
     }: {
       productId: bigint
-      status: 'READY' | 'UPLOADED_RAW' | 'ROCKET_MAJORITY'
+      status: 'READY' | 'UPLOADED_RAW' | 'ROCKET_MAJORITY' | 'BAD_OPTION_VALUE'
       vendorInventoryId?: string
     }) => updateProductStatus(productId, status, vendorInventoryId),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['userProducts'] })
       if (variables.status === 'ROCKET_MAJORITY') {
         toast.error('상품 업로드 중단')
+      } else if (variables.status === 'BAD_OPTION_VALUE') {
+        toast.error('옵션 값 오류: 정확히 일치하는 옵션을 찾을 수 없습니다.')
       } else {
         toast.success('상품이 업로드되었습니다.')
       }
@@ -124,6 +126,21 @@ export default function Client({ extensionId }: { extensionId: string }) {
         })
 
         console.log('[product-upload/view] ✅ Mutation triggered')
+      } else if (event.data.type === 'UPDATE_PRODUCT_STATUS_ERROR' && event.data.productId) {
+        console.log('[product-upload/view] 🚨 UPDATE_PRODUCT_STATUS_ERROR message received!')
+        console.log('[product-upload/view] ProductId:', event.data.productId)
+        console.log('[product-upload/view] Status:', event.data.status)
+        console.log('[product-upload/view] Error:', event.data.error)
+        console.log('[product-upload/view] 📤 Triggering error mutation...')
+
+        // 에러 상태 업데이트
+        updateProductStatusMutation.mutate({
+          productId: BigInt(event.data.productId),
+          status: event.data.status || 'BAD_OPTION_VALUE',
+          vendorInventoryId: undefined,
+        })
+
+        console.log('[product-upload/view] ✅ Error mutation triggered')
       } else {
         console.log('[product-upload/view] ⚠️ Message type or productId missing')
       }
@@ -180,6 +197,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
           vendorItemId: Number(product.vendorItemId),
           optionOrder,
           attributeValues: product.attributeValues || [],
+          firstAttributeValue: product.firstAttributeValue || null,
           salePrice: product.salePrice,
         })
 
@@ -349,17 +367,12 @@ export default function Client({ extensionId }: { extensionId: string }) {
                             ))}
                           </div>
                         )}
-                        {product.attributeValues &&
-                          product.attributeValues.length > 0 &&
-                          product.optionOrder &&
-                          product.optionOrder.length > 0 && (
-                            <div className="mt-1">
-                              <span className="text-muted-foreground text-xs font-medium">
-                                {product.optionOrder[0]} :{' '}
-                              </span>
-                              <span className="text-xs text-green-400">{product.attributeValues.join(', ')}</span>
-                            </div>
-                          )}
+                        {product.firstAttributeValue && (
+                          <div className="mt-1">
+                            <span className="text-muted-foreground text-xs font-medium">첫 번째 속성 값: </span>
+                            <span className="text-xs text-blue-400">{product.firstAttributeValue}</span>
+                          </div>
+                        )}
                       </div>
                       <div className="flex flex-col gap-2">
                         <Button size="sm" variant="outline" asChild>
@@ -420,6 +433,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
                                   vendorItemId: Number(product.vendorItemId),
                                   optionOrder,
                                   attributeValues: product.attributeValues || [],
+                                  firstAttributeValue: product.firstAttributeValue || null,
                                   salePrice: product.salePrice,
                                 })
                               } catch (error) {

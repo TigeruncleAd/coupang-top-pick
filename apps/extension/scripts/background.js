@@ -919,19 +919,26 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           console.log('[background] ✅ Found product-upload tab:', productUploadTab.id)
           console.log('[background] Tab URL:', productUploadTab.url)
 
-          // product-upload 탭에 메시지 전송
+          // product-upload 탭에 메시지 전송 (window.postMessage 사용)
           const messageToSend = {
+            source: 'coupang-extension',
             type: 'UPDATE_PRODUCT_STATUS',
             productId: productId,
             vendorInventoryId: vendorInventoryId,
           }
-          console.log('[background] 📤 Sending message to content script:', messageToSend)
+          console.log('[background] 📤 Sending message via window.postMessage:', messageToSend)
 
           try {
-            await chrome.tabs.sendMessage(productUploadTab.id, messageToSend)
-            console.log('[background] ✅ Message sent to product-upload content script')
+            await chrome.scripting.executeScript({
+              target: { tabId: productUploadTab.id },
+              func: message => {
+                window.postMessage(message, '*')
+              },
+              args: [messageToSend],
+            })
+            console.log('[background] ✅ Message sent to product-upload page')
           } catch (sendError) {
-            console.error('[background] ❌ Error sending message to content script:', sendError)
+            console.error('[background] ❌ Error sending message to product-upload page:', sendError)
           }
 
           // 탭을 활성화
@@ -945,6 +952,89 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         }
       } catch (e) {
         console.error('[background] ❌ Error handling product upload success:', e)
+        console.error('[background] Error stack:', e.stack)
+      }
+    })()
+    return true
+  }
+
+  if (msg?.type === 'PRODUCT_UPLOAD_ERROR') {
+    ;(async () => {
+      try {
+        const { productId, status, error } = msg
+        console.log('[background] 🚨 PRODUCT_UPLOAD_ERROR message received!')
+        console.log('[background] ProductId:', productId)
+        console.log('[background] Status:', status)
+        console.log('[background] Error:', error)
+        console.log('[background] Sender tab ID:', sender.tab?.id)
+
+        // 먼저 응답 전송 (탭이 닫히기 전에)
+        sendResponse({ ok: true })
+        console.log('[background] ✅ Response sent to wing tab')
+
+        // Wing 탭 닫기 (sender.tab.id 사용)
+        const wingTabId = sender.tab?.id
+        if (wingTabId) {
+          console.log('[background] 🗑️ Closing Wing tab:', wingTabId)
+          try {
+            await chrome.tabs.remove(wingTabId)
+            console.log('[background] ✅ Wing tab closed successfully')
+          } catch (closeError) {
+            console.error('[background] ❌ Error closing Wing tab:', closeError)
+            console.error('[background] Error details:', closeError.message)
+          }
+        } else {
+          console.warn('[background] ⚠️ No sender tab ID available')
+        }
+
+        // /top-pick/product-upload 페이지 찾기
+        console.log('[background] 🔍 Searching for product-upload tab...')
+        const tabs = await chrome.tabs.query({})
+        console.log('[background] Total tabs:', tabs.length)
+
+        const productUploadTab = tabs.find(tab => {
+          console.log('[background] Checking tab:', tab.id, tab.url)
+          return tab.url?.includes('/top-pick/product-upload')
+        })
+
+        if (productUploadTab?.id) {
+          console.log('[background] ✅ Found product-upload tab:', productUploadTab.id)
+          console.log('[background] Tab URL:', productUploadTab.url)
+
+          // product-upload 탭에 에러 메시지 전송 (window.postMessage 사용)
+          const messageToSend = {
+            source: 'coupang-extension',
+            type: 'UPDATE_PRODUCT_STATUS_ERROR',
+            productId: productId,
+            status: status,
+            error: error,
+          }
+          console.log('[background] 📤 Sending error message via window.postMessage:', messageToSend)
+
+          try {
+            await chrome.scripting.executeScript({
+              target: { tabId: productUploadTab.id },
+              func: message => {
+                window.postMessage(message, '*')
+              },
+              args: [messageToSend],
+            })
+            console.log('[background] ✅ Error message sent to product-upload page')
+          } catch (sendError) {
+            console.error('[background] ❌ Error sending message to product-upload page:', sendError)
+          }
+
+          // 탭을 활성화
+          console.log('[background] 🎯 Activating product-upload tab...')
+          await chrome.tabs.update(productUploadTab.id, { active: true })
+          console.log('[background] ✅ Product-upload tab activated')
+        } else {
+          console.warn('[background] ⚠️ Product-upload tab not found')
+          console.log('[background] Available tabs:')
+          tabs.forEach(tab => console.log(`  - ${tab.id}: ${tab.url}`))
+        }
+      } catch (e) {
+        console.error('[background] ❌ Error handling product upload error:', e)
         console.error('[background] Error stack:', e.stack)
       }
     })()

@@ -69,6 +69,7 @@
             vendorItemId,
             optionOrder,
             attributeValues,
+            firstAttributeValue,
             salePrice,
           } = msg.payload || {}
           // 업로드 시에는 {productName} {productId} 형식으로 검색
@@ -79,6 +80,7 @@
             productName,
             optionOrder,
             attributeValues,
+            firstAttributeValue,
           })
           console.log('[wing/inject] Display value for search:', displayValue)
 
@@ -187,60 +189,144 @@
               productNameInput.blur()
               console.log('[wing/inject] ✅ Product name set successfully, current value:', productNameInput.value)
 
-              // 3. 노출상품명 입력 후 추천 상품이 나타날 때까지 대기하고 "판매옵션 선택" 버튼 클릭
-              setTimeout(() => {
-                console.log('[wing/inject] Waiting for recommended products to appear...')
+              // 3. 노출상품명 입력 후 API 호출하여 매칭 상품 찾기
+              setTimeout(async () => {
+                console.log('[wing/inject] 🔍 Calling pre-matching search API...')
 
-                let matchAttempts = 0
-                const maxMatchAttempts = 50 // 10초 대기
-                const matchPollInterval = setInterval(() => {
-                  matchAttempts++
+                try {
+                  // API 호출
+                  const searchResponse = await fetch(
+                    'https://wing.coupang.com/tenants/seller-web/pre-matching/search',
+                    {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      credentials: 'include',
+                      body: JSON.stringify({
+                        excludedProductIds: null,
+                        keyword: displayValue, // 노출상품명
+                        registrationType: null,
+                        searchOrder: 'DEFAULT',
+                        searchPage: null,
+                        searchPageSize: 5,
+                        sortType: 'DEFAULT',
+                      }),
+                    },
+                  )
 
-                  // 첫 번째 추천 상품의 "판매옵션 선택" 버튼 찾기
-                  const preMatchingPane = document.querySelector('.pre-matching-product-pane')
-                  if (!preMatchingPane) {
-                    console.log(`[wing/inject] [${matchAttempts}/${maxMatchAttempts}] Pre-matching pane not found yet`)
-                    if (matchAttempts >= maxMatchAttempts) {
-                      console.warn('[wing/inject] ❌ Timeout: Pre-matching products did not appear')
-                      clearInterval(matchPollInterval)
-                    }
+                  const searchData = await searchResponse.json()
+                  console.log('[wing/inject] 📦 Pre-matching search response:', searchData)
+
+                  if (!searchData || !searchData.result || searchData.result.length === 0) {
+                    console.warn('[wing/inject] ❌ No matching products found in API response')
                     return
                   }
 
-                  // 첫 번째 상품 박스의 "판매옵션 선택" 버튼 찾기
-                  const firstProductBox = preMatchingPane.querySelector('.pre-matching-product-box')
-                  if (!firstProductBox) {
-                    console.log(`[wing/inject] [${matchAttempts}/${maxMatchAttempts}] Product box not found yet`)
-                    if (matchAttempts >= maxMatchAttempts) {
-                      console.warn('[wing/inject] ❌ Timeout: Product box did not appear')
-                      clearInterval(matchPollInterval)
+                  // 업로드하려는 상품의 productId와 일치하는 상품 찾기
+                  const targetProductId = Number(productId)
+                  let matchedIndex = -1
+
+                  for (let i = 0; i < searchData.result.length; i++) {
+                    if (searchData.result[i].productId === targetProductId) {
+                      matchedIndex = i
+                      console.log(
+                        `[wing/inject] ✅ Found matching product at index ${i}: productId ${targetProductId}`,
+                      )
+                      break
                     }
-                    return
                   }
 
-                  // 버튼 찾기
-                  const selectButton = firstProductBox.querySelector('button[data-wuic-props*="type:secondary"]')
-                  if (!selectButton || !selectButton.textContent?.includes('판매옵션 선택')) {
-                    console.log(
-                      `[wing/inject] [${matchAttempts}/${maxMatchAttempts}] "판매옵션 선택" button not found yet`,
+                  if (matchedIndex === -1) {
+                    console.warn(
+                      `[wing/inject] ❌ No matching product found for productId: ${targetProductId}`,
                     )
-                    if (matchAttempts >= maxMatchAttempts) {
-                      console.warn('[wing/inject] ❌ Timeout: "판매옵션 선택" button did not appear')
-                      clearInterval(matchPollInterval)
-                    }
+                    console.log(
+                      `[wing/inject] Available productIds: ${searchData.result.map(r => r.productId).join(', ')}`,
+                    )
                     return
                   }
 
-                  console.log('[wing/inject] ✅ Found "판매옵션 선택" button! Clicking...')
-                  clearInterval(matchPollInterval)
+                  // 매칭된 상품의 순번에 해당하는 "판매옵션 선택" 버튼 찾기
+                  console.log('[wing/inject] 🔍 Waiting for pre-matching products to appear in DOM...')
 
-                  // 버튼 클릭
-                  selectButton.click()
-                  console.log('[wing/inject] ✅ "판매옵션 선택" button clicked successfully')
+                  let matchAttempts = 0
+                  const maxMatchAttempts = 50 // 10초 대기
+                  const matchPollInterval = setInterval(() => {
+                    matchAttempts++
 
-                  // 헬퍼 함수: 요소가 나타날 때까지 대기
-                  const waitForElement = (selector, maxAttempts = 50, intervalMs = 100) => {
-                    return new Promise((resolve, reject) => {
+                    // 추천 상품 패널 찾기
+                    const preMatchingPane = document.querySelector('.pre-matching-product-pane')
+                    if (!preMatchingPane) {
+                      console.log(`[wing/inject] [${matchAttempts}/${maxMatchAttempts}] Pre-matching pane not found yet`)
+                      if (matchAttempts >= maxMatchAttempts) {
+                        console.warn('[wing/inject] ❌ Timeout: Pre-matching products did not appear')
+                        clearInterval(matchPollInterval)
+                      }
+                      return
+                    }
+
+                    // 모든 상품 박스 찾기
+                    const productBoxes = preMatchingPane.querySelectorAll('.pre-matching-product-box')
+                    if (productBoxes.length === 0) {
+                      console.log(`[wing/inject] [${matchAttempts}/${maxMatchAttempts}] Product boxes not found yet`)
+                      if (matchAttempts >= maxMatchAttempts) {
+                        console.warn('[wing/inject] ❌ Timeout: Product boxes did not appear')
+                        clearInterval(matchPollInterval)
+                      }
+                      return
+                    }
+
+                    // 매칭된 순번의 상품 박스 찾기 (0-based index)
+                    if (matchedIndex >= productBoxes.length) {
+                      console.warn(
+                        `[wing/inject] ❌ Matched index ${matchedIndex} is out of range (${productBoxes.length} boxes found)`,
+                      )
+                      clearInterval(matchPollInterval)
+                      return
+                    }
+
+                    const matchedProductBox = productBoxes[matchedIndex]
+                    if (!matchedProductBox) {
+                      console.log(
+                        `[wing/inject] [${matchAttempts}/${maxMatchAttempts}] Matched product box (index ${matchedIndex}) not found yet`,
+                      )
+                      if (matchAttempts >= maxMatchAttempts) {
+                        console.warn(
+                          `[wing/inject] ❌ Timeout: Matched product box (index ${matchedIndex}) did not appear`,
+                        )
+                        clearInterval(matchPollInterval)
+                      }
+                      return
+                    }
+
+                    // 버튼 찾기
+                    const selectButton = matchedProductBox.querySelector('button[data-wuic-props*="type:secondary"]')
+                    if (!selectButton || !selectButton.textContent?.includes('판매옵션 선택')) {
+                      console.log(
+                        `[wing/inject] [${matchAttempts}/${maxMatchAttempts}] "판매옵션 선택" button not found yet in matched product box`,
+                      )
+                      if (matchAttempts >= maxMatchAttempts) {
+                        console.warn(
+                          `[wing/inject] ❌ Timeout: "판매옵션 선택" button did not appear in matched product box`,
+                        )
+                        clearInterval(matchPollInterval)
+                      }
+                      return
+                    }
+
+                    console.log(
+                      `[wing/inject] ✅ Found "판매옵션 선택" button for matched product (index ${matchedIndex})! Clicking...`,
+                    )
+                    clearInterval(matchPollInterval)
+
+                    // 버튼 클릭
+                    selectButton.click()
+                    console.log('[wing/inject] ✅ "판매옵션 선택" button clicked successfully')
+
+                    // 헬퍼 함수: 요소가 나타날 때까지 대기
+                    const waitForElement = (selector, maxAttempts = 50, intervalMs = 100) => {
+                      return new Promise((resolve, reject) => {
                       let attempts = 0
                       const pollInterval = setInterval(() => {
                         attempts++
@@ -274,11 +360,11 @@
                   ;(async () => {
                     try {
                       // attribute-selectors 테이블에서 옵션 선택
-                      if (optionOrder && optionOrder.length > 0 && attributeValues && attributeValues.length > 0) {
+                      if (optionOrder && optionOrder.length > 0 && firstAttributeValue) {
                         const firstOption = optionOrder[0]
                         console.log('[wing/inject] 🔍 Looking for attribute-selectors table...')
                         console.log('[wing/inject] First option:', firstOption)
-                        console.log('[wing/inject] AttributeValues to click:', attributeValues)
+                        console.log('[wing/inject] FirstAttributeValue to click:', firstAttributeValue)
 
                         // 모달이 뜰 때까지 대기 (더 긴 대기 시간)
                         await delay(1500)
@@ -356,7 +442,7 @@
                           console.log(`[wing/inject]   Button ${idx + 1}: "${btn.textContent?.trim()}"`)
                         })
 
-                        // attributeValues 중 가장 앞에 뜨는 버튼 하나만 클릭
+                        // firstAttributeValue와 일치하는 버튼 찾기
                         // 버튼들은 이미 특수문자 -> 숫자(작은순) -> 영어(앞글자순) 순서로 정렬되어 있음
                         let firstMatchedButton = null
                         let firstMatchedButtonText = null
@@ -366,42 +452,62 @@
                           const buttonText = button.textContent?.trim()
                           console.log(`[wing/inject] Checking button ${i + 1}: "${buttonText}"`)
 
-                          // attributeValues 배열과 비교 (대소문자 무시, 부분 일치도 허용)
-                          const shouldClick = attributeValues.some(attrValue => {
-                            const normalizedButtonText = buttonText?.toUpperCase().trim().replace(/\s+/g, '')
-                            const normalizedAttrValue = attrValue.toUpperCase().trim().replace(/\s+/g, '')
+                          // firstAttributeValue와 비교 (대소문자 무시, 공백 제거 후 정확히 일치해야 함)
+                          const normalizedButtonText = buttonText?.toUpperCase().trim().replace(/\s+/g, '')
+                          const normalizedFirstAttrValue = firstAttributeValue.toUpperCase().trim().replace(/\s+/g, '')
 
-                            // 정확히 일치하는 경우
-                            if (normalizedButtonText === normalizedAttrValue) {
-                              console.log(`[wing/inject]   ✅ Exact match: "${buttonText}" === "${attrValue}"`)
-                              return true
-                            }
-
-                            // 부분 일치: attributeValue가 buttonText에 포함되는 경우
-                            if (
-                              normalizedButtonText.includes(normalizedAttrValue) ||
-                              normalizedAttrValue.includes(normalizedButtonText)
-                            ) {
-                              console.log(`[wing/inject]   ✅ Partial match: "${buttonText}" contains "${attrValue}"`)
-                              return true
-                            }
-
-                            return false
-                          })
-
-                          if (shouldClick) {
+                          // 정확히 일치하는 경우만 허용
+                          if (normalizedButtonText === normalizedFirstAttrValue) {
+                            console.log(
+                              `[wing/inject]   ✅ Exact match: "${buttonText}" === "${firstAttributeValue}"`,
+                            )
                             firstMatchedButton = button
                             firstMatchedButtonText = buttonText
-                            console.log(
-                              `[wing/inject] ✅ Found first matching button: "${buttonText}" (button ${i + 1})`,
+                            break
+                          }
+
+                          console.log(`[wing/inject]   ⏭️ Skipping button: "${buttonText}" (no exact match)`)
+                        }
+
+                        if (firstMatchedButton && firstMatchedButtonText) {
+                          console.log(
+                            `[wing/inject] ✅ Found exact matching button: "${firstMatchedButtonText}"`,
+                          )
+                        } else {
+                          console.error(
+                            `[wing/inject] ❌ No exact match found for firstAttributeValue: "${firstAttributeValue}"`,
+                          )
+                          console.error(
+                            `[wing/inject] ❌ Available buttons: ${Array.from(buttons).map(b => `"${b.textContent?.trim()}"`).join(', ')}`,
+                          )
+                          
+                          // 정확히 일치하는 버튼이 없으면 에러 처리 및 탭 종료
+                          try {
+                            console.log('[wing/inject] 🚨 Sending BAD_OPTION_VALUE error and closing tab...')
+                            
+                            // Background에 에러 메시지 전송
+                            chrome.runtime.sendMessage(
+                              {
+                                type: 'PRODUCT_UPLOAD_ERROR',
+                                productId: Number(productId),
+                                status: 'BAD_OPTION_VALUE',
+                                error: `정확히 일치하는 옵션을 찾을 수 없습니다. firstAttributeValue: "${firstAttributeValue}"`,
+                              },
+                              response => {
+                                console.log('[wing/inject] ✅ Error notification sent, response:', response)
+                              },
                             )
-                            break // 첫 번째 매칭 버튼을 찾으면 중단
-                          } else {
-                            console.log(`[wing/inject]   ⏭️ Skipping button: "${buttonText}" (no match)`)
+                            
+                            // 탭 종료
+                            await delay(500)
+                            window.close()
+                            return
+                          } catch (error) {
+                            console.error('[wing/inject] ❌ Error handling BAD_OPTION_VALUE:', error)
                           }
                         }
 
-                        // 첫 번째 매칭 버튼을 1초 간격으로 3번 클릭
+                        // 첫 번째 매칭 버튼을 1초 간격으로 3번 클릭 (정확히 일치하는 경우만)
                         if (firstMatchedButton && firstMatchedButtonText) {
                           try {
                             console.log(
@@ -416,33 +522,38 @@
                               }
 
                               // 클릭 전에 버튼을 다시 찾기 (DOM 업데이트 대응)
+                              // 정확히 일치하는 버튼만 찾기
                               let currentButton = null
                               const allButtons = checkboxGroup.querySelectorAll('button.wuic-button')
+                              const normalizedTargetText = firstMatchedButtonText
+                                .toUpperCase()
+                                .trim()
+                                .replace(/\s+/g, '')
+                              
                               for (let i = 0; i < allButtons.length; i++) {
                                 const button = allButtons[i]
                                 const buttonText = button.textContent?.trim()
                                 const normalizedButtonText = buttonText?.toUpperCase().trim().replace(/\s+/g, '')
-                                const normalizedTargetText = firstMatchedButtonText
-                                  .toUpperCase()
-                                  .trim()
-                                  .replace(/\s+/g, '')
 
-                                // 정확히 일치하거나 부분 일치하는 경우
-                                if (
-                                  normalizedButtonText === normalizedTargetText ||
-                                  normalizedButtonText.includes(normalizedTargetText) ||
-                                  normalizedTargetText.includes(normalizedButtonText)
-                                ) {
+                                // 정확히 일치하는 경우만 허용
+                                if (normalizedButtonText === normalizedTargetText) {
                                   currentButton = button
+                                  console.log(
+                                    `[wing/inject] ✅ Found exact match for click ${clickCount + 1}/3: "${buttonText}"`,
+                                  )
                                   break
                                 }
                               }
-
+                              
                               if (!currentButton) {
-                                console.warn(
-                                  `[wing/inject] ⚠️ Button not found for click ${clickCount + 1}/3: "${firstMatchedButtonText}"`,
+                                console.error(
+                                  `[wing/inject] ❌ Could not find exact match for "${firstMatchedButtonText}" on click ${clickCount + 1}/3`,
                                 )
-                                continue
+                                console.error(
+                                  `[wing/inject] Available buttons: ${Array.from(allButtons).map(b => `"${b.textContent?.trim()}"`).join(', ')}`,
+                                )
+                                // 정확히 일치하는 버튼을 찾지 못하면 클릭 중단
+                                break
                               }
 
                               if (currentButton.disabled) {
@@ -631,6 +742,164 @@
                       if (optionRows.length === 0) {
                         console.warn('[wing/inject] ⚠️ No option rows found')
                       } else {
+                        // 옵션명의 쉼표 개수 검증 및 부적절한 항목 체크박스 클릭
+                        if (optionOrder && optionOrder.length > 0) {
+                          const expectedCommaCount = optionOrder.length - 1
+                          console.log(
+                            `[wing/inject] 🔍 Validating option names - expected comma count: ${expectedCommaCount}`,
+                          )
+
+                          optionRows.forEach((row, index) => {
+                            try {
+                              // 옵션명 셀 찾기 (체크박스 다음의 첫 번째 셀)
+                              // 옵션명은 span[style*="font-weight: 700"] 안에 있음
+                              const optionNameSpan = row.querySelector('span[style*="font-weight: 700"] span')
+                              if (!optionNameSpan) {
+                                console.warn(`[wing/inject] ⚠️ Row ${index + 1}: Option name span not found`)
+                                return
+                              }
+
+                              // 옵션명 텍스트 추출
+                              const optionNameText = optionNameSpan.textContent?.trim() || ''
+                              console.log(`[wing/inject] Row ${index + 1}: Option name = "${optionNameText}"`)
+
+                              // 쉼표 개수 세기
+                              const commaCount = (optionNameText.match(/,/g) || []).length
+                              console.log(
+                                `[wing/inject] Row ${index + 1}: Comma count = ${commaCount}, expected = ${expectedCommaCount}`,
+                              )
+
+                              // 쉼표 개수가 예상과 다르면 체크박스 클릭 (부적절한 항목)
+                              if (commaCount !== expectedCommaCount) {
+                                const checkbox = row.querySelector('input[type="checkbox"]')
+                                if (checkbox && !checkbox.checked) {
+                                  console.log(
+                                    `[wing/inject] ⚠️ Row ${index + 1}: Invalid option name (comma count mismatch), clicking checkbox`,
+                                  )
+                                  checkbox.click()
+                                } else if (checkbox && checkbox.checked) {
+                                  console.log(
+                                    `[wing/inject] ✅ Row ${index + 1}: Invalid option name already checked`,
+                                  )
+                                } else {
+                                  console.warn(`[wing/inject] ⚠️ Row ${index + 1}: Checkbox not found`)
+                                }
+                              } else {
+                                console.log(`[wing/inject] ✅ Row ${index + 1}: Valid option name`)
+                              }
+                            } catch (error) {
+                              console.error(`[wing/inject] ❌ Row ${index + 1}: Error validating option name:`, error)
+                            }
+                          })
+
+                          // 체크박스 클릭 후 잠시 대기
+                          await delay(500)
+
+                          // '옵션 목록' 아래 있는 '삭제' 버튼 클릭
+                          try {
+                            console.log('[wing/inject] 🔍 Looking for "삭제" button in bulk-operations...')
+                            
+                            // 여러 방법으로 '삭제' 버튼 찾기 시도
+                            let deleteButton = null
+                            
+                            // 방법 1: bulk-operations 내부에서 찾기
+                            const bulkOperations = document.querySelector('.bulk-operations')
+                            if (bulkOperations) {
+                              // bulk-operations-left의 첫 번째 버튼이 '삭제' 버튼
+                              const bulkOperationsLeft = bulkOperations.querySelector('.bulk-operations-left')
+                              if (bulkOperationsLeft) {
+                                const firstButton = bulkOperationsLeft.querySelector('button')
+                                if (firstButton) {
+                                  const buttonText = firstButton.textContent?.trim() || ''
+                                  if (buttonText === '삭제') {
+                                    deleteButton = firstButton
+                                    console.log('[wing/inject] ✅ Found "삭제" button via bulk-operations-left')
+                                  }
+                                }
+                              }
+                              
+                              // 방법 2: 모든 버튼 중에서 '삭제' 텍스트 찾기
+                              if (!deleteButton) {
+                                deleteButton = Array.from(bulkOperations.querySelectorAll('button')).find(btn => {
+                                  const buttonText = btn.textContent?.trim() || ''
+                                  return buttonText === '삭제'
+                                })
+                                if (deleteButton) {
+                                  console.log('[wing/inject] ✅ Found "삭제" button via text search')
+                                }
+                              }
+                            }
+                            
+                            // 방법 3: document 전체에서 찾기 (fallback)
+                            if (!deleteButton) {
+                              const allButtons = document.querySelectorAll('button')
+                              deleteButton = Array.from(allButtons).find(btn => {
+                                const buttonText = btn.textContent?.trim() || ''
+                                const isInBulkOperations = btn.closest('.bulk-operations') !== null
+                                return buttonText === '삭제' && isInBulkOperations
+                              })
+                              if (deleteButton) {
+                                console.log('[wing/inject] ✅ Found "삭제" button via document search')
+                              }
+                            }
+
+                            if (deleteButton) {
+                              console.log('[wing/inject] ✅ Found "삭제" button, clicking...')
+                              
+                              // 버튼이 보이는지 확인하고 스크롤
+                              deleteButton.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                              await delay(300)
+                              
+                              // 더 정확한 클릭을 위해 여러 이벤트 발생
+                              const pointerDownEvent = new PointerEvent('pointerdown', {
+                                bubbles: true,
+                                cancelable: true,
+                                pointerId: 1,
+                                pointerType: 'mouse',
+                              })
+                              const mouseDownEvent = new MouseEvent('mousedown', {
+                                bubbles: true,
+                                cancelable: true,
+                                button: 0,
+                              })
+                              const pointerUpEvent = new PointerEvent('pointerup', {
+                                bubbles: true,
+                                cancelable: true,
+                                pointerId: 1,
+                                pointerType: 'mouse',
+                              })
+                              const mouseUpEvent = new MouseEvent('mouseup', {
+                                bubbles: true,
+                                cancelable: true,
+                                button: 0,
+                              })
+                              const clickEvent = new MouseEvent('click', {
+                                bubbles: true,
+                                cancelable: true,
+                                button: 0,
+                              })
+
+                              // 이벤트를 순서대로 발생
+                              deleteButton.dispatchEvent(pointerDownEvent)
+                              deleteButton.dispatchEvent(mouseDownEvent)
+                              await delay(50)
+                              deleteButton.dispatchEvent(pointerUpEvent)
+                              deleteButton.dispatchEvent(mouseUpEvent)
+                              deleteButton.dispatchEvent(clickEvent)
+
+                              // fallback: 기본 click 메서드도 호출
+                              deleteButton.click()
+                              
+                              console.log('[wing/inject] ✅ "삭제" button clicked successfully')
+                              await delay(500)
+                            } else {
+                              console.warn('[wing/inject] ⚠️ "삭제" button not found')
+                            }
+                          } catch (error) {
+                            console.error('[wing/inject] ❌ Error clicking "삭제" button:', error)
+                          }
+                        }
+
                         // 모든 row에 대해 순회
                         optionRows.forEach((row, index) => {
                           try {
@@ -2112,6 +2381,9 @@
                     }
                   })()
                 }, 200)
+                } catch (apiError) {
+                  console.error('[wing/inject] ❌ Error in pre-matching search API:', apiError)
+                }
               }, 1000) // 노출상품명 입력 후 1초 대기
             }, 200)
           }

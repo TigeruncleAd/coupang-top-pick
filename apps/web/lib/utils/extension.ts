@@ -83,6 +83,7 @@ export async function wingProductItemsViaExtension({
   vendorItemId,
   optionOrder,
   attributeValues,
+  firstAttributeValue,
   salePrice,
 }: {
   extensionId: string
@@ -95,6 +96,7 @@ export async function wingProductItemsViaExtension({
   vendorItemId?: number
   optionOrder?: string[]
   attributeValues?: string[]
+  firstAttributeValue?: string | null
   salePrice?: number
 }) {
   return await pushToExtension({
@@ -111,6 +113,7 @@ export async function wingProductItemsViaExtension({
         vendorItemId,
         optionOrder,
         attributeValues,
+        firstAttributeValue,
         salePrice,
       },
     },

@@ -65,6 +65,7 @@ enum PRODUCT_STATUS {
   UPLOADED_RAW  // 1차 업로드 완료
   ROCKET_MAJORITY        // 로켓 대다수 찬성
   BAD_OPTION_ORDER       // 옵션 순서 오류
+  BAD_OPTION_VALUE       // 옵션 값 오류
   NO_ENGLISH_OR_NUMBER_OPTION // 영어 또는 숫자로 시작하는 옵션이 없음
 }
 
