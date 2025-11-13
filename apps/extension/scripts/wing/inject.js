@@ -742,11 +742,10 @@
                       if (optionRows.length === 0) {
                         console.warn('[wing/inject] ⚠️ No option rows found')
                       } else {
-                        // 옵션명의 쉼표 개수 검증 및 부적절한 항목 체크박스 클릭
-                        if (optionOrder && optionOrder.length > 0) {
-                          const expectedCommaCount = optionOrder.length - 1
+                        // 옵션명이 firstAttributeValue로 시작하지 않는 항목만 체크박스 클릭
+                        if (firstAttributeValue) {
                           console.log(
-                            `[wing/inject] 🔍 Validating option names - expected comma count: ${expectedCommaCount}`,
+                            `[wing/inject] 🔍 Validating option names - checking if they start with "${firstAttributeValue}"`,
                           )
 
                           optionRows.forEach((row, index) => {
@@ -763,18 +762,16 @@
                               const optionNameText = optionNameSpan.textContent?.trim() || ''
                               console.log(`[wing/inject] Row ${index + 1}: Option name = "${optionNameText}"`)
 
-                              // 쉼표 개수 세기
-                              const commaCount = (optionNameText.match(/,/g) || []).length
-                              console.log(
-                                `[wing/inject] Row ${index + 1}: Comma count = ${commaCount}, expected = ${expectedCommaCount}`,
-                              )
+                              // 옵션명이 firstAttributeValue로 시작하는지 확인 (대소문자 무시, 공백 제거)
+                              const normalizedOptionName = optionNameText.toUpperCase().trim().replace(/\s+/g, '')
+                              const normalizedFirstAttrValue = firstAttributeValue.toUpperCase().trim().replace(/\s+/g, '')
 
-                              // 쉼표 개수가 예상과 다르면 체크박스 클릭 (부적절한 항목)
-                              if (commaCount !== expectedCommaCount) {
+                              // firstAttributeValue로 시작하지 않으면 체크박스 클릭 (부적절한 항목)
+                              if (!normalizedOptionName.startsWith(normalizedFirstAttrValue)) {
                                 const checkbox = row.querySelector('input[type="checkbox"]')
                                 if (checkbox && !checkbox.checked) {
                                   console.log(
-                                    `[wing/inject] ⚠️ Row ${index + 1}: Invalid option name (comma count mismatch), clicking checkbox`,
+                                    `[wing/inject] ⚠️ Row ${index + 1}: Option name does not start with "${firstAttributeValue}", clicking checkbox`,
                                   )
                                   checkbox.click()
                                 } else if (checkbox && checkbox.checked) {
@@ -785,7 +782,9 @@
                                   console.warn(`[wing/inject] ⚠️ Row ${index + 1}: Checkbox not found`)
                                 }
                               } else {
-                                console.log(`[wing/inject] ✅ Row ${index + 1}: Valid option name`)
+                                console.log(
+                                  `[wing/inject] ✅ Row ${index + 1}: Valid option name (starts with "${firstAttributeValue}")`,
+                                )
                               }
                             } catch (error) {
                               console.error(`[wing/inject] ❌ Row ${index + 1}: Error validating option name:`, error)

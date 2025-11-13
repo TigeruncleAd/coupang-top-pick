@@ -33,6 +33,7 @@ export interface WingProductSummary {
   optionOrder?: string[]
   rocketAttributeValues?: string[]
   rocketAttributeMaps?: Array<Array<{ attributeTypeId: number; attributeName: string; attributeValue: string }>>
+  firstAttributeValue?: string | null
 }
 
 export interface WingPreMatchingSearchResult {
