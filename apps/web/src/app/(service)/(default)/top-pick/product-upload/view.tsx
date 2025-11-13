@@ -196,7 +196,6 @@ export default function Client({ extensionId }: { extensionId: string }) {
           productName: product.productName,
           vendorItemId: Number(product.vendorItemId),
           optionOrder,
-          attributeValues: product.attributeValues || [],
           firstAttributeValue: product.firstAttributeValue || null,
           salePrice: product.salePrice,
         })
@@ -432,7 +431,6 @@ export default function Client({ extensionId }: { extensionId: string }) {
                                   productName: product.productName,
                                   vendorItemId: Number(product.vendorItemId),
                                   optionOrder,
-                                  attributeValues: product.attributeValues || [],
                                   firstAttributeValue: product.firstAttributeValue || null,
                                   salePrice: product.salePrice,
                                 })
