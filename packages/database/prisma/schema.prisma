@@ -115,10 +115,12 @@ model Product {
   matchType         String? // 매칭 타입
   sponsored         String? // 스폰서 여부
   matchingResultId  String? // 매칭 결과 ID
+  firstAttributeValue String @default("")
   attributeTypes    Json? // 속성 타입
 
   optionOrder       String[] @default([])
-  attributeValues   String[] @default([])
+  // attributeValues   String[] @default([])
+  
   rocketAttributeValues String[] @default([])
 
   rocketAttributeMaps Json[] @default([])

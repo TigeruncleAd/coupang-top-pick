@@ -31,7 +31,6 @@ export interface WingProductSummary {
   deliveryMethod?: WingDeliveryMethod | null
   attributeTypes?: unknown | null
   optionOrder?: string[]
-  attributeValues?: string[]
   rocketAttributeValues?: string[]
   rocketAttributeMaps?: Array<Array<{ attributeTypeId: number; attributeName: string; attributeValue: string }>>
 }

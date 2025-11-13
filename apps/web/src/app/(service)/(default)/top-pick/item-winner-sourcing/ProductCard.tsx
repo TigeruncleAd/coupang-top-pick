@@ -16,6 +16,7 @@ interface ProductCardProps {
     optionOrder?: string[]
     attributeValues?: string[]
     rocketAttributeValues?: string[]
+    firstAttributeValue?: string | null
     error?: string
   }
   onValidate?: () => void
@@ -82,7 +83,10 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(function Produc
 
   const validationStatus = getValidationStatus()
 
-  console.log({ validationResult })
+  console.log('[ProductCard] 🔍 Product ID:', product.productId)
+  console.log('[ProductCard] 🔍 validationResult:', validationResult)
+  console.log('[ProductCard] 🔍 validationResult?.firstAttributeValue:', validationResult?.firstAttributeValue)
+  console.log('[ProductCard] 🔍 validationStatus:', validationStatus)
 
   return (
     <div
@@ -134,19 +138,6 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(function Produc
                 ))}
               </div>
             )}
-            {validationResult?.attributeValues &&
-              validationResult.attributeValues.length > 0 &&
-              validationResult.optionOrder &&
-              validationResult.optionOrder.length > 0 && (
-                <div className="ml-6 mt-1">
-                  <span className="text-muted-foreground text-xs font-medium">
-                    {validationResult.optionOrder[0]} :{' '}
-                  </span>
-                  <span className="text-xs text-green-400">
-                    {validationResult.attributeValues.join(', ')}
-                  </span>
-                </div>
-              )}
             {validationResult?.rocketAttributeValues &&
               validationResult.rocketAttributeValues.length > 0 &&
               validationResult.optionOrder &&
@@ -160,6 +151,12 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(function Produc
                   </span>
                 </div>
               )}
+            {validationResult?.firstAttributeValue && (
+              <div className="ml-6 mt-1">
+                <span className="text-muted-foreground text-xs font-medium">첫 번째 속성 값: </span>
+                <span className="text-xs text-blue-400">{validationResult.firstAttributeValue}</span>
+              </div>
+            )}
           </div>
         )}
       </div>

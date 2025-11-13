@@ -47,11 +47,11 @@ export async function createProduct(productData: WingProductSummary): Promise<Pr
       matchingResultId: productData.matchingResultId ? String(productData.matchingResultId) : null,
       attributeTypes: productData.attributeTypes ? JSON.parse(JSON.stringify(productData.attributeTypes)) : null,
       optionOrder: productData.optionOrder || [],
-      attributeValues: productData.attributeValues || [],
       rocketAttributeValues: productData.rocketAttributeValues || [],
       rocketAttributeMaps: productData.rocketAttributeMaps
         ? JSON.parse(JSON.stringify(productData.rocketAttributeMaps))
         : [],
+      firstAttributeValue: productData.firstAttributeValue || '',
     },
   })
 
@@ -153,11 +153,11 @@ export async function createProductsBulk(
           matchingResultId: productData.matchingResultId ? String(productData.matchingResultId) : null,
           attributeTypes: productData.attributeTypes ? JSON.parse(JSON.stringify(productData.attributeTypes)) : null,
           optionOrder: productData.optionOrder || [],
-          attributeValues: productData.attributeValues || [],
           rocketAttributeValues: productData.rocketAttributeValues || [],
           rocketAttributeMaps: productData.rocketAttributeMaps
             ? JSON.parse(JSON.stringify(productData.rocketAttributeMaps))
             : [],
+          firstAttributeValue: productData.firstAttributeValue || '',
         },
       })
 

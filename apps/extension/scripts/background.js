@@ -171,12 +171,22 @@ chrome.runtime.onMessageExternal.addListener(async (msg, sender, sendResponse) =
             hasOptionPicker: result.hasOptionPicker,
             optionCount: result.optionCount,
             optionOrder: result.optionOrder || [],
+            firstAttributeValue: result.firstAttributeValue,
+            rocketBadgeRatio: result.rocketBadgeRatio,
+            rocketBadgeCount: result.rocketBadgeCount,
+            totalOptionCount: result.totalOptionCount,
+            isFirstOptionSoldOut: result.isFirstOptionSoldOut,
           })
           sendResponse({
             ok: true,
             hasOptionPicker: result.hasOptionPicker,
             optionCount: result.optionCount,
             optionOrder: result.optionOrder || [],
+            firstAttributeValue: result.firstAttributeValue || null,
+            rocketBadgeRatio: result.rocketBadgeRatio || 0,
+            rocketBadgeCount: result.rocketBadgeCount || 0,
+            totalOptionCount: result.totalOptionCount || 0,
+            isFirstOptionSoldOut: result.isFirstOptionSoldOut || false,
           })
         } else {
           console.log('[background] ❌ Option picker check failed:', result?.error)

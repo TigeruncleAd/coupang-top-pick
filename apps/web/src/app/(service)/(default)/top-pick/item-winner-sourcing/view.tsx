@@ -10,7 +10,6 @@ import {
   pushToExtension,
   checkCoupangOptionPicker,
   wingProductItemsViaExtension,
-  wingAttributeCheckViaExtension,
   closeFormV2Tab,
 } from '@/lib/utils/extension'
 import type { WingSearchHttpEnvelope, WingProductSummary, WingProductItemsDetail } from '@/types/wing'
@@ -29,9 +28,9 @@ type ValidationResult = {
   hasOptionPicker: boolean
   optionCount: number
   optionOrder?: string[]
-  attributeValues?: string[]
   rocketAttributeValues?: string[]
   rocketAttributeMaps?: Array<Array<{ attributeTypeId: number; attributeName: string; attributeValue: string }>>
+  firstAttributeValue?: string | null
   error?: string
 }
 
@@ -197,15 +196,18 @@ export default function Client({ extensionId }: { extensionId: string }) {
           vendorItemId: product.vendorItemId,
         })
 
-        // 드롭다운 옵션이 없으면 검증 실패
+        // 드롭다운 옵션이 없거나 첫 번째 옵션이 품절이면 검증 실패
         if (!optionPickerRes.hasOptionPicker) {
+          const errorMessage = optionPickerRes.isFirstOptionSoldOut
+            ? '첫 번째 옵션이 품절입니다'
+            : '드롭다운 옵션이 없습니다'
           results.push({
             productId: product.productId,
             hasOptionPicker: false,
             optionCount: 0,
             optionOrder: [],
-            attributeValues: [],
-            error: '드롭다운 옵션이 없습니다',
+            firstAttributeValue: null,
+            error: errorMessage,
           })
           setValidationResults([...results])
           await new Promise(r => setTimeout(r, 1000))
@@ -217,6 +219,10 @@ export default function Client({ extensionId }: { extensionId: string }) {
         const firstOption = optionOrder.length > 0 ? optionOrder[0] : null
         const invalidFirstOptions = ['수량', '용량', '길이', '개당 용량', '구성품']
         const isFirstOptionInvalid = firstOption && invalidFirstOptions.includes(firstOption)
+        const firstAttributeValue = optionPickerRes.firstAttributeValue || null
+        console.log('[validate] 🔍 optionPickerRes:', optionPickerRes)
+        console.log('[validate] 🔍 firstAttributeValue from optionPickerRes:', optionPickerRes.firstAttributeValue)
+        console.log('[validate] 🔍 firstAttributeValue (processed):', firstAttributeValue)
 
         if (isFirstOptionInvalid) {
           results.push({
@@ -224,7 +230,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
             hasOptionPicker: false,
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
-            attributeValues: [],
+            firstAttributeValue: firstAttributeValue,
             error: `첫 번째 옵션이 ${firstOption}입니다`,
           })
           setValidationResults([...results])
@@ -232,72 +238,33 @@ export default function Client({ extensionId }: { extensionId: string }) {
           continue
         }
 
-        // 2단계: Wing formV2 탭 열기 및 WING_ATTRIBUTE_CHECK로 attributeValues 추출
-        let attributeValues: string[] = []
-        let apiError: string | null = null
-
-        try {
-          const checkRes = await wingAttributeCheckViaExtension({
-            extensionId,
-            productId: product.productId,
-            itemId: product.itemId,
-            categoryId: product.categoryId,
-            optionOrder: optionOrder,
-          })
-
-          console.log('[validate] ✅ wingAttributeCheckViaExtension response:', checkRes)
-          console.log('[validate] Response status:', checkRes.status)
-          console.log('[validate] Response data:', checkRes.data)
-          console.log('[validate] Response data.ok:', checkRes.data?.ok)
-          console.log('[validate] Response data.attributeValues:', checkRes.data?.attributeValues)
-          console.log('[validate] Response data.attributeValues length:', checkRes.data?.attributeValues?.length)
-
-          // API 호출이 실패했거나 응답이 없는 경우
-          if (checkRes.status !== 'success') {
-            console.error('[validate] ❌ API 호출 실패:', checkRes.status)
-            apiError = `API 호출 실패: ${checkRes.status}`
-          } else if (!checkRes.data?.ok) {
-            console.error('[validate] ❌ API 응답 오류:', checkRes.data?.error)
-            apiError = `API 응답 오류: ${checkRes.data?.error || 'Unknown error'}`
-          } else if (!checkRes.data?.attributeValues) {
-            console.error('[validate] ❌ attributeValues가 없습니다')
-            apiError = 'attributeValues가 없습니다'
-            attributeValues = []
-          } else {
-            attributeValues = checkRes.data.attributeValues || []
-            console.log('[validate] ✅ Extracted attributeValues:', attributeValues)
-            console.log('[validate] ✅ attributeValues length:', attributeValues.length)
-
-            if (attributeValues.length === 0) {
-              console.error('[validate] ❌ attributeValues 길이가 0입니다')
-              apiError = '영어 또는 숫자로 시작하는 옵션 값이 없습니다'
-            } else {
-              console.log('[validate] ✅ attributeValues 검증 통과!')
-            }
-          }
-        } catch (error) {
-          console.error('[validate] Wing attribute check error:', error)
-          apiError = `API 호출 중 오류 발생: ${error instanceof Error ? error.message : String(error)}`
-        }
-
-        // formV2 탭 닫기 (검증 완료 후 정리)
-        try {
-          await closeFormV2Tab({ extensionId })
-          console.log('[validate] ✅ Closed formV2 tab')
-        } catch (error) {
-          console.warn('[validate] ⚠️ Failed to close formV2 tab:', error)
-        }
-
-        // attributeValues 길이가 0일 때 검증 실패
-        if (apiError || attributeValues.length === 0) {
-          console.log('[validate] ❌ 검증 실패:', { apiError, attributeValuesLength: attributeValues.length })
+        // 2단계: firstAttributeValue의 첫 글자가 영어/숫자인지 검증
+        if (!firstAttributeValue || firstAttributeValue.trim().length === 0) {
           results.push({
             productId: product.productId,
             hasOptionPicker: false,
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
-            attributeValues: [],
-            error: apiError || '영어 또는 숫자로 시작하는 옵션 값이 없습니다',
+            firstAttributeValue: null,
+            error: '첫 번째 속성 값이 없습니다',
+          })
+          setValidationResults([...results])
+          await new Promise(r => setTimeout(r, 1000))
+          continue
+        }
+
+        // firstAttributeValue의 첫 글자가 영어 또는 숫자인지 확인
+        const firstChar = firstAttributeValue.trim().charAt(0)
+        const isFirstCharValid = /[a-zA-Z0-9]/.test(firstChar)
+
+        if (!isFirstCharValid) {
+          results.push({
+            productId: product.productId,
+            hasOptionPicker: false,
+            optionCount: optionPickerRes.optionCount || 0,
+            optionOrder: optionOrder,
+            firstAttributeValue: firstAttributeValue,
+            error: `첫 번째 속성 값이 영어 또는 숫자로 시작하지 않습니다: ${firstAttributeValue}`,
           })
           setValidationResults([...results])
           await new Promise(r => setTimeout(r, 1000))
@@ -382,8 +349,8 @@ export default function Client({ extensionId }: { extensionId: string }) {
             hasOptionPicker: false,
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
-            attributeValues: attributeValues,
             rocketAttributeMaps: rocketAttributeMaps,
+            firstAttributeValue: firstAttributeValue,
             error: rocketValidationError,
           })
         } else {
@@ -393,8 +360,8 @@ export default function Client({ extensionId }: { extensionId: string }) {
             hasOptionPicker: true,
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
-            attributeValues: attributeValues,
             rocketAttributeMaps: rocketAttributeMaps,
+            firstAttributeValue: firstAttributeValue,
           })
         }
       } catch (error) {
@@ -403,7 +370,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
           hasOptionPicker: false,
           optionCount: 0,
           optionOrder: [],
-          attributeValues: [],
+          firstAttributeValue: null,
           error: String(error),
         })
       } finally {
@@ -451,15 +418,18 @@ export default function Client({ extensionId }: { extensionId: string }) {
           vendorItemId: product.vendorItemId,
         })
 
-        // 드롭다운 옵션이 없으면 검증 실패
+        // 드롭다운 옵션이 없거나 첫 번째 옵션이 품절이면 검증 실패
         if (!optionPickerRes.hasOptionPicker) {
+          const errorMessage = optionPickerRes.isFirstOptionSoldOut
+            ? '첫 번째 옵션이 품절입니다'
+            : '드롭다운 옵션이 없습니다'
           validationResult = {
             productId: product.productId,
             hasOptionPicker: false,
             optionCount: 0,
             optionOrder: [],
-            attributeValues: [],
-            error: '드롭다운 옵션이 없습니다',
+            firstAttributeValue: null,
+            error: errorMessage,
           }
           setValidationResults(prev => [...prev.filter(r => r.productId !== product.productId), validationResult!])
           return
@@ -470,6 +440,10 @@ export default function Client({ extensionId }: { extensionId: string }) {
         const firstOption = optionOrder.length > 0 ? optionOrder[0] : null
         const invalidFirstOptions = ['수량', '용량', '길이', '개당 용량', '구성품']
         const isFirstOptionInvalid = firstOption && invalidFirstOptions.includes(firstOption)
+        const firstAttributeValue = optionPickerRes.firstAttributeValue || null
+        console.log('[validate] 🔍 optionPickerRes:', optionPickerRes)
+        console.log('[validate] 🔍 firstAttributeValue from optionPickerRes:', optionPickerRes.firstAttributeValue)
+        console.log('[validate] 🔍 firstAttributeValue (processed):', firstAttributeValue)
 
         if (isFirstOptionInvalid) {
           validationResult = {
@@ -477,61 +451,38 @@ export default function Client({ extensionId }: { extensionId: string }) {
             hasOptionPicker: false,
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
-            attributeValues: [],
+            firstAttributeValue: firstAttributeValue,
             error: `첫 번째 옵션이 ${firstOption}입니다`,
           }
           setValidationResults(prev => [...prev.filter(r => r.productId !== product.productId), validationResult!])
           return
         }
 
-        // 2단계: Wing formV2 탭 열기 및 WING_ATTRIBUTE_CHECK로 attributeValues 추출
-        let attributeValues: string[] = []
-        let apiError: string | null = null
-
-        try {
-          const checkRes = await wingAttributeCheckViaExtension({
-            extensionId,
-            productId: product.productId,
-            itemId: product.itemId,
-            categoryId: product.categoryId,
-            optionOrder: optionOrder,
-          })
-
-          // API 호출이 실패했거나 응답이 없는 경우
-          if (checkRes.status !== 'success') {
-            apiError = `API 호출 실패: ${checkRes.status}`
-          } else if (!checkRes.data?.ok) {
-            apiError = `API 응답 오류: ${checkRes.data?.error || 'Unknown error'}`
-          } else if (!checkRes.data?.attributeValues) {
-            apiError = 'attributeValues가 없습니다'
-            attributeValues = []
-          } else {
-            attributeValues = checkRes.data.attributeValues || []
-
-            if (attributeValues.length === 0) {
-              apiError = '영어 또는 숫자로 시작하는 옵션 값이 없습니다'
-            }
-          }
-        } catch (error) {
-          apiError = `API 호출 중 오류 발생: ${error instanceof Error ? error.message : String(error)}`
-        }
-
-        // formV2 탭 닫기 (검증 완료 후 정리)
-        try {
-          await closeFormV2Tab({ extensionId })
-        } catch (error) {
-          console.warn('[validate] ⚠️ Failed to close formV2 tab:', error)
-        }
-
-        // attributeValues 길이가 0일 때 검증 실패
-        if (apiError || attributeValues.length === 0) {
+        // 2단계: firstAttributeValue의 첫 글자가 영어/숫자인지 검증
+        if (!firstAttributeValue || firstAttributeValue.trim().length === 0) {
           validationResult = {
             productId: product.productId,
             hasOptionPicker: false,
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
-            attributeValues: [],
-            error: apiError || '영어 또는 숫자로 시작하는 옵션 값이 없습니다',
+            firstAttributeValue: null,
+            error: '첫 번째 속성 값이 없습니다',
+          }
+          setValidationResults(prev => [...prev.filter(r => r.productId !== product.productId), validationResult!])
+          return
+        }
+
+        const firstChar = firstAttributeValue.trim().charAt(0)
+        const isFirstCharValid = /[a-zA-Z0-9]/.test(firstChar)
+
+        if (!isFirstCharValid) {
+          validationResult = {
+            productId: product.productId,
+            hasOptionPicker: false,
+            optionCount: optionPickerRes.optionCount || 0,
+            optionOrder: optionOrder,
+            firstAttributeValue: firstAttributeValue,
+            error: `첫 번째 속성 값이 영어 또는 숫자로 시작하지 않습니다: ${firstAttributeValue}`,
           }
           setValidationResults(prev => [...prev.filter(r => r.productId !== product.productId), validationResult!])
           return
@@ -628,9 +579,9 @@ export default function Client({ extensionId }: { extensionId: string }) {
             hasOptionPicker: false,
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
-            attributeValues: attributeValues,
             rocketAttributeValues: rocketAttributeValues,
             rocketAttributeMaps: rocketAttributeMaps,
+            firstAttributeValue: firstAttributeValue,
             error: rocketValidationError,
           }
         } else {
@@ -640,9 +591,9 @@ export default function Client({ extensionId }: { extensionId: string }) {
             hasOptionPicker: true,
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
-            attributeValues: attributeValues,
             rocketAttributeValues: rocketAttributeValues,
             rocketAttributeMaps: rocketAttributeMaps,
+            firstAttributeValue: firstAttributeValue,
           }
         }
       } catch (error) {
@@ -651,7 +602,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
           hasOptionPicker: false,
           optionCount: 0,
           optionOrder: [],
-          attributeValues: [],
+          firstAttributeValue: null,
           error: String(error),
         }
       }
@@ -703,15 +654,18 @@ export default function Client({ extensionId }: { extensionId: string }) {
           vendorItemId: product.vendorItemId,
         })
 
-        // 드롭다운 옵션이 없으면 검증 실패
+        // 드롭다운 옵션이 없거나 첫 번째 옵션이 품절이면 검증 실패
         if (!optionPickerRes.hasOptionPicker) {
+          const errorMessage = optionPickerRes.isFirstOptionSoldOut
+            ? '첫 번째 옵션이 품절입니다'
+            : '드롭다운 옵션이 없습니다'
           results.push({
             productId: product.productId,
             hasOptionPicker: false,
             optionCount: 0,
             optionOrder: [],
-            attributeValues: [],
-            error: '드롭다운 옵션이 없습니다',
+            firstAttributeValue: null,
+            error: errorMessage,
           })
           setValidationResults([...results])
           await new Promise(r => setTimeout(r, 1000))
@@ -723,6 +677,10 @@ export default function Client({ extensionId }: { extensionId: string }) {
         const firstOption = optionOrder.length > 0 ? optionOrder[0] : null
         const invalidFirstOptions = ['수량', '용량', '길이', '개당 용량', '구성품']
         const isFirstOptionInvalid = firstOption && invalidFirstOptions.includes(firstOption)
+        const firstAttributeValue = optionPickerRes.firstAttributeValue || null
+        console.log('[validate] 🔍 optionPickerRes:', optionPickerRes)
+        console.log('[validate] 🔍 firstAttributeValue from optionPickerRes:', optionPickerRes.firstAttributeValue)
+        console.log('[validate] 🔍 firstAttributeValue (processed):', firstAttributeValue)
 
         if (isFirstOptionInvalid) {
           results.push({
@@ -730,7 +688,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
             hasOptionPicker: false,
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
-            attributeValues: [],
+            firstAttributeValue: firstAttributeValue,
             error: `첫 번째 옵션이 ${firstOption}입니다`,
           })
           setValidationResults([...results])
@@ -738,48 +696,55 @@ export default function Client({ extensionId }: { extensionId: string }) {
           continue
         }
 
-        // 2단계: Wing formV2 탭 열기 및 WING_ATTRIBUTE_CHECK로 attributeValues 추출
-        let attributeValues: string[] = []
+        // 2단계: firstAttributeValue 검증 완료
         let apiError: string | null = null
 
-        try {
-          const checkRes = await wingAttributeCheckViaExtension({
-            extensionId,
+        // REMOVED: wingAttributeCheckViaExtension 호출 제거됨 - firstAttributeValue 검증으로 대체
+        // firstAttributeValue의 첫 글자가 영어/숫자인지 검증
+        if (!firstAttributeValue || firstAttributeValue.trim().length === 0) {
+          results.push({
             productId: product.productId,
-            itemId: product.itemId,
-            categoryId: product.categoryId,
+            hasOptionPicker: false,
+            optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
+            firstAttributeValue: null,
+            error: '첫 번째 속성 값이 없습니다',
           })
+          setValidationResults([...results])
+          await new Promise(r => setTimeout(r, 1000))
+          continue
+        }
 
-          console.log('[validate] ✅ wingAttributeCheckViaExtension response:', checkRes)
+        const firstChar = firstAttributeValue.trim().charAt(0)
+        const isFirstCharValid = /[a-zA-Z0-9]/.test(firstChar)
+
+        if (!isFirstCharValid) {
+          results.push({
+            productId: product.productId,
+            hasOptionPicker: false,
+            optionCount: optionPickerRes.optionCount || 0,
+            optionOrder: optionOrder,
+            firstAttributeValue: firstAttributeValue,
+            error: `첫 번째 속성 값이 영어 또는 숫자로 시작하지 않습니다: ${firstAttributeValue}`,
+          })
+          setValidationResults([...results])
+          await new Promise(r => setTimeout(r, 1000))
+          continue
+        }
+
+        // 검증 통과 - 계속 진행
+        try {
+          const checkRes = { status: 'success' as const, data: { ok: true } }
+          // REMOVED: wingAttributeCheckViaExtension 호출 제거됨
+          console.log('[validate] ✅ firstAttributeValue 검증 통과:', firstAttributeValue)
           console.log('[validate] Response status:', checkRes.status)
           console.log('[validate] Response data:', checkRes.data)
           console.log('[validate] Response data.ok:', checkRes.data?.ok)
-          console.log('[validate] Response data.attributeValues:', checkRes.data?.attributeValues)
-          console.log('[validate] Response data.attributeValues length:', checkRes.data?.attributeValues?.length)
 
           // API 호출이 실패했거나 응답이 없는 경우
           if (checkRes.status !== 'success') {
             console.error('[validate] ❌ API 호출 실패:', checkRes.status)
             apiError = `API 호출 실패: ${checkRes.status}`
-          } else if (!checkRes.data?.ok) {
-            console.error('[validate] ❌ API 응답 오류:', checkRes.data?.error)
-            apiError = `API 응답 오류: ${checkRes.data?.error || 'Unknown error'}`
-          } else if (!checkRes.data?.attributeValues) {
-            console.error('[validate] ❌ attributeValues가 없습니다')
-            apiError = 'attributeValues가 없습니다'
-            attributeValues = []
-          } else {
-            attributeValues = checkRes.data.attributeValues || []
-            console.log('[validate] ✅ Extracted attributeValues:', attributeValues)
-            console.log('[validate] ✅ attributeValues length:', attributeValues.length)
-
-            if (attributeValues.length === 0) {
-              console.error('[validate] ❌ attributeValues 길이가 0입니다')
-              apiError = '영어 또는 숫자로 시작하는 옵션 값이 없습니다'
-            } else {
-              console.log('[validate] ✅ attributeValues 검증 통과!')
-            }
           }
         } catch (error) {
           console.error('[validate] Wing attribute check error:', error)
@@ -794,15 +759,15 @@ export default function Client({ extensionId }: { extensionId: string }) {
           console.warn('[validate] ⚠️ Failed to close formV2 tab:', error)
         }
 
-        // attributeValues 길이가 0일 때 검증 실패
-        if (apiError || attributeValues.length === 0) {
-          console.log('[validate] ❌ 검증 실패:', { apiError, attributeValuesLength: attributeValues.length })
+        // apiError가 있으면 검증 실패
+        if (apiError) {
+          console.log('[validate] ❌ 검증 실패:', { apiError })
           results.push({
             productId: product.productId,
             hasOptionPicker: false,
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
-            attributeValues: [],
+            firstAttributeValue: firstAttributeValue,
             error: apiError || '영어 또는 숫자로 시작하는 옵션 값이 없습니다',
           })
           setValidationResults([...results])
@@ -907,9 +872,9 @@ export default function Client({ extensionId }: { extensionId: string }) {
             hasOptionPicker: false,
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
-            attributeValues: attributeValues,
             rocketAttributeValues: rocketAttributeValues,
             rocketAttributeMaps: rocketAttributeMaps,
+            firstAttributeValue: firstAttributeValue,
             error: rocketValidationError,
           })
         } else {
@@ -919,9 +884,9 @@ export default function Client({ extensionId }: { extensionId: string }) {
             hasOptionPicker: true,
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
-            attributeValues: attributeValues,
             rocketAttributeValues: rocketAttributeValues,
             rocketAttributeMaps: rocketAttributeMaps,
+            firstAttributeValue: firstAttributeValue,
           })
         }
       } catch (error) {
@@ -930,9 +895,9 @@ export default function Client({ extensionId }: { extensionId: string }) {
           hasOptionPicker: false,
           optionCount: 0,
           optionOrder: [],
-          attributeValues: [],
           rocketAttributeValues: [],
           rocketAttributeMaps: [],
+          firstAttributeValue: null,
           error: String(error),
         })
       } finally {
@@ -943,7 +908,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
       await new Promise(r => setTimeout(r, 1000))
     }
 
-    // 2단계: 옵션이 있는 상품만 필터링하여 저장 (optionOrder, attributeValues, rocketAttributeValues, rocketAttributeMaps 포함)
+    // 2단계: 옵션이 있는 상품만 필터링하여 저장 (optionOrder, rocketAttributeValues, rocketAttributeMaps 포함)
     const productsToSave = filtered
       .filter(product => {
         const validationResult = results.find(r => r.productId === product.productId)
@@ -951,16 +916,13 @@ export default function Client({ extensionId }: { extensionId: string }) {
       })
       .map(product => {
         const validationResult = results.find(r => r.productId === product.productId)
-        // attributeValues에서 rocketAttributeValues에 해당하는 것들을 제외
-        const attributeValues = validationResult?.attributeValues || []
         const rocketAttributeValues = validationResult?.rocketAttributeValues || []
-        const filteredAttributeValues = attributeValues.filter(val => !rocketAttributeValues.includes(val))
         return {
           ...product,
           optionOrder: validationResult?.optionOrder || [],
-          attributeValues: filteredAttributeValues,
           rocketAttributeValues: rocketAttributeValues,
           rocketAttributeMaps: validationResult?.rocketAttributeMaps || [],
+          firstAttributeValue: validationResult?.firstAttributeValue || null,
         }
       })
 
@@ -1064,7 +1026,9 @@ export default function Client({ extensionId }: { extensionId: string }) {
                   {isBulkMode ? (
                     <>🔄 벌크 모드: 검색 결과 누적 중 • 국내배송, 경쟁상품 {MIN_ITEM_COUNT_OF_PRODUCT}개 이상</>
                   ) : (
-                    <>국내배송, 경쟁상품 {MIN_ITEM_COUNT_OF_PRODUCT}개 이상, 최대 {maxItems}개까지 표시</>
+                    <>
+                      국내배송, 경쟁상품 {MIN_ITEM_COUNT_OF_PRODUCT}개 이상, 최대 {maxItems}개까지 표시
+                    </>
                   )}
                 </p>
               </div>
@@ -1105,6 +1069,8 @@ export default function Client({ extensionId }: { extensionId: string }) {
             <div className="space-y-4">
               {filtered.map(product => {
                 const validationResult = validationResults.find(r => r.productId === product.productId)
+                console.log('[view] 🔍 Product:', product.productId, 'ValidationResult:', validationResult)
+                console.log('[view] 🔍 All validationResults:', validationResults)
                 return (
                   <ProductCard
                     key={product.productId}
@@ -1118,18 +1084,13 @@ export default function Client({ extensionId }: { extensionId: string }) {
                     product={product}
                     extensionId={extensionId}
                     onSave={product => {
-                      // attributeValues에서 rocketAttributeValues에 해당하는 것들을 제외
-                      const attributeValues = validationResult?.attributeValues || []
                       const rocketAttributeValues = validationResult?.rocketAttributeValues || []
-                      const filteredAttributeValues = attributeValues.filter(
-                        val => !rocketAttributeValues.includes(val),
-                      )
                       const productWithOptionOrder = {
                         ...product,
                         optionOrder: validationResult?.optionOrder || [],
-                        attributeValues: filteredAttributeValues,
                         rocketAttributeValues: rocketAttributeValues,
                         rocketAttributeMaps: validationResult?.rocketAttributeMaps || [],
+                        firstAttributeValue: validationResult?.firstAttributeValue || null,
                       }
                       createProductMutation.mutate(productWithOptionOrder)
                     }}
@@ -1141,8 +1102,8 @@ export default function Client({ extensionId }: { extensionId: string }) {
                             hasOptionPicker: validationResult.hasOptionPicker,
                             optionCount: validationResult.optionCount,
                             optionOrder: validationResult.optionOrder,
-                            attributeValues: validationResult.attributeValues,
                             rocketAttributeValues: validationResult.rocketAttributeValues,
+                            firstAttributeValue: validationResult.firstAttributeValue,
                             error: validationResult.error,
                           }
                         : undefined

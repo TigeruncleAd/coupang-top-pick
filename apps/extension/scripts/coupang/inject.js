@@ -169,62 +169,216 @@ import html2canvas from 'html2canvas'
     }
 
     if (msg?.type === 'CHECK_OPTION_PICKER') {
-      console.log('[coupang/inject] 🔍 Checking for option-picker-container...')
-      console.log('[coupang/inject] 🌐 Current URL:', window.location.href)
+      ;(async () => {
+        console.log('[coupang/inject] 🔍 Checking for option-picker-container...')
+        console.log('[coupang/inject] 🌐 Current URL:', window.location.href)
 
-      try {
-        // option-picker-container 클래스 존재 여부 확인
-        const optionPickerContainer = document.querySelector('.option-picker-container')
-        const hasOptionPicker = !!optionPickerContainer
+        try {
+          // option-picker-container 또는 option-picker-select 클래스 존재 여부 확인
+          const optionPickerContainer = document.querySelector('.option-picker-container')
+          const optionPickerSelect = document.querySelector('.option-picker-select')
+          const hasOptionPicker = !!optionPickerContainer || !!optionPickerSelect
 
-        console.log('[coupang/inject] 📦 Has option-picker-container:', hasOptionPicker)
+          console.log('[coupang/inject] 📦 Has option-picker-container:', !!optionPickerContainer)
+          console.log('[coupang/inject] 📦 Has option-picker-select:', !!optionPickerSelect)
+          console.log('[coupang/inject] 📦 Has option picker (combined):', hasOptionPicker)
 
-        if (hasOptionPicker) {
-          // 추가 정보: 옵션 개수 확인
-          const options = optionPickerContainer.querySelectorAll('.option-item, .prod-option__item')
-          console.log('[coupang/inject] 🎯 Number of options:', options.length)
+          if (hasOptionPicker) {
+            // option-picker-container가 없으면 option-picker-select를 사용
+            const container =
+              optionPickerContainer ||
+              (optionPickerSelect
+                ? optionPickerSelect.closest('.option-picker-container') || optionPickerSelect.parentElement
+                : null)
 
-          // option-picker-select 내부의 첫 번째 .twc-text-[12px] 텍스트 읽기
-          let optionOrder = null
-          const optionPickerSelect = optionPickerContainer.querySelector('.option-picker-select')
-          if (optionPickerSelect) {
-            // CSS 클래스에 대괄호가 있어서 속성 선택자 사용
-            const allTextElements = optionPickerSelect.querySelectorAll('[class*="twc-text"]')
-            for (const el of allTextElements) {
-              // 클래스에 twc-text-[12px]가 포함되어 있는지 확인
-              if (el.className.includes('twc-text-[12px]')) {
-                const optionText = el.textContent?.trim()
-                if (optionText) {
-                  console.log('[coupang/inject] 📝 Option text:', optionText)
-                  // "×" 또는 "x"로 split하여 배열 생성
-                  optionOrder = optionText.split(/[×x]/).map(s => s.trim()).filter(s => s.length > 0)
-                  console.log('[coupang/inject] 📋 Option order:', optionOrder)
-                  break
+            // container가 없어도 option-picker-select가 있으면 계속 진행
+            if (!container && optionPickerSelect) {
+              console.log('[coupang/inject] ⚠️ No container found, using option-picker-select directly')
+            }
+
+            // 추가 정보: 옵션 개수 확인
+            const options = container ? container.querySelectorAll('.option-item, .prod-option__item') : []
+            console.log('[coupang/inject] 🎯 Number of options:', options.length)
+
+            // option-picker-select 내부의 첫 번째 .twc-text-[12px] 텍스트 읽기
+            let optionOrder = null
+            const selectElement =
+              optionPickerSelect || (container ? container.querySelector('.option-picker-select') : null)
+            if (selectElement) {
+              // CSS 클래스에 대괄호가 있어서 속성 선택자 사용
+              const allTextElements = selectElement.querySelectorAll('[class*="twc-text"]')
+              for (const el of allTextElements) {
+                // 클래스에 twc-text-[12px]가 포함되어 있는지 확인
+                if (el.className.includes('twc-text-[12px]')) {
+                  const optionText = el.textContent?.trim()
+                  if (optionText) {
+                    console.log('[coupang/inject] 📝 Option text:', optionText)
+                    // "×" 또는 "x"로 split하여 배열 생성
+                    optionOrder = optionText
+                      .split(/[×x]/)
+                      .map(s => s.trim())
+                      .filter(s => s.length > 0)
+                    console.log('[coupang/inject] 📋 Option order:', optionOrder)
+                    break
+                  }
                 }
               }
             }
+
+            // 옵션 목록에서 첫 번째 옵션 찾기 (ul.custom-scrollbar 또는 유사한 구조, twc-hidden이어도 DOM에는 존재)
+            // container가 없으면 document 전체에서 찾기
+            let optionList = null
+            if (container) {
+              optionList = container.querySelector('ul.custom-scrollbar, ul[class*="custom-scrollbar"]')
+            } else if (optionPickerSelect) {
+              // option-picker-select 주변에서 찾기
+              optionList =
+                optionPickerSelect
+                  .closest('.option-picker-container')
+                  ?.querySelector('ul.custom-scrollbar, ul[class*="custom-scrollbar"]') ||
+                optionPickerSelect.parentElement?.querySelector('ul.custom-scrollbar, ul[class*="custom-scrollbar"]') ||
+                document.querySelector('ul.custom-scrollbar, ul[class*="custom-scrollbar"]')
+            } else {
+              optionList = document.querySelector('ul.custom-scrollbar, ul[class*="custom-scrollbar"]')
+            }
+            console.log('[coupang/inject] 🔍 optionList found:', !!optionList)
+
+            // 첫 번째 옵션이 품절인지 확인 및 firstAttributeValue 추출
+            let isFirstOptionSoldOut = false
+            let firstAttributeValue = null
+            if (optionList) {
+              const firstOptionItem = optionList.querySelector('li:first-child')
+              console.log('[coupang/inject] 🔍 firstOptionItem found:', !!firstOptionItem)
+              if (firstOptionItem) {
+                // 첫 번째 옵션 내에서 "품절" 텍스트 찾기
+                const soldOutText = firstOptionItem.textContent || ''
+                if (soldOutText.includes('품절')) {
+                  isFirstOptionSoldOut = true
+                  console.log('[coupang/inject] ⚠️ First option is sold out')
+                }
+
+                // 첫 번째 옵션의 첫 번째 속성 값 추출
+                console.log('[coupang/inject] 🔍 Starting firstAttributeValue extraction...')
+                // 첫 번째 옵션의 .twc-text-[12px]와 .twc-font-bold가 모두 포함된 텍스트 찾기
+                // select-item 내부의 div.twc-flex-1 안에 있는 요소 찾기
+                const flexContainer = firstOptionItem.querySelector('.select-item .twc-flex-1')
+                console.log('[coupang/inject] 🔍 flexContainer found:', !!flexContainer)
+                if (flexContainer) {
+                  // twc-text-[12px]와 twc-font-bold가 모두 포함된 div 찾기
+                  const allDivs = flexContainer.querySelectorAll('div')
+                  console.log('[coupang/inject] 🔍 allDivs count:', allDivs.length)
+                  for (const div of allDivs) {
+                    const classList = div.className || ''
+                    console.log('[coupang/inject] 🔍 div className:', classList)
+                    if (classList.includes('twc-text-[12px]') && classList.includes('twc-font-bold')) {
+                      const firstOptionText = div.textContent?.trim()
+                      console.log('[coupang/inject] 📝 First option text:', firstOptionText)
+                      if (firstOptionText) {
+                        // "×" 또는 "x"로 split하여 첫 번째 부분만 가져오기
+                        const parts = firstOptionText
+                          .split(/[×x]/)
+                          .map(s => s.trim())
+                          .filter(s => s.length > 0)
+                        console.log('[coupang/inject] 📝 Parts:', parts)
+                        if (parts.length > 0) {
+                          firstAttributeValue = parts[0]
+                          console.log('[coupang/inject] ✅ First attribute value:', firstAttributeValue)
+                        }
+                        break
+                      }
+                    }
+                  }
+                } else {
+                  console.log('[coupang/inject] ⚠️ flexContainer not found, trying alternative selector...')
+                  // 대안: firstOptionItem 내부의 모든 div를 찾아서 확인
+                  const allDivsInItem = firstOptionItem.querySelectorAll('div')
+                  console.log('[coupang/inject] 🔍 allDivsInItem count:', allDivsInItem.length)
+                  for (const div of allDivsInItem) {
+                    const classList = div.className || ''
+                    if (classList.includes('twc-text-[12px]') && classList.includes('twc-font-bold')) {
+                      const firstOptionText = div.textContent?.trim()
+                      if (firstOptionText) {
+                        console.log('[coupang/inject] 📝 First option text (alternative):', firstOptionText)
+                        const parts = firstOptionText
+                          .split(/[×x]/)
+                          .map(s => s.trim())
+                          .filter(s => s.length > 0)
+                        if (parts.length > 0) {
+                          firstAttributeValue = parts[0]
+                          console.log('[coupang/inject] ✅ First attribute value (alternative):', firstAttributeValue)
+                        }
+                        break
+                      }
+                    }
+                  }
+                }
+              } else {
+                console.log('[coupang/inject] ⚠️ firstOptionItem not found')
+              }
+            } else {
+              console.log('[coupang/inject] ⚠️ optionList not found')
+            }
+            console.log('[coupang/inject] 🔍 Final firstAttributeValue:', firstAttributeValue)
+
+            // 로켓 배송 배지 이미지 비율 확인
+            let rocketBadgeRatio = 0
+            let rocketBadgeCount = 0
+            let totalOptionCount = 0
+            if (optionList) {
+              const allOptionItems = optionList.querySelectorAll('li')
+              totalOptionCount = allOptionItems.length
+              console.log('[coupang/inject] 🔍 Total option items:', totalOptionCount)
+
+              // 각 옵션에서 배지 이미지 확인
+              allOptionItems.forEach((item, index) => {
+                // 배지 이미지 찾기: src에 badge_1998ab96bf7.png가 포함된 img 태그
+                const badgeImages = item.querySelectorAll('img[src*="badge_1998ab96bf7.png"]')
+                if (badgeImages.length > 0) {
+                  rocketBadgeCount++
+                  console.log(`[coupang/inject] 🚀 Option ${index + 1} has rocket badge`)
+                }
+              })
+
+              if (totalOptionCount > 0) {
+                rocketBadgeRatio = rocketBadgeCount / totalOptionCount
+                console.log('[coupang/inject] 🚀 Rocket badge count:', rocketBadgeCount, 'out of', totalOptionCount)
+                console.log('[coupang/inject] 🚀 Rocket badge ratio:', (rocketBadgeRatio * 100).toFixed(2) + '%')
+              }
+            }
+
+            // 첫 번째 속성 값 추출 완료 후 10초 대기
+            console.log('[coupang/inject] ⏳ Waiting 100 mili-seconds after extracting first attribute value...')
+            await new Promise(resolve => setTimeout(resolve, 100))
+            console.log('[coupang/inject] ✅ Wait completed')
+            console.log('[coupang/inject] 📤 Sending response with firstAttributeValue:', firstAttributeValue)
+
+            const response = {
+              ok: true,
+              hasOptionPicker: !isFirstOptionSoldOut, // 첫 번째 옵션이 품절이면 false
+              optionCount: options.length,
+              optionOrder: optionOrder || [],
+              firstAttributeValue: firstAttributeValue || null,
+              rocketBadgeRatio: rocketBadgeRatio,
+              rocketBadgeCount: rocketBadgeCount,
+              totalOptionCount: totalOptionCount,
+              isFirstOptionSoldOut: isFirstOptionSoldOut,
+            }
+            console.log('[coupang/inject] 📤 Full response:', response)
+            sendResponse(response)
+          } else {
+            console.log('[coupang/inject] ⚠️ No option-picker-container found')
+            sendResponse({
+              ok: true,
+              hasOptionPicker: false,
+              optionCount: 0,
+              optionOrder: [],
+            })
           }
-
-          sendResponse({
-            ok: true,
-            hasOptionPicker: true,
-            optionCount: options.length,
-            optionOrder: optionOrder || [],
-          })
-        } else {
-          console.log('[coupang/inject] ⚠️ No option-picker-container found')
-          sendResponse({
-            ok: true,
-            hasOptionPicker: false,
-            optionCount: 0,
-            optionOrder: [],
-          })
+        } catch (e) {
+          console.error('[coupang/inject] ❌ Error checking option picker:', e)
+          sendResponse({ ok: false, error: String(e) })
         }
-      } catch (e) {
-        console.error('[coupang/inject] ❌ Error checking option picker:', e)
-        sendResponse({ ok: false, error: String(e) })
-      }
-
+      })()
       return true
     }
 
