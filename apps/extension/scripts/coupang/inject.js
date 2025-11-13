@@ -250,11 +250,14 @@ import html2canvas from 'html2canvas'
               const firstOptionItem = optionList.querySelector('li:first-child')
               console.log('[coupang/inject] 🔍 firstOptionItem found:', !!firstOptionItem)
               if (firstOptionItem) {
-                // 첫 번째 옵션 내에서 "품절" 텍스트 찾기
+                // 첫 번째 옵션 내에서 "품절" 텍스트 찾기 (단, "품절임박"은 제외)
                 const soldOutText = firstOptionItem.textContent || ''
-                if (soldOutText.includes('품절')) {
+                // '품절'이 포함되어 있지만 '품절임박'은 아닌 경우만 체크
+                if (soldOutText.includes('품절') && !soldOutText.includes('품절임박')) {
                   isFirstOptionSoldOut = true
                   console.log('[coupang/inject] ⚠️ First option is sold out')
+                } else if (soldOutText.includes('품절임박')) {
+                  console.log('[coupang/inject] ✅ First option is "품절임박" - validation will pass')
                 }
 
                 // 첫 번째 옵션의 첫 번째 속성 값 추출

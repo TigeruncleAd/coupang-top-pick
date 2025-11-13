@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { Button } from '@repo/ui/components/button'
-import { wingProductItemsViaExtension, wingOptionModifyViaExtension, checkCoupangOptionPicker } from '@/lib/utils/extension'
+import { wingProductItemsViaExtension, wingOptionModifyViaExtension } from '@/lib/utils/extension'
 import type { WingProductItemsDetail, WingProductItemsHttpEnvelope } from '@/types/wing'
 import { Star, StarHalf, Trash2 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -160,31 +160,6 @@ export default function Client({ extensionId }: { extensionId: string }) {
       console.log(`[bulk-upload] Product ID: ${product.productId}`)
 
       try {
-        // 검증: 로켓 배송 배지 비율 확인
-        console.log(`[bulk-upload] 🔍 Validating rocket badge ratio for product ${product.productId}...`)
-        const optionPickerRes = await checkCoupangOptionPicker({
-          extensionId,
-          productId: Number(product.productId),
-          itemId: Number(product.itemId),
-          vendorItemId: Number(product.vendorItemId),
-        })
-
-        if (optionPickerRes.ok && optionPickerRes.hasOptionPicker) {
-          const rocketBadgeRatio = optionPickerRes.rocketBadgeRatio || 0
-          console.log(`[bulk-upload] 🚀 Rocket badge ratio: ${(rocketBadgeRatio * 100).toFixed(2)}%`)
-
-          // 로켓 배송 배지 비율이 30%를 넘으면 검증 실패
-          if (rocketBadgeRatio > 0.3) {
-            console.log(`[bulk-upload] ❌ Rocket badge ratio exceeds 30%, marking as ROCKET_MAJORITY`)
-            updateProductStatusMutation.mutate({
-              productId: product.productId,
-              status: 'ROCKET_MAJORITY',
-            })
-            toast.error(`상품 ${i + 1}/${readyProducts.length}: 로켓 배송 과다로 업로드 중단`)
-            continue
-          }
-        }
-
         // 업로드 시작
         const uploadUrl = 'https://wing.coupang.com/tenants/seller-web/vendor-inventory/formV2'
         const wingTab = window.open(uploadUrl, '_blank', 'noopener,noreferrer')
@@ -426,31 +401,6 @@ export default function Client({ extensionId }: { extensionId: string }) {
                             size="sm"
                             onClick={async () => {
                               try {
-                                // 검증: 로켓 배송 배지 비율 확인
-                                console.log('[upload] 🔍 Validating rocket badge ratio...')
-                                const optionPickerRes = await checkCoupangOptionPicker({
-                                  extensionId,
-                                  productId: Number(product.productId),
-                                  itemId: Number(product.itemId),
-                                  vendorItemId: Number(product.vendorItemId),
-                                })
-
-                                if (optionPickerRes.ok && optionPickerRes.hasOptionPicker) {
-                                  const rocketBadgeRatio = optionPickerRes.rocketBadgeRatio || 0
-                                  console.log('[upload] 🚀 Rocket badge ratio:', (rocketBadgeRatio * 100).toFixed(2) + '%')
-
-                                  // 로켓 배송 배지 비율이 30%를 넘으면 검증 실패
-                                  if (rocketBadgeRatio > 0.3) {
-                                    console.log('[upload] ❌ Rocket badge ratio exceeds 30%, marking as ROCKET_MAJORITY')
-                                    updateProductStatusMutation.mutate({
-                                      productId: product.productId,
-                                      status: 'ROCKET_MAJORITY',
-                                    })
-                                    toast.error('로켓 배송 과다로 업로드가 중단되었습니다.')
-                                    return
-                                  }
-                                }
-
                                 // 업로드 시작
                                 const uploadUrl = 'https://wing.coupang.com/tenants/seller-web/vendor-inventory/formV2'
                                 window.open(uploadUrl, '_blank', 'noopener,noreferrer')
