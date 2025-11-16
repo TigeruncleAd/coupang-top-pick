@@ -445,9 +445,7 @@
 
                           // goodAttributeValues에 있는 옵션들을 모두 클릭 (각각 3번씩)
                           const normalizedGoodSet = new Set(
-                            (goodAttributeValues || []).map(v =>
-                              v.toUpperCase().trim().replace(/\s+/g, ''),
-                            ),
+                            (goodAttributeValues || []).map(v => v.toUpperCase().trim().replace(/\s+/g, '')),
                           )
 
                           if (!normalizedGoodSet.size) {
@@ -469,10 +467,7 @@
                               })
 
                               if (!matchedButtons.length) {
-                                console.warn(
-                                  '[wing/inject] ⚠️ No exact match found for goodAttributeValue:',
-                                  target,
-                                )
+                                console.warn('[wing/inject] ⚠️ No exact match found for goodAttributeValue:', target)
                                 continue
                               }
 
@@ -611,13 +606,13 @@
                         const maxLoadingWait = 120 // 최대 12초 대기 (120 * 100ms = 12초)
                         for (let i = 0; i < maxLoadingWait; i++) {
                           await delay(100)
-                          
+
                           // 로딩 레이어 확인
                           const loadingLayer = document.querySelector('div[data-layer="loading"]')
                           if (loadingLayer) {
                             // 내부에 .in-progress 클래스를 가진 요소가 있는지 확인
                             const inProgressElement = loadingLayer.querySelector('.in-progress')
-                            
+
                             // 로딩이 끝났는지 확인 (내부가 비어있거나 .in-progress가 없으면 로딩 완료)
                             if (!inProgressElement) {
                               // 추가 확인: 내부에 실제 로딩 컴포넌트가 있는지 확인
@@ -634,7 +629,7 @@
                             console.log('[wing/inject] ✅ Loading layer not found, assuming loading completed!')
                             break
                           }
-                          
+
                           if (i % 10 === 0) {
                             console.log(`[wing/inject] ⏳ Still waiting for loading... (${i * 0.1}s)`)
                           }
@@ -662,70 +657,219 @@
                         await delay(500)
                         console.log('[wing/inject] Setting price and stock for all rows...')
 
-                        // 가상 스크롤 테이블을 맨 아래까지 스크롤하여 모든 행 로드
-                        console.log('[wing/inject] 📜 Scrolling option table to bottom to load all rows...')
-                        const optionTableBody = document.getElementById('optionPaneTableBody') || document.querySelector('.option-pane-table-body')
-                        if (optionTableBody) {
-                          // 맨 아래까지 스크롤 (점진적으로 스크롤하여 가상 스크롤이 모든 행을 렌더링하도록)
-                          const scrollToBottom = async () => {
-                            let previousScrollTop = -1
-                            let attempts = 0
-                            const maxAttempts = 50
+                        const optionTableBody =
+                          document.getElementById('optionPaneTableBody') ||
+                          document.querySelector('.option-pane-table-body')
+                        if (!optionTableBody) {
+                          console.warn('[wing/inject] ⚠️ Option table body not found')
+                        } else {
+                          // 현재 보이는 row들에 대해 입력하는 함수
+                          const fillVisibleRows = async () => {
+                            const optionRows = document.querySelectorAll('.option-pane-table-row[data-row-id]')
+                            let filledCount = 0
 
-                            while (attempts < maxAttempts) {
-                              // 스크롤 컨테이너 찾기 (가상 스크롤은 내부 content 요소를 사용)
-                              const scrollContainer = optionTableBody.querySelector('.option-pane-table-content')
-                              if (scrollContainer) {
-                                // transform 값을 조정하여 스크롤 시뮬레이션
-                                const spacer = optionTableBody.querySelector('.option-pane-table-spacer')
-                                if (spacer) {
-                                  const totalHeight = parseInt(spacer.style.height) || 0
-                                  
-                                  // 스크롤을 점진적으로 아래로 이동
-                                  const currentScroll = parseInt(scrollContainer.style.transform.match(/translateY\((\d+)px\)/)?.[1] || '0')
-                                  const scrollStep = 200
-                                  const newScroll = Math.min(currentScroll + scrollStep, totalHeight)
-                                  
-                                  scrollContainer.style.transform = `translateY(${newScroll}px)`
-                                  
-                                  // scroll 이벤트 발생
-                                  optionTableBody.scrollTop = newScroll
-                                  optionTableBody.dispatchEvent(new Event('scroll', { bubbles: true }))
-                                  
-                                  if (newScroll >= totalHeight) {
-                                    console.log('[wing/inject] ✅ Reached bottom of option table')
-                                    break
-                                  }
-                                } else {
-                                  // fallback: 일반 스크롤
-                                  optionTableBody.scrollTop = optionTableBody.scrollHeight
+                            console.log(`[wing/inject] 📋 fillVisibleRows: Found ${optionRows.length} rows`)
+
+                            for (let idx = 0; idx < optionRows.length; idx++) {
+                              const row = optionRows[idx]
+                              try {
+                                // 각 row의 아이템위너가격 찾기
+                                const itemWinnerPriceElement = row.querySelector('.pre-matching > div:first-child')
+                                if (!itemWinnerPriceElement) {
+                                  console.log(`[wing/inject] Row ${idx + 1}: No item winner price element`)
+                                  continue
                                 }
-                              } else {
-                                // fallback: 일반 스크롤
-                                optionTableBody.scrollTop = optionTableBody.scrollHeight
-                              }
 
-                              await delay(100)
-                              
-                              const currentScrollTop = optionTableBody.scrollTop || (scrollContainer ? parseInt(scrollContainer.style.transform.match(/translateY\((\d+)px\)/)?.[1] || '0') : 0)
-                              if (currentScrollTop === previousScrollTop) {
-                                // 스크롤이 더 이상 움직이지 않으면 끝
-                                console.log('[wing/inject] ✅ Finished scrolling option table')
-                                break
+                                const itemWinnerPriceText = itemWinnerPriceElement.textContent.trim().replace(/,/g, '')
+                                const itemWinnerPrice = parseInt(itemWinnerPriceText)
+                                if (isNaN(itemWinnerPrice)) {
+                                  console.log(
+                                    `[wing/inject] Row ${idx + 1}: Invalid item winner price: ${itemWinnerPriceText}`,
+                                  )
+                                  continue
+                                }
+
+                                // 모든 enabled input 찾기
+                                const enabledInputs = Array.from(
+                                  row.querySelectorAll('input.sc-common-input[type="text"]:not([disabled])'),
+                                )
+                                console.log(
+                                  `[wing/inject] Row ${idx + 1}: Found ${enabledInputs.length} enabled inputs, itemWinnerPrice: ${itemWinnerPrice}`,
+                                )
+
+                                // 판매가 input: 두 번째 enabled input (정상가가 첫 번째, 판매가가 두 번째)
+                                let salePriceInput = null
+                                if (enabledInputs.length >= 2) {
+                                  salePriceInput = enabledInputs[1]
+                                }
+
+                                // 이미 입력된 row는 건너뛰기 (판매가가 0보다 큰 유효한 값인 경우만)
+                                if (salePriceInput && salePriceInput.value && salePriceInput.value.trim() !== '') {
+                                  const existingValue = parseInt(salePriceInput.value.trim().replace(/,/g, ''))
+                                  if (!isNaN(existingValue) && existingValue > 0) {
+                                    console.log(
+                                      `[wing/inject] Row ${idx + 1}: Already filled (salePrice: ${salePriceInput.value})`,
+                                    )
+                                    continue
+                                  }
+                                }
+
+                                if (!salePriceInput) {
+                                  console.warn(
+                                    `[wing/inject] ⚠️ Row ${idx + 1}: Sale price input not found (only ${enabledInputs.length} enabled inputs)`,
+                                  )
+                                  continue
+                                }
+
+                                // 재고수량 input 찾기
+                                // 판매가 input 다음에 오는 text-align: center인 enabled input
+                                // 또는 판매가 input 인덱스 기준으로 계산 (재고수량은 판매가 다음 3번째 컬럼)
+                                let stockInput = null
+                                const salePriceInputIndex = enabledInputs.indexOf(salePriceInput)
+
+                                if (salePriceInputIndex >= 0 && salePriceInputIndex < enabledInputs.length - 1) {
+                                  // 판매가 input 다음부터 끝까지 확인
+                                  for (let i = salePriceInputIndex + 1; i < enabledInputs.length; i++) {
+                                    const input = enabledInputs[i]
+                                    const computedStyle = window.getComputedStyle(input)
+                                    // text-align: center이고 disabled가 아닌 input 찾기
+                                    if (computedStyle.textAlign === 'center' && !input.disabled) {
+                                      stockInput = input
+                                      console.log(
+                                        `[wing/inject] Row ${idx + 1}: Found stock input at index ${i} (text-align: center)`,
+                                      )
+                                      break
+                                    }
+                                  }
+                                }
+
+                                // fallback: 판매가 다음 3번째 enabled input (재고수량 컬럼 위치)
+                                if (
+                                  !stockInput &&
+                                  salePriceInputIndex >= 0 &&
+                                  enabledInputs.length > salePriceInputIndex + 3
+                                ) {
+                                  stockInput = enabledInputs[salePriceInputIndex + 3]
+                                  console.log(
+                                    `[wing/inject] Row ${idx + 1}: Using fallback stock input at index ${salePriceInputIndex + 3}`,
+                                  )
+                                }
+
+                                // 최종 fallback: enabled input 중 마지막에서 3번째
+                                if (!stockInput && enabledInputs.length >= 3) {
+                                  stockInput = enabledInputs[enabledInputs.length - 3]
+                                  console.log(
+                                    `[wing/inject] Row ${idx + 1}: Using final fallback stock input at index ${enabledInputs.length - 3}`,
+                                  )
+                                }
+
+                                // 판매가 설정
+                                const calculatedPrice = Math.max(0, itemWinnerPrice - 100)
+                                console.log(
+                                  `[wing/inject] Row ${idx + 1}: Setting salePrice = ${calculatedPrice} (itemWinner: ${itemWinnerPrice} - 100)`,
+                                )
+                                salePriceInput.focus()
+                                const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                                  window.HTMLInputElement.prototype,
+                                  'value',
+                                ).set
+                                nativeInputValueSetter.call(salePriceInput, calculatedPrice.toString())
+                                salePriceInput.dispatchEvent(new Event('input', { bubbles: true }))
+                                salePriceInput.dispatchEvent(new Event('change', { bubbles: true }))
+                                salePriceInput.blur()
+
+                                // 재고수량 설정
+                                if (stockInput) {
+                                  console.log(`[wing/inject] Row ${idx + 1}: Setting stock = 1000`)
+                                  stockInput.focus()
+                                  const nativeInputValueSetter2 = Object.getOwnPropertyDescriptor(
+                                    window.HTMLInputElement.prototype,
+                                    'value',
+                                  ).set
+                                  nativeInputValueSetter2.call(stockInput, '1000')
+                                  stockInput.dispatchEvent(new Event('input', { bubbles: true }))
+                                  stockInput.dispatchEvent(new Event('change', { bubbles: true }))
+                                  stockInput.blur()
+                                } else {
+                                  console.warn(`[wing/inject] Row ${idx + 1}: Stock input not found`)
+                                }
+
+                                filledCount++
+                                console.log(`[wing/inject] ✅ Row ${idx + 1}: Successfully filled`)
+                              } catch (error) {
+                                console.error('[wing/inject] ❌ Error filling row:', error)
                               }
-                              previousScrollTop = currentScrollTop
-                              attempts++
                             }
+
+                            console.log(
+                              `[wing/inject] ✅ fillVisibleRows completed: Filled ${filledCount} rows out of ${optionRows.length} total rows`,
+                            )
+                            return filledCount
                           }
 
-                          await scrollToBottom()
-                          await delay(1000) // 가상 스크롤이 모든 행을 렌더링할 시간 제공
-                          console.log('[wing/inject] ✅ All option rows should be loaded now')
-                        } else {
-                          console.warn('[wing/inject] ⚠️ Option table body not found, skipping scroll')
+                          // 스크롤을 조금씩 내리면서 반복
+                          const scrollAndFillLoop = async () => {
+                            const scrollContainer = optionTableBody.querySelector('.option-pane-table-content')
+                            const spacer = optionTableBody.querySelector('.option-pane-table-spacer')
+
+                            if (!scrollContainer || !spacer) {
+                              // fallback: 일반 스크롤 방식
+                              console.log('[wing/inject] ⚠️ Virtual scroll structure not found, using fallback')
+                              await fillVisibleRows()
+                              return
+                            }
+
+                            const totalHeight = parseInt(spacer.style.height) || 0
+                            const scrollStep = 300 // 한 번에 300px씩 스크롤
+                            let previousScroll = -1
+                            let iterations = 0
+                            const maxIterations = 100 // 최대 반복 횟수
+
+                            while (iterations < maxIterations) {
+                              // 1. 현재 보이는 row들에 대해 입력
+                              const filledCount = await fillVisibleRows()
+                              console.log(`[wing/inject] 📝 Filled ${filledCount} rows in iteration ${iterations + 1}`)
+
+                              await delay(300) // 입력 후 잠시 대기
+
+                              // 2. 스크롤 조금 더 내리기
+                              const currentScroll = parseInt(
+                                scrollContainer.style.transform.match(/translateY\((\d+)px\)/)?.[1] || '0',
+                              )
+                              const newScroll = Math.min(currentScroll + scrollStep, totalHeight)
+
+                              if (newScroll === previousScroll) {
+                                // 스크롤이 더 이상 안 내려감
+                                console.log('[wing/inject] ✅ Cannot scroll further, finished filling')
+                                break
+                              }
+
+                              scrollContainer.style.transform = `translateY(${newScroll}px)`
+                              optionTableBody.scrollTop = newScroll
+                              optionTableBody.dispatchEvent(new Event('scroll', { bubbles: true }))
+
+                              previousScroll = newScroll
+                              iterations++
+
+                              await delay(300) // 스크롤 후 DOM 업데이트 대기
+
+                              if (newScroll >= totalHeight) {
+                                // 맨 아래 도달
+                                console.log('[wing/inject] ✅ Reached bottom, filling remaining rows...')
+                                await fillVisibleRows()
+                                break
+                              }
+                            }
+
+                            // 마지막으로 한 번 더 확인
+                            await delay(500)
+                            await fillVisibleRows()
+                          }
+
+                          await scrollAndFillLoop()
                         }
 
-                        // 옵션 테이블의 모든 row 찾기
+                        // 옵션 테이블의 모든 row 찾기 (체크박스 클릭용)
                         const optionRows = document.querySelectorAll('.option-pane-table-row[data-row-id]')
                         console.log('[wing/inject] 📦 Found option rows:', optionRows.length)
 
@@ -748,31 +892,27 @@
                                   return
                                 }
 
-                               // 옵션명 텍스트 추출
-                               const optionNameText = optionNameSpan.textContent?.trim() || ''
-                               console.log(`[wing/inject] Row ${index + 1}: Option name = "${optionNameText}"`)
+                                // 옵션명 텍스트 추출
+                                const optionNameText = optionNameSpan.textContent?.trim() || ''
+                                console.log(`[wing/inject] Row ${index + 1}: Option name = "${optionNameText}"`)
 
-                               // "×", "x", "," 기준으로 첫 번째 속성만 추출
-                               const firstToken = optionNameText
-                                 .split(/[×x,]/)
-                                 .map(s => s.trim())
-                                 .filter(s => s.length > 0)[0]
+                                // "×", "x", "," 기준으로 첫 번째 속성만 추출
+                                const firstToken = optionNameText
+                                  .split(/[×x,]/)
+                                  .map(s => s.trim())
+                                  .filter(s => s.length > 0)[0]
 
-                               const normalizedFirstToken = (firstToken || '').toUpperCase()
-                                 .trim()
-                                 .replace(/\s+/g, '')
-                               const normalizedGoodSet = new Set(
-                                 goodAttributeValues.map(v =>
-                                   v.toUpperCase().trim().replace(/\s+/g, ''),
-                                 ),
-                               )
+                                const normalizedFirstToken = (firstToken || '').toUpperCase().trim().replace(/\s+/g, '')
+                                const normalizedGoodSet = new Set(
+                                  goodAttributeValues.map(v => v.toUpperCase().trim().replace(/\s+/g, '')),
+                                )
 
-                               // goodAttributeValues에 없는 경우만 체크박스 클릭 (부적절한 항목)
-                               if (!normalizedGoodSet.has(normalizedFirstToken)) {
+                                // goodAttributeValues에 없는 경우만 체크박스 클릭 (부적절한 항목)
+                                if (!normalizedGoodSet.has(normalizedFirstToken)) {
                                   const checkbox = row.querySelector('input[type="checkbox"]')
                                   if (checkbox && !checkbox.checked) {
                                     console.log(
-                                     `[wing/inject] ⚠️ Row ${index + 1}: First token "${firstToken}" not in goodAttributeValues, clicking checkbox`,
+                                      `[wing/inject] ⚠️ Row ${index + 1}: First token "${firstToken}" not in goodAttributeValues, clicking checkbox`,
                                     )
                                     checkbox.click()
                                   } else if (checkbox && checkbox.checked) {
@@ -784,7 +924,7 @@
                                   }
                                 } else {
                                   console.log(
-                                   `[wing/inject] ✅ Row ${index + 1}: Valid option first token in goodAttributeValues ("${firstToken}")`,
+                                    `[wing/inject] ✅ Row ${index + 1}: Valid option first token in goodAttributeValues ("${firstToken}")`,
                                   )
                                 }
                               } catch (error) {
@@ -900,123 +1040,7 @@
                             }
                           }
 
-                          // 모든 row에 대해 순회
-                          optionRows.forEach((row, index) => {
-                            try {
-                              // 각 row의 아이템위너가격 찾기
-                              const itemWinnerPriceElement = row.querySelector('.pre-matching > div:first-child')
-                              if (!itemWinnerPriceElement) {
-                                console.warn(`[wing/inject] ⚠️ Row ${index + 1}: Item winner price element not found`)
-                                return
-                              }
-
-                              const itemWinnerPriceText = itemWinnerPriceElement.textContent.trim().replace(/,/g, '')
-                              const itemWinnerPrice = parseInt(itemWinnerPriceText)
-                              console.log(`[wing/inject] Row ${index + 1}: Item Winner Price = ${itemWinnerPrice}`)
-
-                              if (isNaN(itemWinnerPrice)) {
-                                console.warn(`[wing/inject] ⚠️ Row ${index + 1}: Could not parse item winner price`)
-                                return
-                              }
-
-                              // 모든 input 찾기
-                              const inputs = row.querySelectorAll('input.sc-common-input[type="text"]')
-                              console.log(`[wing/inject] Row ${index + 1}: Found ${inputs.length} inputs`)
-
-                              // 판매가 input (두 번째 input, index 1)
-                              const salePriceInput = inputs[1]
-
-                              // 재고수량 input 찾기 (text-align: center 스타일을 가진 input)
-                              let stockInput = null
-                              inputs.forEach((input, idx) => {
-                                const computedStyle = window.getComputedStyle(input)
-                                if (computedStyle.textAlign === 'center' && idx > 3) {
-                                  if (!stockInput) {
-                                    stockInput = input
-                                  }
-                                }
-                              })
-
-                              // 만약 위 방법으로 못 찾으면 배열에서 직접 선택
-                              if (!stockInput && inputs.length >= 5) {
-                                stockInput = inputs[4]
-                              }
-
-                              // 판매가 설정 (아이템위너가격보다 100원 싸게, 단 최소 가격 검증)
-                              if (salePriceInput) {
-                                // 기본 계산: 아이템위너가격 - 100원
-                                let calculatedPrice = Math.max(0, itemWinnerPrice - 100)
-
-                                /**
-                                 * 역마진 세이프티 (현재 비활성화)
-                                 *
-                                 * - 목적:
-                                 *   아이템위너 -100원으로 계산한 가격이
-                                 *   최소 (salePrice * 1.2) 이면서 동시에 (salePrice + 5000원) 이상이 되도록 보정해서
-                                 *   역마진(너무 낮은 판매가)을 방지하는 안전장치.
-                                 *
-                                 * - 현재는 실험/조정 단계이므로 실제 계산에는 적용하지 않고
-                                 *   코드만 보존한다. (조건문 앞의 false로 항상 스킵)
-                                 */
-                                if (false && salePrice && salePrice > 0) {
-                                  // 최소 가격 1: salePrice + 5000원
-                                  const minPrice1 = salePrice + 5000
-                                  // 최소 가격 2: salePrice * 1.2 (20% 이상)
-                                  const minPrice2 = Math.ceil(salePrice * 1.2)
-                                  // 둘 중 높은 가격
-                                  const minPrice = Math.max(minPrice1, minPrice2)
-
-                                  console.log(
-                                    `[wing/inject] Row ${index + 1}: [역마진 세이프티] salePrice: ${salePrice}, minPrice1: ${minPrice1}, minPrice2: ${minPrice2}, minPrice: ${minPrice}, calculatedPrice(before): ${calculatedPrice}`,
-                                  )
-
-                                  // 계산된 가격이 최소 가격보다 낮으면 최소 가격으로 설정
-                                  if (calculatedPrice < minPrice) {
-                                    calculatedPrice = minPrice
-                                    console.log(
-                                      `[wing/inject] Row ${index + 1}: [역마진 세이프티] Calculated price (${itemWinnerPrice - 100}) is lower than minPrice (${minPrice}), using minPrice`,
-                                    )
-                                  }
-                                }
-
-                                const finalSalePrice = calculatedPrice
-                                salePriceInput.focus()
-                                const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-                                  window.HTMLInputElement.prototype,
-                                  'value',
-                                ).set
-                                nativeInputValueSetter.call(salePriceInput, finalSalePrice.toString())
-                                salePriceInput.dispatchEvent(new Event('input', { bubbles: true }))
-                                salePriceInput.dispatchEvent(new Event('change', { bubbles: true }))
-                                salePriceInput.blur()
-                                console.log(
-                                  `[wing/inject] ✅ Row ${index + 1}: Set sale price to ${finalSalePrice} (item winner price: ${itemWinnerPrice} - 100, validated with minPrice)`,
-                                )
-                              } else {
-                                console.warn(`[wing/inject] ⚠️ Row ${index + 1}: Sale price input not found`)
-                              }
-
-                              // 재고수량 설정 (1000으로)
-                              if (stockInput) {
-                                stockInput.focus()
-                                const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-                                  window.HTMLInputElement.prototype,
-                                  'value',
-                                ).set
-                                nativeInputValueSetter.call(stockInput, '1000')
-                                stockInput.dispatchEvent(new Event('input', { bubbles: true }))
-                                stockInput.dispatchEvent(new Event('change', { bubbles: true }))
-                                stockInput.blur()
-                                console.log(`[wing/inject] ✅ Row ${index + 1}: Set stock to 1000`)
-                              } else {
-                                console.warn(`[wing/inject] ⚠️ Row ${index + 1}: Stock input not found`)
-                              }
-                            } catch (error) {
-                              console.error(`[wing/inject] ❌ Error processing row ${index + 1}:`, error)
-                            }
-                          })
-
-                          console.log(`[wing/inject] ✅ Finished setting price and stock for ${optionRows.length} rows`)
+                          console.log('[wing/inject] ✅ Finished setting price and stock for all rows')
 
                           // 6. panel-contents로 스크롤 후 '기본 등록' 버튼 클릭
                           await delay(1000)
