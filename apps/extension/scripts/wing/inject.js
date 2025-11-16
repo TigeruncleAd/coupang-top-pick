@@ -70,6 +70,7 @@
             optionOrder,
             attributeValues,
             firstAttributeValue,
+            goodAttributeValues,
             salePrice,
           } = msg.payload || {}
           // 업로드 시에는 {productName} {productId} 형식으로 검색
@@ -81,6 +82,7 @@
             optionOrder,
             attributeValues,
             firstAttributeValue,
+            goodAttributeValues,
           })
           console.log('[wing/inject] 🏷️ Base salePrice from web app:', salePrice)
           console.log('[wing/inject] Display value for search:', displayValue)
@@ -441,259 +443,139 @@
                             console.log(`[wing/inject]   Button ${idx + 1}: "${btn.textContent?.trim()}"`)
                           })
 
-                          // firstAttributeValue와 일치하는 버튼 찾기
-                          // 버튼들은 이미 특수문자 -> 숫자(작은순) -> 영어(앞글자순) 순서로 정렬되어 있음
-                          let firstMatchedButton = null
-                          let firstMatchedButtonText = null
-
-                          for (let i = 0; i < buttons.length; i++) {
-                            const button = buttons[i]
-                            const buttonText = button.textContent?.trim()
-                            console.log(`[wing/inject] Checking button ${i + 1}: "${buttonText}"`)
-
-                            // firstAttributeValue와 비교 (대소문자 무시, 공백 제거 후 정확히 일치해야 함)
-                            const normalizedButtonText = buttonText?.toUpperCase().trim().replace(/\s+/g, '')
-                            const normalizedFirstAttrValue = firstAttributeValue
-                              .toUpperCase()
-                              .trim()
-                              .replace(/\s+/g, '')
-
-                            // 정확히 일치하는 경우만 허용
-                            if (normalizedButtonText === normalizedFirstAttrValue) {
-                              console.log(
-                                `[wing/inject]   ✅ Exact match: "${buttonText}" === "${firstAttributeValue}"`,
-                              )
-                              firstMatchedButton = button
-                              firstMatchedButtonText = buttonText
-                              break
-                            }
-
-                            console.log(`[wing/inject]   ⏭️ Skipping button: "${buttonText}" (no exact match)`)
-                          }
-
-                          if (firstMatchedButton && firstMatchedButtonText) {
-                            console.log(`[wing/inject] ✅ Found exact matching button: "${firstMatchedButtonText}"`)
-                          } else {
-                            console.error(
-                              `[wing/inject] ❌ No exact match found for firstAttributeValue: "${firstAttributeValue}"`,
-                            )
-                            console.error(
-                              `[wing/inject] ❌ Available buttons: ${Array.from(buttons)
-                                .map(b => `"${b.textContent?.trim()}"`)
-                                .join(', ')}`,
-                            )
-
-                            // 정확히 일치하는 버튼이 없으면 에러 처리 및 탭 종료
-                            try {
-                              console.log('[wing/inject] 🚨 Sending BAD_OPTION_VALUE error and closing tab...')
-
-                              // Background에 에러 메시지 전송
-                              chrome.runtime.sendMessage(
-                                {
-                                  type: 'PRODUCT_UPLOAD_ERROR',
-                                  productId: Number(productId),
-                                  status: 'BAD_OPTION_VALUE',
-                                  error: `정확히 일치하는 옵션을 찾을 수 없습니다. firstAttributeValue: "${firstAttributeValue}"`,
-                                },
-                                response => {
-                                  console.log('[wing/inject] ✅ Error notification sent, response:', response)
-                                },
-                              )
-
-                              // 탭 종료
-                              await delay(500)
-                              window.close()
-                              return
-                            } catch (error) {
-                              console.error('[wing/inject] ❌ Error handling BAD_OPTION_VALUE:', error)
-                            }
-                          }
-
-                          // 첫 번째 매칭 버튼을 1초 간격으로 3번 클릭 (정확히 일치하는 경우만)
-                          if (firstMatchedButton && firstMatchedButtonText) {
-                            try {
-                              console.log(
-                                `[wing/inject] ✅ Clicking first matching button 3 times with 1s interval: "${firstMatchedButtonText}"`,
-                              )
-
-                              // 3번 클릭 (1초 간격)
-                              for (let clickCount = 0; clickCount < 3; clickCount++) {
-                                // 각 클릭 사이에 1초 간격 (첫 번째 클릭 제외)
-                                if (clickCount > 0) {
-                                  await delay(1000)
-                                }
-
-                                // 클릭 전에 버튼을 다시 찾기 (DOM 업데이트 대응)
-                                // 정확히 일치하는 버튼만 찾기
-                                let currentButton = null
-                                const allButtons = checkboxGroup.querySelectorAll('button.wuic-button')
-                                const normalizedTargetText = firstMatchedButtonText
-                                  .toUpperCase()
-                                  .trim()
-                                  .replace(/\s+/g, '')
-
-                                for (let i = 0; i < allButtons.length; i++) {
-                                  const button = allButtons[i]
-                                  const buttonText = button.textContent?.trim()
-                                  const normalizedButtonText = buttonText?.toUpperCase().trim().replace(/\s+/g, '')
-
-                                  // 정확히 일치하는 경우만 허용
-                                  if (normalizedButtonText === normalizedTargetText) {
-                                    currentButton = button
-                                    console.log(
-                                      `[wing/inject] ✅ Found exact match for click ${clickCount + 1}/3: "${buttonText}"`,
-                                    )
-                                    break
-                                  }
-                                }
-
-                                if (!currentButton) {
-                                  console.error(
-                                    `[wing/inject] ❌ Could not find exact match for "${firstMatchedButtonText}" on click ${clickCount + 1}/3`,
-                                  )
-                                  console.error(
-                                    `[wing/inject] Available buttons: ${Array.from(allButtons)
-                                      .map(b => `"${b.textContent?.trim()}"`)
-                                      .join(', ')}`,
-                                  )
-                                  // 정확히 일치하는 버튼을 찾지 못하면 클릭 중단
-                                  break
-                                }
-
-                                if (currentButton.disabled) {
-                                  console.warn(
-                                    `[wing/inject] ⚠️ Button is disabled for click ${clickCount + 1}/3: "${firstMatchedButtonText}"`,
-                                  )
-                                  continue
-                                }
-
-                                console.log(
-                                  `[wing/inject] Clicking ${clickCount + 1}/3: "${currentButton.textContent?.trim()}"`,
-                                )
-
-                                // 버튼을 viewport에 보이도록 스크롤
-                                currentButton.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                                await delay(100)
-
-                                // 버튼의 실제 위치 계산
-                                const rect = currentButton.getBoundingClientRect()
-                                const x = rect.left + rect.width / 2
-                                const y = rect.top + rect.height / 2
-
-                                // 실제 마우스 클릭을 더 정확하게 시뮬레이션
-                                // MouseEvent를 통한 실제 마우스 클릭 시뮬레이션
-                                const mouseDownEvent = new MouseEvent('mousedown', {
-                                  bubbles: true,
-                                  cancelable: true,
-                                  view: window,
-                                  detail: 1,
-                                  screenX: x + window.screenX,
-                                  screenY: y + window.screenY,
-                                  clientX: x,
-                                  clientY: y,
-                                  button: 0,
-                                  buttons: 1,
-                                })
-
-                                const mouseUpEvent = new MouseEvent('mouseup', {
-                                  bubbles: true,
-                                  cancelable: true,
-                                  view: window,
-                                  detail: 1,
-                                  screenX: x + window.screenX,
-                                  screenY: y + window.screenY,
-                                  clientX: x,
-                                  clientY: y,
-                                  button: 0,
-                                  buttons: 0,
-                                })
-
-                                const clickEvent = new MouseEvent('click', {
-                                  bubbles: true,
-                                  cancelable: true,
-                                  view: window,
-                                  detail: 1,
-                                  screenX: x + window.screenX,
-                                  screenY: y + window.screenY,
-                                  clientX: x,
-                                  clientY: y,
-                                  button: 0,
-                                  buttons: 0,
-                                })
-
-                                // 포인터 이벤트도 시뮬레이션 (최신 프레임워크 지원)
-                                const pointerDownEvent = new PointerEvent('pointerdown', {
-                                  bubbles: true,
-                                  cancelable: true,
-                                  view: window,
-                                  detail: 1,
-                                  clientX: x,
-                                  clientY: y,
-                                  pointerId: 1,
-                                  pointerType: 'mouse',
-                                  button: 0,
-                                  buttons: 1,
-                                })
-
-                                const pointerUpEvent = new PointerEvent('pointerup', {
-                                  bubbles: true,
-                                  cancelable: true,
-                                  view: window,
-                                  detail: 1,
-                                  clientX: x,
-                                  clientY: y,
-                                  pointerId: 1,
-                                  pointerType: 'mouse',
-                                  button: 0,
-                                  buttons: 0,
-                                })
-
-                                // 이벤트를 순서대로 발생
-                                currentButton.dispatchEvent(pointerDownEvent)
-                                currentButton.dispatchEvent(mouseDownEvent)
-                                await delay(50) // 짧은 딜레이로 실제 클릭처럼
-                                currentButton.dispatchEvent(pointerUpEvent)
-                                currentButton.dispatchEvent(mouseUpEvent)
-                                currentButton.dispatchEvent(clickEvent)
-
-                                // fallback: 기본 click 메서드도 호출
-                                currentButton.click()
-
-                                console.log(
-                                  `[wing/inject] ✅ Successfully triggered click ${clickCount + 1}/3 on first matching button: "${currentButton.textContent?.trim()}"`,
-                                )
-
-                                // 클릭 후 DOM 업데이트 대기
-                                await delay(200)
-                              }
-
-                              // 마지막 클릭 후 버튼 상태 확인
-                              await delay(200)
-                              const finalButton = checkboxGroup.querySelector('button.wuic-button')
-                              if (finalButton) {
-                                const isSelected =
-                                  finalButton.getAttribute('data-wuic-props')?.includes('type:secondary') ||
-                                  finalButton.classList.contains('selected') ||
-                                  finalButton.getAttribute('aria-pressed') === 'true'
-                                console.log(
-                                  `[wing/inject] First matching button "${firstMatchedButtonText}" selected state: ${isSelected}`,
-                                )
-                              }
-                            } catch (error) {
-                              console.error(
-                                `[wing/inject] ❌ Error clicking first matching button "${firstMatchedButtonText}":`,
-                                error,
-                              )
-                            }
-                          } else {
-                            console.warn(
-                              `[wing/inject] ⚠️ No matching button found in attributeValues for attribute "${targetAttributeName}"`,
-                            )
-                          }
-
-                          console.log(
-                            `[wing/inject] ✅ ${firstMatchedButton ? 'Clicked' : 'Skipped'} first matching button for attribute "${targetAttributeName}"`,
+                          // goodAttributeValues에 있는 옵션들을 모두 클릭 (각각 3번씩)
+                          const normalizedGoodSet = new Set(
+                            (goodAttributeValues || []).map(v =>
+                              v.toUpperCase().trim().replace(/\s+/g, ''),
+                            ),
                           )
+
+                          if (!normalizedGoodSet.size) {
+                            console.warn(
+                              '[wing/inject] ⚠️ No goodAttributeValues provided; skipping attribute button clicks',
+                            )
+                          } else {
+                            console.log(
+                              '[wing/inject] ✅ goodAttributeValues for attribute buttons:',
+                              goodAttributeValues,
+                            )
+
+                            for (const target of normalizedGoodSet) {
+                              // target과 정확히 일치하는 버튼 찾기
+                              const matchedButtons = Array.from(buttons).filter(btn => {
+                                const text = btn.textContent?.trim() || ''
+                                const normalized = text.toUpperCase().trim().replace(/\s+/g, '')
+                                return normalized === target
+                              })
+
+                              if (!matchedButtons.length) {
+                                console.warn(
+                                  '[wing/inject] ⚠️ No exact match found for goodAttributeValue:',
+                                  target,
+                                )
+                                continue
+                              }
+
+                              for (const btn of matchedButtons) {
+                                const btnText = btn.textContent?.trim() || ''
+                                console.log(
+                                  `[wing/inject] ✅ Found button for goodAttributeValue: "${btnText}", clicking 3 times`,
+                                )
+
+                                for (let clickCount = 0; clickCount < 3; clickCount++) {
+                                  if (clickCount > 0) {
+                                    await delay(1000)
+                                  }
+
+                                  const rect = btn.getBoundingClientRect()
+                                  const x = rect.left + rect.width / 2
+                                  const y = rect.top + rect.height / 2
+
+                                  btn.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                                  await delay(100)
+
+                                  const mouseDownEvent = new MouseEvent('mousedown', {
+                                    bubbles: true,
+                                    cancelable: true,
+                                    view: window,
+                                    detail: 1,
+                                    screenX: x + window.screenX,
+                                    screenY: y + window.screenY,
+                                    clientX: x,
+                                    clientY: y,
+                                    button: 0,
+                                    buttons: 1,
+                                  })
+
+                                  const mouseUpEvent = new MouseEvent('mouseup', {
+                                    bubbles: true,
+                                    cancelable: true,
+                                    view: window,
+                                    detail: 1,
+                                    screenX: x + window.screenX,
+                                    screenY: y + window.screenY,
+                                    clientX: x,
+                                    clientY: y,
+                                    button: 0,
+                                    buttons: 0,
+                                  })
+
+                                  const clickEvent = new MouseEvent('click', {
+                                    bubbles: true,
+                                    cancelable: true,
+                                    view: window,
+                                    detail: 1,
+                                    screenX: x + window.screenX,
+                                    screenY: y + window.screenY,
+                                    clientX: x,
+                                    clientY: y,
+                                    button: 0,
+                                    buttons: 0,
+                                  })
+
+                                  const pointerDownEvent = new PointerEvent('pointerdown', {
+                                    bubbles: true,
+                                    cancelable: true,
+                                    view: window,
+                                    detail: 1,
+                                    clientX: x,
+                                    clientY: y,
+                                    pointerId: 1,
+                                    pointerType: 'mouse',
+                                    button: 0,
+                                    buttons: 1,
+                                  })
+
+                                  const pointerUpEvent = new PointerEvent('pointerup', {
+                                    bubbles: true,
+                                    cancelable: true,
+                                    view: window,
+                                    detail: 1,
+                                    clientX: x,
+                                    clientY: y,
+                                    pointerId: 1,
+                                    pointerType: 'mouse',
+                                    button: 0,
+                                    buttons: 0,
+                                  })
+
+                                  btn.dispatchEvent(pointerDownEvent)
+                                  btn.dispatchEvent(mouseDownEvent)
+                                  await delay(50)
+                                  btn.dispatchEvent(pointerUpEvent)
+                                  btn.dispatchEvent(mouseUpEvent)
+                                  btn.dispatchEvent(clickEvent)
+                                  btn.click()
+
+                                  console.log(
+                                    `[wing/inject] ✅ Clicked button "${btnText}" for goodAttributeValue target ${target} (${clickCount + 1}/3)`,
+                                  )
+
+                                  await delay(200)
+                                }
+                              }
+                            }
+                          }
 
                           // 클릭 후 버튼 상태 확인
                           await delay(500)
@@ -723,8 +605,49 @@
                         completeButton.click()
                         console.log('[wing/inject] ✅ "선택완료" button clicked successfully')
 
-                        // 4. 3초 대기 후 option-pane-component로 스크롤
-                        await delay(3000)
+                        // 로딩이 끝날 때까지 대기
+                        console.log('[wing/inject] ⏳ Waiting for loading to complete...')
+                        let loadingComplete = false
+                        const maxLoadingWait = 120 // 최대 12초 대기 (120 * 100ms = 12초)
+                        for (let i = 0; i < maxLoadingWait; i++) {
+                          await delay(100)
+                          
+                          // 로딩 레이어 확인
+                          const loadingLayer = document.querySelector('div[data-layer="loading"]')
+                          if (loadingLayer) {
+                            // 내부에 .in-progress 클래스를 가진 요소가 있는지 확인
+                            const inProgressElement = loadingLayer.querySelector('.in-progress')
+                            
+                            // 로딩이 끝났는지 확인 (내부가 비어있거나 .in-progress가 없으면 로딩 완료)
+                            if (!inProgressElement) {
+                              // 추가 확인: 내부에 실제 로딩 컴포넌트가 있는지 확인
+                              const loadingComponent = loadingLayer.querySelector('div[data-wuic-props="name:loading"]')
+                              if (!loadingComponent) {
+                                loadingComplete = true
+                                console.log('[wing/inject] ✅ Loading completed!')
+                                break
+                              }
+                            }
+                          } else {
+                            // 로딩 레이어 자체가 없으면 로딩 완료로 간주
+                            loadingComplete = true
+                            console.log('[wing/inject] ✅ Loading layer not found, assuming loading completed!')
+                            break
+                          }
+                          
+                          if (i % 10 === 0) {
+                            console.log(`[wing/inject] ⏳ Still waiting for loading... (${i * 0.1}s)`)
+                          }
+                        }
+
+                        if (!loadingComplete) {
+                          console.warn('[wing/inject] ⚠️ Loading timeout reached, proceeding anyway...')
+                        }
+
+                        // 로딩 완료 후 추가 대기 (안정화)
+                        await delay(500)
+
+                        // 4. option-pane-component로 스크롤
                         console.log('[wing/inject] 📜 Scrolling to option-pane-component...')
                         const optionPaneComponent = document.querySelector('.option-pane-component')
                         if (optionPaneComponent) {
@@ -739,6 +662,69 @@
                         await delay(500)
                         console.log('[wing/inject] Setting price and stock for all rows...')
 
+                        // 가상 스크롤 테이블을 맨 아래까지 스크롤하여 모든 행 로드
+                        console.log('[wing/inject] 📜 Scrolling option table to bottom to load all rows...')
+                        const optionTableBody = document.getElementById('optionPaneTableBody') || document.querySelector('.option-pane-table-body')
+                        if (optionTableBody) {
+                          // 맨 아래까지 스크롤 (점진적으로 스크롤하여 가상 스크롤이 모든 행을 렌더링하도록)
+                          const scrollToBottom = async () => {
+                            let previousScrollTop = -1
+                            let attempts = 0
+                            const maxAttempts = 50
+
+                            while (attempts < maxAttempts) {
+                              // 스크롤 컨테이너 찾기 (가상 스크롤은 내부 content 요소를 사용)
+                              const scrollContainer = optionTableBody.querySelector('.option-pane-table-content')
+                              if (scrollContainer) {
+                                // transform 값을 조정하여 스크롤 시뮬레이션
+                                const spacer = optionTableBody.querySelector('.option-pane-table-spacer')
+                                if (spacer) {
+                                  const totalHeight = parseInt(spacer.style.height) || 0
+                                  
+                                  // 스크롤을 점진적으로 아래로 이동
+                                  const currentScroll = parseInt(scrollContainer.style.transform.match(/translateY\((\d+)px\)/)?.[1] || '0')
+                                  const scrollStep = 200
+                                  const newScroll = Math.min(currentScroll + scrollStep, totalHeight)
+                                  
+                                  scrollContainer.style.transform = `translateY(${newScroll}px)`
+                                  
+                                  // scroll 이벤트 발생
+                                  optionTableBody.scrollTop = newScroll
+                                  optionTableBody.dispatchEvent(new Event('scroll', { bubbles: true }))
+                                  
+                                  if (newScroll >= totalHeight) {
+                                    console.log('[wing/inject] ✅ Reached bottom of option table')
+                                    break
+                                  }
+                                } else {
+                                  // fallback: 일반 스크롤
+                                  optionTableBody.scrollTop = optionTableBody.scrollHeight
+                                }
+                              } else {
+                                // fallback: 일반 스크롤
+                                optionTableBody.scrollTop = optionTableBody.scrollHeight
+                              }
+
+                              await delay(100)
+                              
+                              const currentScrollTop = optionTableBody.scrollTop || (scrollContainer ? parseInt(scrollContainer.style.transform.match(/translateY\((\d+)px\)/)?.[1] || '0') : 0)
+                              if (currentScrollTop === previousScrollTop) {
+                                // 스크롤이 더 이상 움직이지 않으면 끝
+                                console.log('[wing/inject] ✅ Finished scrolling option table')
+                                break
+                              }
+                              previousScrollTop = currentScrollTop
+                              attempts++
+                            }
+                          }
+
+                          await scrollToBottom()
+                          await delay(1000) // 가상 스크롤이 모든 행을 렌더링할 시간 제공
+                          console.log('[wing/inject] ✅ All option rows should be loaded now')
+                        } else {
+                          console.warn('[wing/inject] ⚠️ Option table body not found, skipping scroll')
+                        }
+
                         // 옵션 테이블의 모든 row 찾기
                         const optionRows = document.querySelectorAll('.option-pane-table-row[data-row-id]')
                         console.log('[wing/inject] 📦 Found option rows:', optionRows.length)
@@ -746,8 +732,8 @@
                         if (optionRows.length === 0) {
                           console.warn('[wing/inject] ⚠️ No option rows found')
                         } else {
-                          // 옵션명이 firstAttributeValue로 시작하지 않는 항목만 체크박스 클릭
-                          if (firstAttributeValue) {
+                          // 옵션명의 "첫 번째 속성"이 goodAttributeValues에 없는 항목만 체크박스 클릭
+                          if (goodAttributeValues && goodAttributeValues.length > 0) {
                             console.log(
                               `[wing/inject] 🔍 Validating option names - checking if they start with "${firstAttributeValue}"`,
                             )
@@ -762,23 +748,31 @@
                                   return
                                 }
 
-                                // 옵션명 텍스트 추출
-                                const optionNameText = optionNameSpan.textContent?.trim() || ''
-                                console.log(`[wing/inject] Row ${index + 1}: Option name = "${optionNameText}"`)
+                               // 옵션명 텍스트 추출
+                               const optionNameText = optionNameSpan.textContent?.trim() || ''
+                               console.log(`[wing/inject] Row ${index + 1}: Option name = "${optionNameText}"`)
 
-                                // 옵션명이 firstAttributeValue로 시작하는지 확인 (대소문자 무시, 공백 제거)
-                                const normalizedOptionName = optionNameText.toUpperCase().trim().replace(/\s+/g, '')
-                                const normalizedFirstAttrValue = firstAttributeValue
-                                  .toUpperCase()
-                                  .trim()
-                                  .replace(/\s+/g, '')
+                               // "×", "x", "," 기준으로 첫 번째 속성만 추출
+                               const firstToken = optionNameText
+                                 .split(/[×x,]/)
+                                 .map(s => s.trim())
+                                 .filter(s => s.length > 0)[0]
 
-                                // firstAttributeValue로 시작하지 않으면 체크박스 클릭 (부적절한 항목)
-                                if (!normalizedOptionName.startsWith(normalizedFirstAttrValue)) {
+                               const normalizedFirstToken = (firstToken || '').toUpperCase()
+                                 .trim()
+                                 .replace(/\s+/g, '')
+                               const normalizedGoodSet = new Set(
+                                 goodAttributeValues.map(v =>
+                                   v.toUpperCase().trim().replace(/\s+/g, ''),
+                                 ),
+                               )
+
+                               // goodAttributeValues에 없는 경우만 체크박스 클릭 (부적절한 항목)
+                               if (!normalizedGoodSet.has(normalizedFirstToken)) {
                                   const checkbox = row.querySelector('input[type="checkbox"]')
                                   if (checkbox && !checkbox.checked) {
                                     console.log(
-                                      `[wing/inject] ⚠️ Row ${index + 1}: Option name does not start with "${firstAttributeValue}", clicking checkbox`,
+                                     `[wing/inject] ⚠️ Row ${index + 1}: First token "${firstToken}" not in goodAttributeValues, clicking checkbox`,
                                     )
                                     checkbox.click()
                                   } else if (checkbox && checkbox.checked) {
@@ -790,7 +784,7 @@
                                   }
                                 } else {
                                   console.log(
-                                    `[wing/inject] ✅ Row ${index + 1}: Valid option name (starts with "${firstAttributeValue}")`,
+                                   `[wing/inject] ✅ Row ${index + 1}: Valid option first token in goodAttributeValues ("${firstToken}")`,
                                   )
                                 }
                               } catch (error) {

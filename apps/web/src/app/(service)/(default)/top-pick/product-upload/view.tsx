@@ -183,9 +183,11 @@ export default function Client({ extensionId }: { extensionId: string }) {
 
         await new Promise(r => setTimeout(r, 1500))
 
-        // DB에서 저장된 optionOrder 사용
+        // DB에서 저장된 optionOrder / goodAttributeValues 사용
         const optionOrder = product.optionOrder || undefined
+        const goodAttributeValues = product.goodAttributeValues || []
         console.log('[bulk-upload] Using optionOrder from DB:', optionOrder)
+        console.log('[bulk-upload] Using goodAttributeValues from DB:', goodAttributeValues)
         console.log('[bulk-upload] 🏷️ salePrice from DB:', product.salePrice)
 
         await wingProductItemsViaExtension({
@@ -198,6 +200,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
           vendorItemId: Number(product.vendorItemId),
           optionOrder,
           firstAttributeValue: product.firstAttributeValue || null,
+          goodAttributeValues,
           salePrice: product.salePrice,
         })
 
@@ -427,9 +430,11 @@ export default function Client({ extensionId }: { extensionId: string }) {
                                 window.open(uploadUrl, '_blank', 'noopener,noreferrer')
                                 await new Promise(r => setTimeout(r, 1500))
 
-                                // DB에서 저장된 optionOrder 사용
+                                // DB에서 저장된 optionOrder / goodAttributeValues 사용
                                 const optionOrder = product.optionOrder || undefined
+                                const goodAttributeValues = product.goodAttributeValues || []
                                 console.log('[upload] Using optionOrder from DB:', optionOrder)
+                                console.log('[upload] Using goodAttributeValues from DB:', goodAttributeValues)
                                 console.log('[upload] 🏷️ salePrice from DB:', product.salePrice)
 
                                 await wingProductItemsViaExtension({
@@ -442,6 +447,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
                                   vendorItemId: Number(product.vendorItemId),
                                   optionOrder,
                                   firstAttributeValue: product.firstAttributeValue || null,
+                                  goodAttributeValues,
                                   salePrice: product.salePrice,
                                 })
                               } catch (error) {

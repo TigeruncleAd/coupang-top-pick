@@ -390,10 +390,22 @@ import html2canvas from 'html2canvas'
                   }
 
                   if (firstValue) {
-                    goodAttributeValuesSet.add(firstValue)
-                    console.log(
-                      `[coupang/inject] ✅ Collected first attribute value for option ${index + 1}: ${firstValue}`,
-                    )
+                    // 영어/숫자로 시작하는 값만 goodAttributeValues에 포함
+                    const firstChar = firstValue.trim().charAt(0)
+                    if (/[a-zA-Z0-9]/.test(firstChar)) {
+                      goodAttributeValuesSet.add(firstValue)
+                      console.log(
+                        `[coupang/inject] ✅ Collected alnum-first attribute value for option ${
+                          index + 1
+                        }: ${firstValue}`,
+                      )
+                    } else {
+                      console.log(
+                        `[coupang/inject] ⏭️ Skipped non-alnum-first attribute value for option ${
+                          index + 1
+                        }: ${firstValue}`,
+                      )
+                    }
                   }
                 } catch (e) {
                   console.warn('[coupang/inject] ⚠️ Failed to collect first attribute value for option', index + 1, e)
