@@ -334,8 +334,11 @@ import html2canvas from 'html2canvas'
 
               // 각 옵션에서 배지 이미지 확인
               allOptionItems.forEach((item, index) => {
-                // 배지 이미지 찾기: src에 badge_1998ab96bf7.png가 포함된 img 태그
-                const badgeImages = item.querySelectorAll('img[src*="badge_1998ab96bf7.png"]')
+                // 배지 이미지 찾기: 쿠팡 배송 배지 경로가 포함된 img 태그
+                // 예: https://image.coupangcdn.com/image/rds/delivery_badge_ext/badge_199559e56f7.png
+                const badgeImages = item.querySelectorAll(
+                  'img[src*="delivery_badge_ext/badge_"]',
+                )
                 if (badgeImages.length > 0) {
                   rocketBadgeCount++
                   console.log(`[coupang/inject] 🚀 Option ${index + 1} has rocket badge`)

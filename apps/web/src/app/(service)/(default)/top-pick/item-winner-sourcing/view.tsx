@@ -278,7 +278,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
         let rocketValidationError: string | null = null
 
         // 30% 이상이면 검증 실패
-        if (rocketBadgeRatio > 0.3) {
+        if (rocketBadgeRatio >= 0.3) {
           rocketValidationError = `로켓 배송 과다 (${(rocketBadgeRatio * 100).toFixed(1)}%)`
           console.log('[validate] ❌ 로켓 배송 과다:', rocketValidationError)
         } else {
@@ -379,7 +379,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
         // optionOrder의 첫 번째 아이템이 '수량', '용량', '길이', '개당 용량', '구성품'인 경우 검증 실패
         const optionOrder = optionPickerRes.optionOrder || []
         const firstOption = optionOrder.length > 0 ? optionOrder[0] : null
-        const invalidFirstOptions = ['수량', '용량', '길이', '개당 용량', '구성품']
+        const invalidFirstOptions = ['수량', '용량', '길이', '개당 용량', '구성품', '개당 중량', '사이즈']
         const isFirstOptionInvalid = firstOption && invalidFirstOptions.includes(firstOption)
         const firstAttributeValue = optionPickerRes.firstAttributeValue || null
         console.log('[validate] 🔍 optionPickerRes:', optionPickerRes)
@@ -440,7 +440,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
         let rocketValidationError: string | null = null
 
         // 30% 이상이면 검증 실패
-        if (rocketBadgeRatio > 0.3) {
+        if (rocketBadgeRatio >= 0.3) {
           rocketValidationError = `로켓 배송 과다 (${(rocketBadgeRatio * 100).toFixed(1)}%)`
           console.log('[validate] ❌ 로켓 배송 과다:', rocketValidationError)
         } else {
@@ -649,7 +649,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
         let rocketValidationError: string | null = null
 
         // 30% 이상이면 검증 실패
-        if (rocketBadgeRatio > 0.3) {
+        if (rocketBadgeRatio >= 0.3) {
           rocketValidationError = `로켓 배송 과다 (${(rocketBadgeRatio * 100).toFixed(1)}%)`
           console.log('[validate] ❌ 로켓 배송 과다:', rocketValidationError)
         } else {
