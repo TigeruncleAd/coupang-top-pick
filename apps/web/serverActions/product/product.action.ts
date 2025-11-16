@@ -52,6 +52,7 @@ export async function createProduct(productData: WingProductSummary): Promise<Pr
         ? JSON.parse(JSON.stringify(productData.rocketAttributeMaps))
         : [],
       firstAttributeValue: productData.firstAttributeValue || '',
+      goodAttributeValues: productData.goodAttributeValues || [],
     },
   })
 
@@ -158,6 +159,7 @@ export async function createProductsBulk(
             ? JSON.parse(JSON.stringify(productData.rocketAttributeMaps))
             : [],
           firstAttributeValue: productData.firstAttributeValue || '',
+          goodAttributeValues: productData.goodAttributeValues || [],
         },
       })
 

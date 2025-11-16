@@ -202,7 +202,19 @@ export async function checkCoupangOptionPicker({
   productId: number
   itemId: number
   vendorItemId: number
-}): Promise<{ ok: boolean; hasOptionPicker?: boolean; optionCount?: number; optionOrder?: string[]; firstAttributeValue?: string | null; rocketBadgeRatio?: number; rocketBadgeCount?: number; totalOptionCount?: number; isFirstOptionSoldOut?: boolean; error?: string }> {
+}): Promise<{
+  ok: boolean
+  hasOptionPicker?: boolean
+  optionCount?: number
+  optionOrder?: string[]
+  firstAttributeValue?: string | null
+  goodAttributeValues?: string[]
+  rocketBadgeRatio?: number
+  rocketBadgeCount?: number
+  totalOptionCount?: number
+  isFirstOptionSoldOut?: boolean
+  error?: string
+}> {
   return new Promise(resolve => {
     try {
       if (typeof chrome === 'undefined' || !chrome.runtime?.sendMessage) {

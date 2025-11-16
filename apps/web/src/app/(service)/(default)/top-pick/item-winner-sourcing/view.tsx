@@ -27,6 +27,7 @@ type ValidationResult = {
   optionCount: number
   optionOrder?: string[]
   firstAttributeValue?: string | null
+  goodAttributeValues?: string[]
   error?: string
 }
 
@@ -216,6 +217,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
         const invalidFirstOptions = ['수량', '용량', '길이', '개당 용량', '구성품']
         const isFirstOptionInvalid = firstOption && invalidFirstOptions.includes(firstOption)
         const firstAttributeValue = optionPickerRes.firstAttributeValue || null
+        const goodAttributeValues = optionPickerRes.goodAttributeValues || []
         console.log('[validate] 🔍 optionPickerRes:', optionPickerRes)
         console.log('[validate] 🔍 firstAttributeValue from optionPickerRes:', optionPickerRes.firstAttributeValue)
         console.log('[validate] 🔍 firstAttributeValue (processed):', firstAttributeValue)
@@ -227,6 +229,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
             firstAttributeValue: firstAttributeValue,
+            goodAttributeValues,
             error: `첫 번째 옵션이 ${firstOption}입니다`,
           })
           setValidationResults([...results])
@@ -242,6 +245,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
             firstAttributeValue: null,
+            goodAttributeValues,
             error: '첫 번째 속성 값이 없습니다',
           })
           setValidationResults([...results])
@@ -260,6 +264,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
             firstAttributeValue: firstAttributeValue,
+            goodAttributeValues,
             error: `첫 번째 속성 값이 영어 또는 숫자로 시작하지 않습니다: ${firstAttributeValue}`,
           })
           setValidationResults([...results])
@@ -293,6 +298,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
             firstAttributeValue: firstAttributeValue,
+            goodAttributeValues,
             error: rocketValidationError,
           })
         } else {
@@ -303,6 +309,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
             firstAttributeValue: firstAttributeValue,
+            goodAttributeValues,
           })
         }
       } catch (error) {
@@ -382,6 +389,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
         const invalidFirstOptions = ['수량', '용량', '길이', '개당 용량', '구성품', '개당 중량', '사이즈']
         const isFirstOptionInvalid = firstOption && invalidFirstOptions.includes(firstOption)
         const firstAttributeValue = optionPickerRes.firstAttributeValue || null
+        const goodAttributeValues = optionPickerRes.goodAttributeValues || []
         console.log('[validate] 🔍 optionPickerRes:', optionPickerRes)
         console.log('[validate] 🔍 firstAttributeValue from optionPickerRes:', optionPickerRes.firstAttributeValue)
         console.log('[validate] 🔍 firstAttributeValue (processed):', firstAttributeValue)
@@ -393,6 +401,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
             firstAttributeValue: firstAttributeValue,
+            goodAttributeValues,
             error: `첫 번째 옵션이 ${firstOption}입니다`,
           }
           setValidationResults(prev => [...prev.filter(r => r.productId !== product.productId), validationResult!])
@@ -407,6 +416,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
             firstAttributeValue: null,
+            goodAttributeValues,
             error: '첫 번째 속성 값이 없습니다',
           }
           setValidationResults(prev => [...prev.filter(r => r.productId !== product.productId), validationResult!])
@@ -423,6 +433,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
             firstAttributeValue: firstAttributeValue,
+            goodAttributeValues,
             error: `첫 번째 속성 값이 영어 또는 숫자로 시작하지 않습니다: ${firstAttributeValue}`,
           }
           setValidationResults(prev => [...prev.filter(r => r.productId !== product.productId), validationResult!])
@@ -455,6 +466,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
             firstAttributeValue: firstAttributeValue,
+            goodAttributeValues,
             error: rocketValidationError,
           }
         } else {
@@ -465,6 +477,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
             optionCount: optionPickerRes.optionCount || 0,
             optionOrder: optionOrder,
             firstAttributeValue: firstAttributeValue,
+            goodAttributeValues,
           }
         }
       } catch (error) {
@@ -705,6 +718,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
           ...product,
           optionOrder: validationResult?.optionOrder || [],
           firstAttributeValue: validationResult?.firstAttributeValue || null,
+          goodAttributeValues: validationResult?.goodAttributeValues || [],
         }
       })
 
@@ -870,6 +884,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
                         ...product,
                         optionOrder: validationResult?.optionOrder || [],
                         firstAttributeValue: validationResult?.firstAttributeValue || null,
+                        goodAttributeValues: validationResult?.goodAttributeValues || [],
                       }
                       createProductMutation.mutate(productWithOptionOrder)
                     }}
@@ -882,6 +897,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
                             optionCount: validationResult.optionCount,
                             optionOrder: validationResult.optionOrder,
                             firstAttributeValue: validationResult.firstAttributeValue,
+                            goodAttributeValues: validationResult.goodAttributeValues,
                             error: validationResult.error,
                           }
                         : undefined

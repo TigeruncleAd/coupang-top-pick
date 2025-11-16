@@ -34,6 +34,7 @@ export interface WingProductSummary {
   rocketAttributeValues?: string[]
   rocketAttributeMaps?: Array<Array<{ attributeTypeId: number; attributeName: string; attributeValue: string }>>
   firstAttributeValue?: string | null
+   goodAttributeValues?: string[]
 }
 
 export interface WingPreMatchingSearchResult {

@@ -336,9 +336,7 @@ import html2canvas from 'html2canvas'
               allOptionItems.forEach((item, index) => {
                 // 배지 이미지 찾기: 쿠팡 배송 배지 경로가 포함된 img 태그
                 // 예: https://image.coupangcdn.com/image/rds/delivery_badge_ext/badge_199559e56f7.png
-                const badgeImages = item.querySelectorAll(
-                  'img[src*="delivery_badge_ext/badge_"]',
-                )
+                const badgeImages = item.querySelectorAll('img[src*="delivery_badge_ext/badge_"]')
                 if (badgeImages.length > 0) {
                   rocketBadgeCount++
                   console.log(`[coupang/inject] 🚀 Option ${index + 1} has rocket badge`)
@@ -352,11 +350,68 @@ import html2canvas from 'html2canvas'
               }
             }
 
-            // 첫 번째 속성 값 추출 완료 후 10초 대기
-            console.log('[coupang/inject] ⏳ Waiting 100 mili-seconds after extracting first attribute value...')
+            // 옵션별 첫 번째 속성 값 전체 수집 (goodAttributeValues)
+            const goodAttributeValuesSet = new Set()
+            if (optionList) {
+              const allOptionItems = optionList.querySelectorAll('li')
+              allOptionItems.forEach((item, index) => {
+                try {
+                  // 각 옵션의 옵션명 영역 찾기 (구조는 첫 옵션과 동일하게 가정)
+                  const flexContainerEach = item.querySelector('.select-item .twc-flex-1')
+                  let firstValue = null
+
+                  const extractFirstValue = root => {
+                    if (!root) return null
+                    const divs = root.querySelectorAll('div')
+                    for (const div of divs) {
+                      const classList = div.className || ''
+                      if (classList.includes('twc-text-[12px]') && classList.includes('twc-font-bold')) {
+                        const text = div.textContent?.trim()
+                        if (text) {
+                          // "×", "x", "," 기준으로 split하여 첫 번째 부분만 사용
+                          const parts = text
+                            .split(/[×x,]/)
+                            .map(s => s.trim())
+                            .filter(s => s.length > 0)
+                          if (parts.length > 0) {
+                            return parts[0]
+                          }
+                        }
+                      }
+                    }
+                    return null
+                  }
+
+                  firstValue = extractFirstValue(flexContainerEach)
+
+                  if (!firstValue) {
+                    // fallback: li 전체에서 다시 시도
+                    firstValue = extractFirstValue(item)
+                  }
+
+                  if (firstValue) {
+                    goodAttributeValuesSet.add(firstValue)
+                    console.log(
+                      `[coupang/inject] ✅ Collected first attribute value for option ${index + 1}: ${firstValue}`,
+                    )
+                  }
+                } catch (e) {
+                  console.warn('[coupang/inject] ⚠️ Failed to collect first attribute value for option', index + 1, e)
+                }
+              })
+            }
+
+            const goodAttributeValues = Array.from(goodAttributeValuesSet)
+            console.log('[coupang/inject] 📊 goodAttributeValues:', goodAttributeValues)
+
+            // 첫 번째 속성 값 추출 완료 후 짧게 대기
+            console.log('[coupang/inject] ⏳ Waiting 100 mili-seconds after extracting attribute values...')
             await new Promise(resolve => setTimeout(resolve, 100))
             console.log('[coupang/inject] ✅ Wait completed')
-            console.log('[coupang/inject] 📤 Sending response with firstAttributeValue:', firstAttributeValue)
+            console.log('[coupang/inject] 📤 Sending response with firstAttributeValue & goodAttributeValues:', {
+              firstAttributeValue,
+              goodAttributeValues,
+            })
 
             const response = {
               ok: true,
@@ -364,6 +419,7 @@ import html2canvas from 'html2canvas'
               optionCount: options.length,
               optionOrder: optionOrder || [],
               firstAttributeValue: firstAttributeValue || null,
+              goodAttributeValues,
               rocketBadgeRatio: rocketBadgeRatio,
               rocketBadgeCount: rocketBadgeCount,
               totalOptionCount: totalOptionCount,

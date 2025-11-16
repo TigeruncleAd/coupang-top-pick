@@ -117,6 +117,7 @@ model Product {
   sponsored         String? // 스폰서 여부
   matchingResultId  String? // 매칭 결과 ID
   firstAttributeValue String @default("")
+  goodAttributeValues String[] @default([])
   attributeTypes    Json? // 속성 타입
 
   optionOrder       String[] @default([])

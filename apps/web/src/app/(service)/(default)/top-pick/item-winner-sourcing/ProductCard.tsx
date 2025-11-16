@@ -17,6 +17,7 @@ interface ProductCardProps {
     attributeValues?: string[]
     rocketAttributeValues?: string[]
     firstAttributeValue?: string | null
+    goodAttributeValues?: string[]
     error?: string
   }
   onValidate?: () => void
@@ -155,6 +156,14 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(function Produc
               <div className="ml-6 mt-1">
                 <span className="text-muted-foreground text-xs font-medium">첫 번째 속성 값: </span>
                 <span className="text-xs text-blue-400">{validationResult.firstAttributeValue}</span>
+              </div>
+            )}
+            {validationResult?.goodAttributeValues && validationResult.goodAttributeValues.length > 0 && (
+              <div className="ml-6 mt-1">
+                <span className="text-muted-foreground text-xs font-medium">옵션 첫 번째 속성들: </span>
+                <span className="text-xs text-emerald-400">
+                  {validationResult.goodAttributeValues.join(', ')}
+                </span>
               </div>
             )}
           </div>
