@@ -186,6 +186,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
         // DB에서 저장된 optionOrder 사용
         const optionOrder = product.optionOrder || undefined
         console.log('[bulk-upload] Using optionOrder from DB:', optionOrder)
+        console.log('[bulk-upload] 🏷️ salePrice from DB:', product.salePrice)
 
         await wingProductItemsViaExtension({
           extensionId,
@@ -421,6 +422,7 @@ export default function Client({ extensionId }: { extensionId: string }) {
                                 // DB에서 저장된 optionOrder 사용
                                 const optionOrder = product.optionOrder || undefined
                                 console.log('[upload] Using optionOrder from DB:', optionOrder)
+                                console.log('[upload] 🏷️ salePrice from DB:', product.salePrice)
 
                                 await wingProductItemsViaExtension({
                                   extensionId,
