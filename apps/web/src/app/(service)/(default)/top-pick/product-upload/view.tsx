@@ -373,6 +373,14 @@ export default function Client({ extensionId }: { extensionId: string }) {
                             <span className="text-xs text-blue-400">{product.firstAttributeValue}</span>
                           </div>
                         )}
+                        {product.goodAttributeValues && product.goodAttributeValues.length > 0 && (
+                          <div className="mt-1">
+                            <span className="text-muted-foreground text-xs font-medium">옵션 첫 번째 속성들: </span>
+                            <span className="text-xs text-emerald-400">
+                              {product.goodAttributeValues.join(', ')}
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <div className="flex flex-col gap-2">
                         <Button size="sm" variant="outline" asChild>
